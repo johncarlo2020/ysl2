@@ -61,7 +61,7 @@
         }
 
         .white {
-            color: white;
+            color: black;
         }
 
         .visit {
@@ -71,7 +71,7 @@
     <div class="congrats">
         <p>Visit</p>
         <div class="branding">
-            <img class="logo" src="{{ asset('images/logo.png') }}" alt="">
+            <img class="logo" src="{{ asset('images/logo-dark.webp') }}" alt="">
         </div>
 
 
