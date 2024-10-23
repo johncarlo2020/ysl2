@@ -62,12 +62,10 @@ div {
 }
 
 #scannerContainer {
-    padding: 20px;
     display: flex;
     justify-content: center;
     align-items: center;
     flex-direction: column;
-    margin-top: 40px;
 
     #reader {
         @media (max-width: 768px) {
@@ -378,7 +376,6 @@ a:active {
 
     .content {
         padding: 20px;
-        margin-top: 20px;
     }
 
     .title-container {

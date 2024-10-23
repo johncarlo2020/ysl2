@@ -53,10 +53,8 @@ class StationController extends Controller
         }
         // dd($stationDone);
 
-        if ($stationDone < 4) {
+        if ($stationDone < 3) {
             return view('dashboard', compact('stations', 'stationDone'));
-        } elseif ($stationDone == 4) {
-            return redirect()->route('station.show', ['station' => 5]);
         } else {
             return redirect()->route('congrats');
         }
