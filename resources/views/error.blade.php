@@ -15,8 +15,8 @@
         }
 
         .button-error {
-            background-color: #fff !important;
-            color: #303030 !important;
+            background-color: #D1A14A !important;
+            color: white !important;
             border: none;
             padding: 10px 50px;
             text-align: center;
