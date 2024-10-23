@@ -42,6 +42,10 @@
             height: auto;
         }
 
+        .logo {
+            height: 10vh !important;
+        }
+
         .tag-line {
             font-size: 16px;
             line-height: 20px;
@@ -54,7 +58,6 @@
             height: 100%;
             display: flex;
             flex-direction: column;
-            gap: 20px;
             text-align: center;
             justify-content: center;
             align-items: center;
