@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="dashboard main main-bg safari-padding">
+    <div class="dashboard main main-bg">
         <div class="branding-container">@include('components.branding')</div>
         <h1 class="station-born">CELEBRATE IN GOLD</h1>
 
