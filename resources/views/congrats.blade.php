@@ -37,6 +37,10 @@
             padding-bottom: calc(2rem + env(safe-area-inset-bottom));
         }
 
+        p {
+            margin: 0;
+        }
+
         .main-logo {
             width: 34%;
             height: auto;
