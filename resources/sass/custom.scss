@@ -396,6 +396,10 @@ a:active {
         letter-spacing: 1px;
         text-align: center;
         margin-top: 20px;
+
+        @media (max-width: 500px) {
+            font-size: 24px;
+        }
     }
 
  .tile {
