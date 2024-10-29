@@ -243,6 +243,10 @@ a:active {
         width: 50%;
         height: 20vh;
         object-fit: contain;
+        //on small  screen
+        @media (max-width: 400px) {
+            height: 15vh;
+        }
     }
 }
 
