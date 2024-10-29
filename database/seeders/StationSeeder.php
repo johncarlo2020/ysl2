@@ -20,7 +20,7 @@ class StationSeeder extends Seeder
     {
         Station::create([
             'name' => 'YSL WINTER FANTASY',
-            'description' => 'Strike a pose at the YSL Beauty Holiday pop-up at Raffles City External Quartzite, share your photo on social media & hashtag #YSLBeautySG',
+            'description' => 'Strike a pose at the YSL Beauty Holiday pop-up at Raffles City External Quartzite, share your photo on your socials using #YSLBeautySG #YSLHoliday',
         ]);
 
         Station::create([
