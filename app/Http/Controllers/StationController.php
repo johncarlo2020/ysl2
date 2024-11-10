@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Station;
 use App\Models\User;
+use App\Models\Locker;
 
 use App\Models\StationUser;
 use DB;
@@ -58,6 +59,18 @@ class StationController extends Controller
         } else {
             return redirect()->route('congrats');
         }
+    }
+
+    public function roulette()
+    {
+        $products = Locker::get()->map(function ($product) {
+            if ($product->available == 0) {
+                $product->percentage = 0;
+            }
+            return $product;
+        });
+
+        return view('rollet', compact('products'));
     }
 
     public function scan(Request $request)
