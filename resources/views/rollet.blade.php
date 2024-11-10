@@ -1,29 +1,48 @@
 <x-app-layout>
     <style>
         .rollet-page {
-            background-image: url("{{ asset('images/wheel-bg.png') }}");
+            background-image: url("{{ asset('images/YSL-BG.webp') }}");
             background-size: cover;
             background-repeat: no-repeat;
             background-position: center;
             height: 100vh;
+            transition: 0.9ms;
+        }
 
-
+        .rollet-page #start,.rollet-page #continue{
+            position: absolute;
+            bottom: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #D1A14A;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            font-size: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 72%;
+            height: 90px;
+            border-radius: 8px !important;
+            font-size: 29px;
+            font-weight: 500;
         }
 
         .roulette-container {
             transform: rotate(180deg);
+
         }
 
         .roulette-container::before {
             content: "";
-            background-image: url("{{ asset('images/rouletArrow.png') }}");
+            background-image: url("{{ asset('images/rouletArrow.webp') }}");
             width: 5vw;
-            height: 100px;
+            height: 149px;
             background-size: contain;
             background-repeat: no-repeat;
             position: absolute;
             z-index: 1;
-            bottom: -20px;
+            bottom: -92px;
             left: 50%;
             transform: translate(-50%) rotate(180deg);
             pointer-events: none;
@@ -43,11 +62,18 @@
             -webkit-animation-iteration-count: 1;
             animation-iteration-count: 1;
         }
+        .not-selected {
+            box-shadow: 0 0 0 2px #d9d1c1b3, 0 0 0 -4px #ffd700;
+            border-bottom-color: #AFAFAF99 !important;
+        }
+        .not-selected::before {
+            color: #CFCBC5 !important;
+        }
 
         .roulette::before {
             content: "";
-            width: 30px;
-            height: 30px;
+            width: 60px;
+            height: 60px;
             background-color: #fff;
             /* outline: 5px solid #ABE0F9; */
             position: absolute;
@@ -60,23 +86,34 @@
         }
 
         .option {
+            transition: 0.9s;
             border: 0 solid transparent;
             position: absolute;
             transform-origin: top center;
             top: 50%;
+            outline: solid 2px transparent;
+            outline-offset: -2px;
+            box-shadow: 0 0 0 2px #e1be79, 0 0 0 -4px #ffd700;
         }
 
         .option::before {
-            z-index: 10;
+            z-index: 9999 !important;
             position: absolute;
             background-position: center;
             background-repeat: no-repeat;
             background-size: contain;
             margin-bottom: 20px;
-            content: '';
-            left: -25px;
-            width: 6vw;
-            height: 36vw;
+            font-size: 70px;
+            color: #FFF6E5;
+            left: 12px;
+            width: 0vw;
+            top: 185px;
+            rotate: 180deg;
+        }
+
+        .option-10::before {
+            left: -31px;
+            width: 4vw;
         }
 
         /* .option-1::before {
@@ -103,19 +140,54 @@
             left: -20px;
         }
 
+        .roulette {
+            background: radial-gradient(50% 50% at 50% 50%, #F3F0F0 0%, #D1A14A 100%);
+
+        }
+
         .wrapper {
+
             display: flex;
             justify-content: center;
             align-items: center;
-            width: 550px;
-            height: 550px;
+            width: 900px;
+            height: 900px;
             margin: 0 auto;
-            background-color: #ABE0F9;
             border-radius: 50%;
             padding: 10px;
-            position: relative;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin-top: 50px;
+            transform: translate(-50%, -50%);
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            margin-top: 40px;
+            background: linear-gradient(45.48deg, #FFFB90 0.65%, #FBE978 14.13%, #F8DC65 23.76%, #E6C758 26.65%, #C49F40 33.39%, #AC832F 39.17%, #9E7225 43.99%, #996C22 47.84%, #9D7125 50.73%, #A98030 54.59%, #BD9A42 58.44%, #D9BE5A 62.29%, #FBE878 67.11%, #FFFFAA 74.81%, #FBE878 80.59%, #A4631B 96.97%);
+        }
+
+        .bottom-message {
+            position: absolute;
+            bottom: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            color: #fff;
+            font-size: 30px;
+            font-weight: 500;
+            z-index: 999;
+
+        }
+
+        .bottom-message h1 {
+            font-size: 60px;
+            margin-bottom: 10px;
+            color: #D4A859;
+            font-weight: 700;
+        }
+
+        .bottom-message h2 {
+            font-size: 50px;
+            letter-spacing: 2px;
+            color: #000;
         }
 
         .dot {
@@ -157,10 +229,9 @@
         .dot:nth-child(8) {
             transform: rotate(315deg) translate(143px);
         }
-
         .roulette {
+            border-radius: 50%;
             margin: 0 auto;
-            border: 4px solid #FFF8AD;
         }
 
         .option-image-container {
@@ -174,6 +245,57 @@
             width: 100%;
             height: auto;
             object-fit: contain;
+        }
+
+        #number {
+            background-image: url("{{ asset('images/YSL-Gift.webp') }}");
+        }
+
+        #congrats {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 999;
+            width: 100%;
+        }
+
+        #congrats h1 {
+            font-size: 60px;
+            margin-bottom: 10px;
+            color: #D4A859;
+            font-weight: 900;
+            letter-spacing: 2px;
+        }
+
+        #congrats h2 {
+            font-size: 50px;
+            letter-spacing: 2px;
+            color: #000;
+            font-weight: 400;
+        }
+
+        #number {
+            width: 20vh;
+            height: 20vh;
+            object-fit: contain;
+            background-size: cover;
+            margin: 0 auto;
+            margin-bottom: 50px;
+            position: relative;
+        }
+
+        p#winNum {
+            font-size: 70px;
+            color: #000;
+            text-align: center;
+            z-index: 9999;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: 700;
         }
     </style>
     <!-- Modal -->
@@ -203,33 +325,32 @@
         </div>
     </div>
     <div class="rolet rollet-page">
-        <div class="ipad-branding">
-            <img src="{{ asset('images/ipad-logo.png') }}" alt="ipad">
-            <img src="{{ asset('images/hello-kity-ipad.png') }}" onclick="logo()" alt="branding">
-        </div>
-        <img id="kity" class="hello-kity-ipad" src="{{ asset('images/hellokity.png') }}" alt="branding">
-
         <div id="rollet" class="wrapper d-none">
-            @for ($i = 0; $i < 8; $i++) <div class="dot">
-        </div>
-        @endfor
         <div class="roulette-container">
             <div class="roulette"></div>
         </div>
     </div>
 
     <div id="congrats" class="congrats-element d-none">
-        <img class="backdrop" src="{{ asset('images/circle.png') }}" alt="congrats">
-        <img class="price" src="" alt="congrats">
+        <div id="number">
+            <p id="winNum"></p>
+        </div>
+        <h1>CONGRATULATION</h1>
+        <h2>YOU HAVE UNLOCKED A GIFT</h2>
     </div>
 
     <div id="qrImg" class="qr-image d-none">
 
     </div>
 
-    <button id="start" class="btn discover-btn rounded-pill">START</button>
-    <button id="continue" class="btn discover-btn rounded-pill d-none">CONTINUE</button>
+    <button id="start" class="btn discover-btn">START</button>
+    <button id="continue" class="btn discover-btn  d-none" onclick="done()">DONE</button>
     <button id="end" class="btn discover-btn rounded-pill d-none" onclick="refresh()">END</button>
+
+    <div id="bottomMessage" class="bottom-message d-none">
+        <h1>READY</h1>
+        <h2>SPIN THE WHEEL</h2>
+    </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
@@ -261,17 +382,18 @@
                 $('#kity').addClass('d-none');
                 $('#spin').removeClass('d-none');
                 $('#rollet').removeClass('d-none');
+                $('.rollet-page').css('background-image', 'url("{{ asset('images/YSL-BG-clear.webp') }}")');
+                $('#bottomMessage').removeClass('d-none');
             });
 
             //add event listener to continue button
             $('#continue').click(function () {
-                $('#congrats').addClass('d-none');
                 $('#continue').addClass('d-none');
                 $('#qrImg').removeClass('d-none');
-                $('#end').removeClass('d-none');
+                // $('#end').removeClass('d-none');
             });
 
-            var rouletteSize = 500
+            var rouletteSize = 870;
             var numberOfSlots = {{ count($products)
         }};
         console.log(numberOfSlots); // Get the number of products dynamically
@@ -289,17 +411,12 @@
 
         var images = [];
 
-        for (var i = 1; i <= numberOfSlots; i++) {
-            images.push('{{ asset('images') }}/Product' + i + '.webp');
-        }
-
         $(".roulette").css({
             'width': rouletteSize + 'px',
-            'height': rouletteSize + 'px'
+            'height': rouletteSize + 'px'   // Set the width and height of the roulette
         });
 
         $('head').append('<style id="afterNumber"></style>');
-
         products.forEach(function (product, i) {
             var productNumber = i + 1;
 
@@ -308,11 +425,14 @@
 
             $(classSelector).css({
                 'transform': 'rotate(' + slotAngle * productNumber + 'deg)',
-                'border-bottom-color': '#D1A14A', // Alternate between the two colors
+                'border-bottom-color': 'transparent', // Alternate between the two colors
             });
 
             $('#afterNumber').append('.option-' + productNumber +
-                '::before {content: ""; z-index: 9999 !important; background-image: url("' +
+                '::before {content: "' + productNumber + '"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #fff; font-size: 16px; z-index: 10000;}');
+
+            $('#afterNumber').append('.option-' + productNumber +
+                '::after {content: ""; z-index: 9999 !important; background-image: url("' +
                 images[i] +
                 '");}'); // Use the product's image URL
         });
@@ -320,8 +440,11 @@
         $(".option").css({
             'border-bottom-width': slotHeight + 'px',
             'border-right-width': (rouletteSize / 2) + 'px',
-            'border-left-width': (rouletteSize / 2) + 'px'
+            'border-left-width': (rouletteSize / 2) + 'px',
+            'width': (rouletteSize / 2) + 'px',
+            'height': (rouletteSize / 2) + 'px'
         });
+
 
         function spinRoulette() {
             var num;
@@ -336,6 +459,8 @@
                     break;
                 }
             }
+
+            selectedProduct = num;
             return num; // Return the selected product number
         }
         // Optionally, you can trigger a real roulette spin to show animation
@@ -363,47 +488,63 @@
             let qrUrl = `{{ url('error') }}?product=${newNum}&station=4`;
 
 
-            console.log(num);
-
             $('.bypassLogo').attr('onClick', 'bypass(' + newNum + ')');
 
             $('.roulette').removeAttr('id').attr('id', numID);
 
+            console.log(num);
+
             document.getElementById(numID).addEventListener('animationend', function () {
                 $('#spin').addClass('d-none');
-                $('#rollet').addClass('d-none');
-                $('#congrats').removeClass('d-none');
+                $('.option').addClass('not-selected');
+                $('.option-' + num).removeClass('not-selected');
+                $('#bottomMessage').addClass('d-none');
                 $('#continue').removeClass('d-none');
-                const confettiCanvas = document.createElement('canvas');
-                confettiCanvas.style.position = 'fixed';
-                confettiCanvas.style.top = 0;
-                confettiCanvas.style.left = 0;
-                confettiCanvas.style.width = '100%';
-                confettiCanvas.style.height = '100%';
-                confettiCanvas.style.pointerEvents = 'none';
-                confettiCanvas.style.zIndex = 9999;
-                document.body.appendChild(confettiCanvas);
-
-                // Trigger confetti using the new canvas
-                const myConfetti = confetti.create(confettiCanvas, {
-                    resize: true,
-                    useWorker: true
-                });
-
-                myConfetti({
-                    particleCount: 100,
-                    spread: 70,
-                    origin: {
-                        y: 0.6
-                    }
-                });
-
-                // Optional: Remove the canvas after a short delay
-                setTimeout(() => {
-                    document.body.removeChild(confettiCanvas);
-                }, 5000);
             });
         });
         });
+
+        var selectedProduct = 0;
+
+        function done() {
+            $('#congrats').removeClass('d-none');
+
+            $('#rollet').addClass('d-none');
+
+            $('#winNum').text(selectedProduct);
+
+            const confettiCanvas = document.createElement('canvas');
+            confettiCanvas.style.position = 'fixed';
+            confettiCanvas.style.top = 0;
+            confettiCanvas.style.left = 0;
+            confettiCanvas.style.width = '100%';
+            confettiCanvas.style.height = '100%';
+            confettiCanvas.style.pointerEvents = 'none';
+            confettiCanvas.style.zIndex = 9999;
+            document.body.appendChild(confettiCanvas);
+
+            // Trigger confetti using the new canvas
+            const myConfetti = confetti.create(confettiCanvas, {
+                resize: true,
+                useWorker: true
+            });
+
+            myConfetti({
+                particleCount: 100,
+                spread: 100,
+                startVelocity: 60,
+                origin: {
+                    y: 0.6
+                },
+                colors: ['#FFD700', '#FFDF00', '#FFC700'], // Different shades of gold
+                shapes: ['square'], // Ribbon-like shapes
+                scalar: 3
+            });
+
+            // Optional: Remove the canvas after a short delay
+            setTimeout(() => {
+                document.body.removeChild(confettiCanvas);
+            }, 5000);
+        }
     </script>
 </x-app-layout>
