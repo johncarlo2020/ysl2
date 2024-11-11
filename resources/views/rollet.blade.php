@@ -451,6 +451,7 @@
             });
 
 
+            let isClicked = false;
             function spinRoulette() {
                 var num;
                 var random = Math.random() * totalProbability; // Get a random number between 0 and 100
@@ -470,6 +471,8 @@
             }
             // Optionally, you can trigger a real roulette spin to show animation
             $('.roulette').before().click(function() {
+                if (isClicked) return;
+                isClicked = true;
                 var num = spinRoulette();
                 var numID = 'number-' + num;
 
@@ -493,7 +496,6 @@
 
                 $('.roulette').removeAttr('id').attr('id', numID);
 
-                console.log(num);
                 $('#continue').attr('onClick', 'proceed(' + num + ')');
 
                 document.getElementById(numID).addEventListener('animationend', function() {
