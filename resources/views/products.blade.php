@@ -41,10 +41,10 @@
             <div class="p-3 pb-0 card-header">
                 <div class="d-flex justify-content-between align-items-center">
                     <h6 class="mb-2">Products</h6>
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                    <!-- <button type="button" class="btn btn-primary" data-bs-toggle="modal"
                         data-bs-target="#addProductModal">
                         Refill
-                    </button>
+                    </button> -->
                 </div>
             </div>
 
