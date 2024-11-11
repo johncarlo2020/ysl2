@@ -47,70 +47,70 @@ class StationSeeder extends Seeder
 
         Locker::create([
             'name' => '1',
-            'percentage' => '17 ',
+            'percentage' => '13',
             'allocation' => '80',
             'available' => '80',
         ]);
 
         Locker::create([
             'name' => '2',
-            'percentage' => '9.6',
+            'percentage' => '20',
             'allocation' => '100',
             'available' => '100',
         ]);
 
         Locker::create([
             'name' => '3',
-            'percentage' => '1',
+            'percentage' => '5',
             'allocation' => '30',
             'available' => '30',
         ]);
 
         Locker::create([
             'name' => '4',
-            'percentage' => '17',
+            'percentage' => '13',
             'allocation' => '80',
             'available' => '80',
         ]);
 
         Locker::create([
             'name' => '5',
-            'percentage' => '9.6',
+            'percentage' => '4',
             'allocation' => '40',
             'available' => '40',
         ]);
 
         Locker::create([
             'name' => '6',
-            'percentage' => '1',
+            'percentage' => '5',
             'allocation' => '30',
             'available' => '30',
         ]);
 
         Locker::create([
             'name' => '7',
-            'percentage' => '17',
+            'percentage' => '10',
             'allocation' => '60',
             'available' => '60',
         ]);
 
         Locker::create([
             'name' => '8',
-            'percentage' => '17',
+            'percentage' => '24',
             'allocation' => '140',
             'available' => '140',
         ]);
 
         Locker::create([
             'name' => '9',
-            'percentage' => '9.8',
+            'percentage' => '2',
             'allocation' => '20',
             'available' => '20',
         ]);
 
         Locker::create([
             'name' => '10',
-            'percentage' => '1',
+            'percentage' => '5',
             'allocation' => '30',
             'available' => '30',
         ]);

@@ -9,7 +9,8 @@
             transition: 0.9ms;
         }
 
-        .rollet-page #start,.rollet-page #continue{
+        .rollet-page #start,
+        .rollet-page #continue {
             position: absolute;
             bottom: 10%;
             left: 50%;
@@ -62,10 +63,12 @@
             -webkit-animation-iteration-count: 1;
             animation-iteration-count: 1;
         }
+
         .not-selected {
             box-shadow: 0 0 0 2px #d9d1c1b3, 0 0 0 -4px #ffd700;
             border-bottom-color: #AFAFAF99 !important;
         }
+
         .not-selected::before {
             color: #CFCBC5 !important;
         }
@@ -229,6 +232,7 @@
         .dot:nth-child(8) {
             transform: rotate(315deg) translate(143px);
         }
+
         .roulette {
             border-radius: 50%;
             margin: 0 auto;
@@ -326,31 +330,31 @@
     </div>
     <div class="rolet rollet-page">
         <div id="rollet" class="wrapper d-none">
-        <div class="roulette-container">
-            <div class="roulette"></div>
+            <div class="roulette-container">
+                <div class="roulette"></div>
+            </div>
         </div>
-    </div>
 
-    <div id="congrats" class="congrats-element d-none">
-        <div id="number">
-            <p id="winNum"></p>
+        <div id="congrats" class="congrats-element d-none">
+            <div id="number">
+                <p id="winNum"></p>
+            </div>
+            <h1>CONGRATULATION</h1>
+            <h2>YOU HAVE UNLOCKED A GIFT</h2>
         </div>
-        <h1>CONGRATULATION</h1>
-        <h2>YOU HAVE UNLOCKED A GIFT</h2>
-    </div>
 
-    <div id="qrImg" class="qr-image d-none">
+        <div id="qrImg" class="qr-image d-none">
 
-    </div>
+        </div>
 
-    <button id="start" class="btn discover-btn">START</button>
-    <button id="continue" class="btn discover-btn  d-none" onclick="done()">DONE</button>
-    <button id="end" class="btn discover-btn rounded-pill d-none" onclick="refresh()">END</button>
+        <button id="start" class="btn discover-btn">START</button>
+        <button id="continue" class="btn discover-btn  d-none">DONE</button>
+        <button id="end" class="btn discover-btn rounded-pill d-none" onclick="refresh()">END</button>
 
-    <div id="bottomMessage" class="bottom-message d-none">
-        <h1>READY</h1>
-        <h2>SPIN THE WHEEL</h2>
-    </div>
+        <div id="bottomMessage" class="bottom-message d-none">
+            <h1>READY</h1>
+            <h2>SPIN THE WHEEL</h2>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
@@ -373,11 +377,9 @@
 
 
 
-        $(document).ready(function () {
-
-
+        $(document).ready(function() {
             //add event listener to start button
-            $('#start').click(function () {
+            $('#start').click(function() {
                 $('#start').addClass('d-none');
                 $('#kity').addClass('d-none');
                 $('#spin').removeClass('d-none');
@@ -387,124 +389,135 @@
             });
 
             //add event listener to continue button
-            $('#continue').click(function () {
+            $('#continue').click(function() {
                 $('#continue').addClass('d-none');
                 $('#qrImg').removeClass('d-none');
                 // $('#end').removeClass('d-none');
             });
 
             var rouletteSize = 870;
-            var numberOfSlots = {{ count($products)
-        }};
-        console.log(numberOfSlots); // Get the number of products dynamically
-        var slotAngle = 360 / numberOfSlots;
-        var degrees = (180 - slotAngle) / 2;
-        var slotHeight = Math.tan(degrees * Math.PI / 180) * (rouletteSize / 2);
+            var numberOfSlots = {{ count($products) }};
+            console.log(numberOfSlots); // Get the number of products dynamically
+            var slotAngle = 360 / numberOfSlots;
+            var degrees = (180 - slotAngle) / 2;
+            var slotHeight = Math.tan(degrees * Math.PI / 180) * (rouletteSize / 2);
 
-        var colors = ['#A6D7C0', '#FFF8AD', '#D7C0EF', '#F2A6A6', '#C0D9EF', '#FFC0CB', '#A6F0EF']; // Define the 7 colors // Define the two colors
-        var products = @json($products); // Get products as a JavaScript array
+            var colors = ['#A6D7C0', '#FFF8AD', '#D7C0EF', '#F2A6A6', '#C0D9EF', '#FFC0CB',
+                '#A6F0EF'
+            ]; // Define the 7 colors // Define the two colors
+            var products = @json($products); // Get products as a JavaScript array
 
 
-        var totalProbability = products.reduce(function (total, product) {
-            return total + product.percentage;
-        }, 0); // Should be 100%
+            var totalProbability = products.reduce(function(total, product) {
+                return total + product.percentage;
+            }, 0); // Should be 100%
 
-        var images = [];
+            var images = [];
 
-        $(".roulette").css({
-            'width': rouletteSize + 'px',
-            'height': rouletteSize + 'px'   // Set the width and height of the roulette
-        });
-
-        $('head').append('<style id="afterNumber"></style>');
-        products.forEach(function (product, i) {
-            var productNumber = i + 1;
-
-            $(".roulette").append('<div class="option option-' + productNumber + '"></div>');
-            var classSelector = '.option-' + productNumber;
-
-            $(classSelector).css({
-                'transform': 'rotate(' + slotAngle * productNumber + 'deg)',
-                'border-bottom-color': 'transparent', // Alternate between the two colors
+            $(".roulette").css({
+                'width': rouletteSize + 'px',
+                'height': rouletteSize + 'px' // Set the width and height of the roulette
             });
 
-            $('#afterNumber').append('.option-' + productNumber +
-                '::before {content: "' + productNumber + '"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #fff; font-size: 16px; z-index: 10000;}');
+            $('head').append('<style id="afterNumber"></style>');
+            products.forEach(function(product, i) {
+                var productNumber = i + 1;
 
-            $('#afterNumber').append('.option-' + productNumber +
-                '::after {content: ""; z-index: 9999 !important; background-image: url("' +
-                images[i] +
-                '");}'); // Use the product's image URL
-        });
+                $(".roulette").append('<div class="option option-' + productNumber + '"></div>');
+                var classSelector = '.option-' + productNumber;
 
-        $(".option").css({
-            'border-bottom-width': slotHeight + 'px',
-            'border-right-width': (rouletteSize / 2) + 'px',
-            'border-left-width': (rouletteSize / 2) + 'px',
-            'width': (rouletteSize / 2) + 'px',
-            'height': (rouletteSize / 2) + 'px'
-        });
+                $(classSelector).css({
+                    'transform': 'rotate(' + slotAngle * productNumber + 'deg)',
+                    'border-bottom-color': 'transparent', // Alternate between the two colors
+                });
+
+                $('#afterNumber').append('.option-' + productNumber +
+                    '::before {content: "' + productNumber +
+                    '"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #fff; font-size: 16px; z-index: 10000;}'
+                );
+
+                $('#afterNumber').append('.option-' + productNumber +
+                    '::after {content: ""; z-index: 9999 !important; background-image: url("' +
+                    images[i] +
+                    '");}'); // Use the product's image URL
+            });
+
+            $(".option").css({
+                'border-bottom-width': slotHeight + 'px',
+                'border-right-width': (rouletteSize / 2) + 'px',
+                'border-left-width': (rouletteSize / 2) + 'px',
+                'width': (rouletteSize / 2) + 'px',
+                'height': (rouletteSize / 2) + 'px'
+            });
 
 
-        function spinRoulette() {
-            var num;
-            var random = Math.random() * totalProbability; // Get a random number between 0 and 100
-            var cumulativeProbability = 0;
+            function spinRoulette() {
+                var num;
+                var random = Math.random() * totalProbability; // Get a random number between 0 and 100
+                var cumulativeProbability = 0;
 
-            // Find the selected product based on its probability range
-            for (var i = 0; i < products.length; i++) {
-                cumulativeProbability += products[i].percentage;
-                if (random <= cumulativeProbability) {
-                    num = i + 1; // Product number is 1-based
-                    break;
+                // Find the selected product based on its probability range
+                for (var i = 0; i < products.length; i++) {
+                    cumulativeProbability += products[i].percentage;
+                    if (random <= cumulativeProbability) {
+                        num = i + 1; // Product number is 1-based
+                        break;
+                    }
                 }
+
+                selectedProduct = num;
+                return num; // Return the selected product number
             }
+            // Optionally, you can trigger a real roulette spin to show animation
+            $('.roulette').before().click(function() {
+                var num = spinRoulette();
+                var numID = 'number-' + num;
 
-            selectedProduct = num;
-            return num; // Return the selected product number
-        }
-        // Optionally, you can trigger a real roulette spin to show animation
-        $('.roulette').before().click(function () {
-            var num = spinRoulette();
-            var numID = 'number-' + num;
+                $('#rouletteAnimation').remove();
+                $('head').append('<style id="rouletteAnimation">' +
+                    '#number-' + num + ' { ' +
+                    'animation-name: number-' + num + '; ' +
+                    'animation-duration: 3s; ' +
+                    'animation-timing-function: cubic-bezier(0.1, 0.7, 0.1, 1); ' +
+                    '} ' +
+                    '@keyframes number-' + num + ' {' +
+                    'from { transform: rotate(0); } ' +
+                    'to { transform: rotate(' + (360 * (numberOfSlots - 1) - slotAngle * num) +
+                    'deg); }' +
+                    '}' +
+                    '</style>'
+                );
+                var newNum = num + 4;
 
-            $('#rouletteAnimation').remove();
-            $('head').append('<style id="rouletteAnimation">' +
-                '#number-' + num + ' { ' +
-                'animation-name: number-' + num + '; ' +
-                'animation-duration: 3s; ' +
-                'animation-timing-function: cubic-bezier(0.1, 0.7, 0.1, 1); ' +
-                '} ' +
-                '@keyframes number-' + num + ' {' +
-                'from { transform: rotate(0); } ' +
-                'to { transform: rotate(' + (360 * (numberOfSlots - 1) - slotAngle * num) +
-                'deg); }' +
-                '}' +
-                '</style>'
-            );
-            var newNum = num + 4;
+                $('.price').attr('src', '{{ asset('images') }}' + '/Product' + num + '.webp');
 
-            $('.price').attr('src', '{{ asset('images') }}' + '/Product' + num + '.webp');
-            let qrUrl = `{{ url('error') }}?product=${newNum}&station=4`;
+                $('.roulette').removeAttr('id').attr('id', numID);
 
+                console.log(num);
+                $('#continue').attr('onClick', 'proceed(' + num + ')');
 
-            $('.bypassLogo').attr('onClick', 'bypass(' + newNum + ')');
+                document.getElementById(numID).addEventListener('animationend', function() {
+                    $('#spin').addClass('d-none');
+                    $('.option').addClass('not-selected');
+                    $('.option-' + num).removeClass('not-selected');
+                    $('#bottomMessage').addClass('d-none');
 
-            $('.roulette').removeAttr('id').attr('id', numID);
+                    setTimeout(() => {
+                        done();
+                        $('#continue').removeClass('d-none');
 
-            console.log(num);
-
-            document.getElementById(numID).addEventListener('animationend', function () {
-                $('#spin').addClass('d-none');
-                $('.option').addClass('not-selected');
-                $('.option-' + num).removeClass('not-selected');
-                $('#bottomMessage').addClass('d-none');
-                $('#continue').removeClass('d-none');
+                    }, 3000);
+                });
             });
-        });
         });
 
         var selectedProduct = 0;
+
+        function proceed(num) {
+            console.log(num);
+            location.reload();
+
+        }
 
         function done() {
             $('#congrats').removeClass('d-none');
