@@ -32,6 +32,7 @@ Route::get('/congrats', function () {
     return view('congrats');
 })->name('congrats');
 Route::get('/roulette', 'App\Http\Controllers\StationController@roulette')->name('rollet');
+Route::post('/stock', 'App\Http\Controllers\StationController@stock')->name('stock');
 
 Route::post('/checkExisting', 'App\Http\Controllers\StationController@checkExisting')->name('checkExisting');
 
@@ -39,6 +40,8 @@ Route::group(['middleware' => ['admin']], function () {
     Route::get('/admin', 'App\Http\Controllers\StationController@admin')->name('admin');
     Route::get('/admin/users', 'App\Http\Controllers\StationController@users')->name('users');
     Route::get('/admin/scanner', 'App\Http\Controllers\StationController@scanner')->name('scanner');
+    Route::get('/admin/stocks', 'App\Http\Controllers\StationController@stocks')->name('stocks');
+
     Route::get('/admin/{user}', 'App\Http\Controllers\StationController@userData')->name('userData');
     Route::post('/admin/check', 'App\Http\Controllers\StationController@check')->name('check');
 });

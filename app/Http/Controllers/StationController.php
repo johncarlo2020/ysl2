@@ -73,6 +73,21 @@ class StationController extends Controller
         return view('rollet', compact('products'));
     }
 
+    public function stock(Request $request)
+    {
+        $products = Locker::find($request->id);
+        $products->available = $products->available - 1;
+        $products->save();
+        return $products;
+    }
+
+    public function stocks()
+    {
+        $products = Locker::orderBy('id', 'asc')->get(['name', 'allocation', 'available']);
+
+        return view('products', compact('products'));
+    }
+
     public function scan(Request $request)
     {
         // Parse the URL to get the query string

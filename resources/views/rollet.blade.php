@@ -515,7 +515,22 @@
 
         function proceed(num) {
             console.log(num);
-            location.reload();
+            var csrfToken = $('meta[name="csrf-token"]').attr('content');
+
+            $.ajax({
+                url: '{{ route('stock') }}', // Using Laravel's route() helper function
+                type: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken, // Include the CSRF token in the headers
+                },
+                data: {
+                    id: num,
+                },
+                success: function(response) {
+                    location.reload();
+                },
+                error: function(xhr, status, error) {}
+            });
 
         }
 
