@@ -81,9 +81,17 @@ class StationController extends Controller
         return $products;
     }
 
+    public function refill(Request $request)
+    {
+        $products = Locker::find($request->id);
+        $products->available = $products->allocation;
+        $products->save();
+        return $products;
+    }
+
     public function stocks()
     {
-        $products = Locker::orderBy('id', 'asc')->get(['name', 'allocation', 'available']);
+        $products = Locker::orderBy('id', 'asc')->get(['id', 'name', 'allocation', 'available']);
 
         return view('products', compact('products'));
     }
