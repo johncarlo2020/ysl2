@@ -58,6 +58,8 @@
         <hr class="horizontal dark mt-0" />
         <div class="collapse navbar-collapse w-auto" id="sidenav-collapse-main">
             <ul class="navbar-nav">
+                @can('full')
+                <!-- Show all links if the user has 'full' permission -->
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('admin') ? 'active' : '' }}" href="{{ route('admin') }}">
                         <div
@@ -67,6 +69,7 @@
                         <span class="nav-link-text ms-1">Dashboard</span>
                     </a>
                 </li>
+
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('users') ? 'active' : '' }}" href="{{ route('users') }}">
                         <div
@@ -74,16 +77,6 @@
                             <i class="ni ni-calendar-grid-58 text-warning text-sm opacity-10"></i>
                         </div>
                         <span class="nav-link-text ms-1">Users</span>
-                    </a>
-                </li>
-                <li class="nav-item ">
-                    <a class="nav-link {{ request()->routeIs('scanner') ? 'active' : '' }}"
-                        href="{{ route('scanner') }}">
-                        <div
-                            class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                            <i class="ni ni-mobile-button text-warning text-sm opacity-10"></i>
-                        </div>
-                        <span class="nav-link-text ms-1">Scanner</span>
                     </a>
                 </li>
 
@@ -96,6 +89,23 @@
                         <span class="nav-link-text ms-1">Stocks</span>
                     </a>
                 </li>
+                @endcan
+
+                <!-- Scanner link visible for both 'view' and 'full' permissions -->
+                @canany(['view', 'full'])
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('scanner') ? 'active' : '' }}"
+                        href="{{ route('scanner') }}">
+                        <div
+                            class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                            <i class="ni ni-mobile-button text-warning text-sm opacity-10"></i>
+                        </div>
+                        <span class="nav-link-text ms-1">Scanner</span>
+                    </a>
+                </li>
+                @endcanany
+
+
             </ul>
         </div>
     </aside>

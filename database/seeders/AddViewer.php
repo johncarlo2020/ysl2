@@ -18,12 +18,8 @@ class AddViewer extends Seeder
     public function run(): void
     {
         $user = User::create([
-            'fname' => 'viewer',
-            'lname' => 'viewer',
-            'age_group' => 'viewer',
-            'number' => '0123456789',
+            'code' => '0123456789',
             'email' => 'viewer@gmail.com',
-            'country' => 'Malaysia',
             'password' => Hash::make('WowsomeYslViewer'),
         ]);
 
