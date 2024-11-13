@@ -58,8 +58,9 @@
         <hr class="horizontal dark mt-0" />
         <div class="collapse navbar-collapse w-auto" id="sidenav-collapse-main">
             <ul class="navbar-nav">
-                @can('full')
-                <!-- Show all links if the user has 'full' permission -->
+
+                @canany(['view', 'full'])
+
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('admin') ? 'active' : '' }}" href="{{ route('admin') }}">
                         <div
@@ -69,6 +70,10 @@
                         <span class="nav-link-text ms-1">Dashboard</span>
                     </a>
                 </li>
+                @endcanany
+                @can('full')
+                <!-- Show all links if the user has 'full' permission -->
+
 
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('users') ? 'active' : '' }}" href="{{ route('users') }}">
