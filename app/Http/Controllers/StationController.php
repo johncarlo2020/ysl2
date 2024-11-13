@@ -160,9 +160,12 @@ class StationController extends Controller
         $data['users'] = User::with('stationUser')->take(4)->orderBy('id', 'desc')->get();
         $data['usersCount'] = User::whereDate('created_at', '>=', $startDate->toDateString())->count();
         $data['userToday'] = User::whereDate('created_at', $today)->count();
-        $usersWithSixStationUsers = User::with('stationUser')->whereDate('created_at', '>=', $startDate->toDateString())->has('stationUser', '>=', 5)->count();
+        $stations = Station::pluck('name', 'id');
+        $station_count = count($stations);
+        $usersWithSixStationUsers = User::with('stationUser')->whereDate('created_at', '>=', $startDate->toDateString())->has('stationUser', '>=', $station_count)->count();
         // dd($usersWithSixStationUsers);
         $data['completedUsers'] = $usersWithSixStationUsers;
+
         // dd($usersWithSixStationUsers);
 
         if ($data['usersCount'] > 0) {
@@ -202,8 +205,6 @@ class StationController extends Controller
         // $completed = StationUser::w
 
         $averageTimespentByStation = StationUser::select('station_id', \DB::raw('AVG(time_spent) as average_timespent'))->groupBy('station_id')->get()->keyBy('station_id');
-
-        $stations = Station::pluck('name', 'id');
 
         $count = 0;
 
