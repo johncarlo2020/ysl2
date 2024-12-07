@@ -39,17 +39,17 @@
 
             </div>
             @if ($user == false)
-                <div class="scanner-button">
-                    <button id="scan-btn" class="scan-btn">
-                        <img class="camera-btn" style="width: 10vw;" src="{{ asset('images/camera.webp') }}" />
-                    </button>
-                    <p>Scan the QR Code at the station to proceed</p>
-                </div>
+            <div class="scanner-button">
+                <button id="scan-btn" class="scan-btn">
+                    <img class="camera-btn" style="width: 10vw;" src="{{ asset('images/camera.webp') }}" />
+                </button>
+                <p>Scan the QR Code at the station to proceed</p>
+            </div>
             @else
-                <div class="scanner-button">
-                    <p class="mb-2">Checked In</p>
-                    <a class="button" href="{{ route('dashboard') }}"> Back</a>
-                </div>
+            <div class="scanner-button">
+                <p class="mb-2">Checked In</p>
+                <a class="button" href="{{ route('dashboard') }}"> Back</a>
+            </div>
             @endif
         </div>
         <div id="scannerContainer" class="scanner-container d-none">
@@ -65,17 +65,19 @@
         </div>
     </div>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
     <script>
+
         const mainContent = document.getElementById('mainContent');
         const scannerContainer = document.getElementById('scannerContainer');
-        document.getElementById('btn-back').addEventListener('click', function(event) {
+        document.getElementById('btn-back').addEventListener('click', function (event) {
             event.preventDefault();
             mainContent.classList.remove('d-none');
             scannerContainer.classList.add('d-none');
         });
-
-        document.getElementById('scan-btn').addEventListener('click', function(event) {
+        console.log(typeof Html5Qrcode);
+        document.getElementById('scan-btn').addEventListener('click', function (event) {
             event.preventDefault();
 
             mainContent.classList.add('d-none');
@@ -86,25 +88,25 @@
             const html5QrCode = new Html5Qrcode("reader");
 
             html5QrCode.start({
-                        facingMode: "environment",
-                    }, {
-                        fps: 10,
-                        qrbox: {
-                            width: 200,
-                            height: 250
-                        },
-                        aspectRatio: isLandscape ? 3 / 4 : 4 / 3
+                facingMode: "environment",
+            }, {
+                fps: 10,
+                qrbox: {
+                    width: 200,
+                    height: 250
+                },
+                aspectRatio: isLandscape ? 3 / 4 : 4 / 3
 
-                    },
-                    qrCodeMessage => {
-                        console.log(`${qrCodeMessage}`);
-                        sendMessage(`${qrCodeMessage}`);
-                        html5QrCode.stop();
+            },
+                qrCodeMessage => {
+                    console.log(`${qrCodeMessage}`);
+                    sendMessage(`${qrCodeMessage}`);
+                    html5QrCode.stop();
 
-                    },
-                    errorMessage => {
-                        console.log(`QR Code no longer in front of camera.`);
-                    })
+                },
+                errorMessage => {
+                    console.log(`QR Code no longer in front of camera.`);
+                })
                 .catch(err => {
                     console.log(`Unable to start scanning, error: ${err}`);
                 });
@@ -124,43 +126,43 @@
                 },
                 data: {
                     qrCodeMessage: message,
-                    station: {{ $station->id }}
+                    station: {{ $station-> id }}
                 },
-                success: function(response) {
-                    console.log('QR Code message sent successfully:', response);
-                    // Handle success response if needed
+        success: function(response) {
+            console.log('QR Code message sent successfully:', response);
+            // Handle success response if needed
 
-                    const trimmedMessage = message.trim();
-                    // Get the last character of the QR code message
-                    const lastCharacter = trimmedMessage.charAt(trimmedMessage.length - 1);
-                    $('.check').addClass('fa-circle-check text-success');
-                    if (lastCharacter == 5) {
-                        var name = 'GIFT HAS BEEN SUCCESSFULLY REDEEMED';
-                        $('.station-name-modal').html(name);
-                        $('.message').addClass('d-none');
-                    } else {
-                        var name = $('.station-name').html();
-                        $('.station-name-modal').html(name);
-                    }
-
-
-                    mainContent.classList.remove('d-none');
-                    scannerContainer.classList.add('d-none');
-
-                    $('#scanCompleteModal').modal('show');
-                },
-                error: function(xhr, status, error) {
-                    console.error('Error sending QR Code message:', error);
-                    $('.station-text').html('Failed');
-                    $('.message').html('Invalid QR code. Please try again.');
-                    $('.check').addClass('fa-circle-xmark text-danger');
-
-                    mainContent.classList.remove('d-none');
-                    scannerContainer.classList.add('d-none');
-                    $('#scanCompleteModal').modal('show');
+            const trimmedMessage = message.trim();
+            // Get the last character of the QR code message
+            const lastCharacter = trimmedMessage.charAt(trimmedMessage.length - 1);
+            $('.check').addClass('fa-circle-check text-success');
+            if (lastCharacter == 5) {
+                var name = 'GIFT HAS BEEN SUCCESSFULLY REDEEMED';
+                $('.station-name-modal').html(name);
+                $('.message').addClass('d-none');
+            } else {
+                var name = $('.station-name').html();
+                $('.station-name-modal').html(name);
+            }
 
 
-                }
+            mainContent.classList.remove('d-none');
+            scannerContainer.classList.add('d-none');
+
+            $('#scanCompleteModal').modal('show');
+        },
+        error: function(xhr, status, error) {
+            console.error('Error sending QR Code message:', error);
+            $('.station-text').html('Failed');
+            $('.message').html('Invalid QR code. Please try again.');
+            $('.check').addClass('fa-circle-xmark text-danger');
+
+            mainContent.classList.remove('d-none');
+            scannerContainer.classList.add('d-none');
+            $('#scanCompleteModal').modal('show');
+
+
+        }
             });
         }
     </script>

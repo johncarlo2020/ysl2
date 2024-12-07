@@ -78,12 +78,12 @@
     <div class="congrats">
         <p>Visit</p>
         <div class="branding">
-            <a href="https://www.yslbeauty.com.sg">
+            <a href="https://www.yslbeauty.com.my">
                 <img class="logo" src="{{ asset('images/logo-dark.webp') }}" alt="">
 
             </a>
         </div>
-        <a class="white" href="https://www.yslbeauty.com.sg">for more information</a>
+        <a class="white" href="https://www.yslbeauty.com.my">for more information</a>
     </div>
 </body>
 

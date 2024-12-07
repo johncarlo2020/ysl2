@@ -21,18 +21,18 @@ class StationSeeder extends Seeder
     public function run()
     {
         Station::create([
-            'name' => 'YSL WINTER FANTASY',
-            'description' => 'Strike a pose at the YSL Beauty Holiday pop-up at Raffles City External Quartzite, share your photo on your socials using #YSLBeautySG #YSLHoliday',
+            'name' => 'YSL HOLIDAY DISCOVERY',
+            'description' => 'Dare to discover the irresistible YSL Beauty Holiday collectors and advent calendar',
         ]);
 
         Station::create([
-            'name' => 'FRAGRANCE DISCOVERY',
-            'description' => 'Experience the LIBRE & MYSLF fragrances at Raffles City Artsquare, near the City Hall MRT entrance',
+            'name' => 'THE LIBRE EXPERIENCE',
+            'description' => 'Discover the LIBRE immersive fragrance room and share your photo/video on your socials using #YSLBeautyMY #YSLHoliday',
         ]);
 
         Station::create([
             'name' => 'GIFT REDEMPTION',
-            'description' => 'Redeem your YSL Beauty Discovery Gift at the YSL Beauty Raffles City boutique (Level 1, #01-42)',
+            'description' => 'Redeem your YSL Beauty Discovery Gift at the gift redemption counter',
         ]);
 
         $role = Role::create(['name' => 'client']);

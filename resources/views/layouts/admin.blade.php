@@ -59,7 +59,7 @@
         <div class="collapse navbar-collapse w-auto" id="sidenav-collapse-main">
             <ul class="navbar-nav">
 
-                @canany(['view', 'full'])
+
 
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('admin') ? 'active' : '' }}" href="{{ route('admin') }}">
@@ -70,8 +70,7 @@
                         <span class="nav-link-text ms-1">Dashboard</span>
                     </a>
                 </li>
-                @endcanany
-                @can('full')
+
                 <!-- Show all links if the user has 'full' permission -->
 
 
@@ -94,10 +93,10 @@
                         <span class="nav-link-text ms-1">Stocks</span>
                     </a>
                 </li>
-                @endcan
+
 
                 <!-- Scanner link visible for both 'view' and 'full' permissions -->
-                @canany(['view', 'full'])
+
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('scanner') ? 'active' : '' }}"
                         href="{{ route('scanner') }}">
@@ -108,7 +107,7 @@
                         <span class="nav-link-text ms-1">Scanner</span>
                     </a>
                 </li>
-                @endcanany
+
 
 
             </ul>

@@ -26,7 +26,7 @@
             <div class="content">
                 <h2 class="station-born ">CELEBRATE IN GOLD</h2>
                 <p class="landing-tagline">Dare to embark on a new adventure into the
-                    YSL Beauty winter fantasy this holiday season.</p>
+                    YSL Beauty winter fantasy this holiday season</p>
             </div>
             <div class="station-img">
                 <img src="{{ asset('images/landing.webp') }}" alt="" />
