@@ -33,10 +33,18 @@
                 <h2 class="station-name">{{ $station->name }}</h2>
                 <p class="tag-line">{{ $station->description }}</p>
             </div>
+            @if($station->id == 3)
+            <div class="mt-3 station-img">
+                <img src="{{ asset('images/GIFT REDEMPTION.gif') }}" alt="" />
+
+            </div>
+            @else
             <div class="mt-3 station-img">
                 <img src="{{ asset('images/S' . $station->id . '.webp') }}" alt="" />
 
             </div>
+            @endif
+
             @if ($user == false)
             <div class="scanner-button">
                 <button id="scan-btn" class="scan-btn">

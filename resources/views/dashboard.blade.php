@@ -48,7 +48,7 @@
                 <div class="tile">
                     <div id="station-{{ $station->id }}"
                         class="img-container {{ $station->status == true ? 'active' : '' }}">
-                        <img src="{{ asset('images/S' . $station->id . '-main.webp') }}" alt="" />
+                        <img src="{{ asset('images/new' . $station->id . '.webp') }}" alt="" />
                         <div class="marker">
                             <p>CHECK-IN SUCCESSFUL</p>
                         </div>
