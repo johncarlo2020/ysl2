@@ -462,6 +462,11 @@ a:active {
     overflow-y: auto;
     padding-bottom: 50px;
 
+    // on small screens fix overlaping of toolbar
+    @media screen and (max-width: 767px) {
+        padding-bottom: calc(100px + env(safe-area-inset-bottom));
+    }
+
     .content {
         padding: 10px;
         text-align: center;
