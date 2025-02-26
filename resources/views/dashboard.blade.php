@@ -18,8 +18,7 @@
                     <div class="text-center content">
                         <div class="image-check">
                             {{-- <i class="fa-regular fa-circle-question"></i> --}}
-                            <i class="fa-regular fa-circle-question"
-                                style="font-size: 25px;
+                            <i class="fa-regular fa-circle-question" style="font-size: 25px;
     margin-bottom: 25px;"></i>
                         </div>
                         <div class="text-content">
@@ -30,8 +29,7 @@
                                 Station 1 - Station 2 to proceed to the Gift Redemption Station</p>
                         </div>
                         <div class="">
-                            <button type="button" onclick="test()" class="button"
-                                data-bs-dismiss="modal">Close</button>
+                            <button type="button" onclick="test()" class="button" data-bs-dismiss="modal">Close</button>
                         </div>
                     </div>
                 </div>
@@ -41,29 +39,29 @@
     <div class="dashboard main main-bg">
 
         <div class="branding-container">@include('components.branding')</div>
-        <h1 class="station-born">CELEBRATE IN GOLD</h1>
+        <h1 class="station-born ">UNLEASH YOUR INNER LIGHTS THIS RAMADAN</h1>
 
         <div class="content">
             @foreach ($stations as $station)
-                <a id="station-link-{{ $station->id }}" class="title-container"
-                    href="{{ route('station.show', ['station' => $station->id]) }}">
-                    <div class="tile">
-                        <div id="station-{{ $station->id }}"
-                            class="img-container {{ $station->status == true ? 'active' : '' }}">
-                            <img src="{{ asset('images/S' . $station->id . '-main.webp') }}" alt="" />
-                            <div class="marker">
-                                <p>CHECK-IN SUCCESSFUL</p>
-                            </div>
-                        </div>
-                        <div class="text-container-dashboard">
-                            <p class="station-name-dashboard">
-                                {{ $station->id }}.
-
-                                {{ $station->name }}
-                            </p>
+            <a id="station-link-{{ $station->id }}" class="title-container"
+                href="{{ route('station.show', ['station' => $station->id]) }}">
+                <div class="tile">
+                    <div id="station-{{ $station->id }}"
+                        class="img-container {{ $station->status == true ? 'active' : '' }}">
+                        <img src="{{ asset('images/S' . $station->id . '-main.webp') }}" alt="" />
+                        <div class="marker">
+                            <p>CHECK-IN SUCCESSFUL</p>
                         </div>
                     </div>
-                </a>
+                    <div class="text-container-dashboard">
+                        <p class="station-name-dashboard">
+                            {{ $station->id }}.
+
+                            {{ $station->name }}
+                        </p>
+                    </div>
+                </div>
+            </a>
             @endforeach
         </div>
     </div>
