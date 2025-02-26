@@ -56,7 +56,7 @@
             <div class="content">
                 <h1 class="station-born">UNLEASH YOUR INNER LIGHTS</h1>
             </div>
-            <div style="width: 80vw" id="reader"></div>
+            <div style="width: 80vw mx-auto" id="reader"></div>
             <div class="p-3 mt-3">
                 <p class="px-4 text-center bottom-text">
                     Find the QR code & Scan to check in the station
