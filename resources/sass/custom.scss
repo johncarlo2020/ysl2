@@ -79,6 +79,12 @@ div {
     background-repeat: no-repeat;
     background-position: center;
     padding-bottom: calc(20vh + env(safe-area-inset-bottom));
+
+    //on small screens fix overlaping of toolbar
+    @media screen and (max-width: 767px) {
+        padding-bottom: calc(30vh + env(safe-area-inset-bottom));
+        background-color: red !important;
+    }
 }
 
 .main {
