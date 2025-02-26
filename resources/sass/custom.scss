@@ -78,6 +78,7 @@ div {
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
+    padding-bottom: calc(20vh + env(safe-area-inset-bottom));
 }
 
 .main {
