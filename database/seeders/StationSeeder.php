@@ -21,17 +21,17 @@ class StationSeeder extends Seeder
     public function run()
     {
         Station::create([
-            'name' => 'Fragrance Discovery',
+            'name' => 'FRAGRANCE DISCOVERY',
             'description' => 'Revel in lasting scents from the most iconic collections.',
         ]);
 
         Station::create([
-            'name' => 'Makeup Discovery',
+            'name' => 'MAKEUP DISCOVERY',
             'description' => 'Reveal your iconic festive look. Embrace the inner shine within you and own a radiant look with makeup favourites.',
         ]);
 
         Station::create([
-            'name' => 'Gift Redemption',
+            'name' => 'GIFT REDEMPTION',
             'description' => 'You`ve completed the Unleash Your Inner Lights experience. Seize your exclusive gift at the gift redemption counter.',
         ]);
 
