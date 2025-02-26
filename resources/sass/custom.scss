@@ -82,8 +82,7 @@ div {
 
     //on small screens fix overlaping of toolbar
     @media screen and (max-width: 767px) {
-        padding-bottom: calc(30vh + env(safe-area-inset-bottom));
-        background-color: red !important;
+        padding-bottom: calc(100px + env(safe-area-inset-bottom));
     }
 }
 
