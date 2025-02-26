@@ -31,7 +31,7 @@ class StationSeeder extends Seeder
         ]);
 
         Station::create([
-            'name' => 'GIFT REDEMPTION',
+            'name' => 'Gift Redemption',
             'description' => 'You`ve completed the Unleash Your Inner Lights experience. Seize your exclusive gift at the gift redemption counter.',
         ]);
 
