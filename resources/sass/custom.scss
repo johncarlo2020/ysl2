@@ -464,7 +464,6 @@ a:active {
 
     // on small screens fix overlaping of toolbar
     @media screen and (max-width: 767px) {
-        background: red !important;
         min-height: 100vh;
         padding-bottom: calc(150px + env(safe-area-inset-bottom));
     }
