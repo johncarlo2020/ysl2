@@ -66,7 +66,7 @@
         </div>
     </div>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const station1 = document.getElementById('station-1');
             const station2 = document.getElementById('station-2');
             const station3Link = document.getElementById('station-link-3');

@@ -36,6 +36,9 @@
             overflow: hidden;
             padding-bottom: calc(2rem + env(safe-area-inset-bottom));
         }
+        .main-bg {
+            background-image: url("{{ asset('images/new/Background.webp') }}");
+        }
 
         p {
             margin: 0;
@@ -74,8 +77,23 @@
         .visit {
             align-self: flex-end;
         }
+         .station-born {
+            font-family: "Singulier-Bold";
+            font-size: 5vw;
+            letter-spacing: 1px;
+            padding: 0;
+            margin: 0;
+            margin-bottom: 20vh;
+            color: #000;
+        }
+        .branding .logo{
+                width: 60vw;
+        }
     </style>
     <div class="congrats">
+        <div class="branding-container">@include('components.branding')</div>
+        <h1 class="station-born ">UNLEASH YOUR INNER LIGHTS</h1>
+
         <p>Visit</p>
         <div class="branding">
             <a href="https://www.yslbeauty.com.my">
