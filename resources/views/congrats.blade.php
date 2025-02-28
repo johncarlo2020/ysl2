@@ -96,12 +96,12 @@
 
         <p>Visit</p>
         <div class="branding">
-            <a href="https://www.yslbeauty.com.my">
+            <a href="https://www.yslbeauty.com.my/en_MY/eid-2025.html">
                 <img class="logo" src="{{ asset('images/logo-dark.webp') }}" alt="">
 
             </a>
         </div>
-        <a class="white" href="https://www.yslbeauty.com.my">for more information</a>
+        <a class="white" href="https://www.yslbeauty.com.my/en_MY/eid-2025.html">for more information</a>
     </div>
 </body>
 
