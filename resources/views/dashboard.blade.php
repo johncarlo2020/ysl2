@@ -23,7 +23,7 @@
                         </div>
                         <div class="text-content">
                             <p class="station-name-modal">
-                                CELEBRATE IN GOLD
+                                UNLEASH YOUR INNER LIGHTS THIS RAMADAN
                             </p>
                             <p class="message">Kindly complete
                                 Station 1 - Station 2 to proceed to the Gift Redemption Station</p>
