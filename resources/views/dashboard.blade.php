@@ -17,15 +17,18 @@
                 <div class="modal-body">
                     <div class="text-center content">
                         <div class="image-check">
-                            {{-- <i class="fa-regular fa-circle-question"></i> --}}
-                            <i class="fa-regular fa-circle-question" style="font-size: 25px;
-    margin-bottom: 25px;"></i>
+                            <div class="border rounded-circle d-flex justify-content-center align-items-center"
+                                style="width: 100px; height: 100px;">
+                                <i class="fa-solid fa-exclamation d-block" style="font-size: 25px;
+                                margin-bottom: 25px;"></i>
+                            </div>
                         </div>
+
                         <div class="text-content">
-                            <p class="station-name-modal">
+                            <p class="px-5 station-name-modal">
                                 UNLEASH YOUR INNER LIGHTS THIS RAMADAN
                             </p>
-                            <p class="message">Kindly complete
+                            <p class="px-5 message">Kindly complete
                                 Station 1 - Station 2 to proceed to the Gift Redemption Station</p>
                         </div>
                         <div class="">
