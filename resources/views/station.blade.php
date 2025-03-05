@@ -40,7 +40,7 @@
             </div>
             @else
             <div class="mt-3 station-img">
-                <img src="{{ asset('images/S' . $station->id . '.webp') }}" alt="" />
+                <img src="{{ asset('images/new' . $station->id . '.webp') }}" alt="" />
 
             </div>
             @endif
