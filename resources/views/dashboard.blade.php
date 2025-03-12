@@ -16,11 +16,11 @@
             <div class="modal-content">
                 <div class="modal-body">
                     <div class="text-center content">
-                        <div class="image-check">
+                        <div class="image-check d-flex justify-content-center">
                             <div class="border rounded-circle d-flex justify-content-center align-items-center"
-                                style="width: 100px; height: 100px;">
+                                style="width: 50px; height: 50px; margin-bottom:20px;">
                                 <i class="fa-solid fa-exclamation d-block" style="font-size: 25px;
-                                margin-bottom: 25px;"></i>
+                                                                "></i>
                             </div>
                         </div>
 
