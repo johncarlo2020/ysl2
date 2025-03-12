@@ -24,14 +24,13 @@
         </div>
         <div id="mainContent" class="text-center text-content">
             <div class="content">
-                <h2 class="station-born ">UNLEASH YOUR INNER LIGHTS THIS RAMADAN</h2>
+                <h2 class="station-born ">UNLEASH YOUR INNER LIGHTS</h2>
             </div>
             <div class="station-img">
                 <img src="{{ asset('images/new/ysl_dmi_hallmark_eid-25.gif') }}" alt="" />
             </div>
             <div class="content">
-                <p class="landing-tagline">Get ready to embrace a moment of self-reflection as Ramadan festivities
-                    begin. Indulge in YSL Beauty’s most coveted icons to reveal your inner radiance.</p>
+                <p class="landing-tagline">Indulge in YSL Beauty's most coveted icons to reveal your inner radiance.</p>
             </div>
             <div class="container mt-2 w-50">
                 <a class="button-discover" href="{{ route('dashboard') }}"> DISCOVER NOW</a>

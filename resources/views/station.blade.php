@@ -31,7 +31,13 @@
             <div class="content">
                 <h1 class="station-born">UNLEASH YOUR INNER LIGHTS</h1>
                 <h2 class="station-name">{{ $station->name }}</h2>
+                @if($station->id == 2)
+                <p class="tag-line">Reveal your iconic festive look.<br> Embrace the inner shine within you and own a <br> radiant look with makeup favourites.</p>
+
+                @else
                 <p class="tag-line">{{ $station->description }}</p>
+
+                @endif
             </div>
             @if($station->id == 3)
             <div class="mt-3 station-img">

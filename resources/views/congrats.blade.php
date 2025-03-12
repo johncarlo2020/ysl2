@@ -87,7 +87,7 @@
             color: #000;
         }
         .branding .logo{
-                width: 60vw;
+                width: 80%;
         }
     </style>
     <div class="congrats">
