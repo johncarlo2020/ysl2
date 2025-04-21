@@ -37,7 +37,7 @@
                     {{ $station->name }}
                     @endif
                 </h2>
-                <p class="tag-line">{{ $station->description }}</p>
+                <p class="tag-line">{!! $station->description !!}</p>
             </div>
             <div class="mt-3 station-img">
                 <img src="{{ asset('images/S' . $station->id . 'libre.webp') }}" alt="" />
@@ -45,12 +45,17 @@
             </div>
 
             @if ($user == false)
-            <div class="scanner-button">
-                <button id="scan-btn" class="scan-btn">
-                    <img class="camera-btn" style="width: 10vw;" src="{{ asset('images/camera.webp') }}" />
+
+            <div class="scanner-button container mt-2" >
+                <button id="scan-btn" class="button-scan">
+                    <p>Scan the QR Code <br> to proceed</p>
                 </button>
-                <p>Scan the QR Code at the station to proceed</p>
+
             </div>
+
+            <!-- <div class="container mt-2" style="width: 65%;">
+                <a class="button-discover" href="{{ route('dashboard') }}"> CLICK TO START JOURNEY</a>
+            </div> -->
             @else
             <div class="scanner-button">
                 <p class="mb-2">Checked In</p>
