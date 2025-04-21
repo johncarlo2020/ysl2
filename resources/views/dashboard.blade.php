@@ -1,7 +1,7 @@
 <x-app-layout>
     <div class="dashboard main main-bg safari-padding">
         <div class="branding-container">@include('components.branding')</div>
-        <h1 class="station-born">BORN TO BE ICONIC</h1>
+        <h1 class="station-born">LIBRE L'EAU NUE SUMMER FREEDOM IN A SCENT</h1>
 
         <div class="content">
             @foreach ($stations as $station)
@@ -17,13 +17,7 @@
                     </div>
                     <div class="text-container-dashboard">
                         <p class="station-name-dashboard">
-                            @if($station->id == 1)
-                            LIBRE FRAGRANCE <br>& MAKE-UP DISCOVERY
-
-                            @else
                             {{ $station->name }}
-
-                            @endif
                         </p>
                     </div>
                 </div>
