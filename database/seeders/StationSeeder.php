@@ -21,18 +21,23 @@ class StationSeeder extends Seeder
     public function run()
     {
         Station::create([
-            'name' => 'FRAGRANCE DISCOVERY',
-            'description' => 'Revel in lasting scents from the most iconic collections.',
+            'name' => "LIBRE L'EAU NUE SUMMER FREEDOM IN A SCENT",
+            'description' => 'SMELL IT. FEEL IT. A new sensorial fragrance gesture for pulse points, body, and hair, to suit your mood..',
         ]);
 
         Station::create([
-            'name' => 'MAKEUP DISCOVERY',
-            'description' => 'Reveal your iconic festive look. Embrace the inner shine within you and own a radiant look with makeup favourites.',
+            'name' => 'IMMERSE IN GOLDEN HOUR ',
+            'description' => 'Step into the magical twilight hours, Just before the sun sets and the night begins. Capture the unforgettable moment and share with your loved ones.',
         ]);
 
         Station::create([
-            'name' => 'GIFT REDEMPTION',
-            'description' => 'You`ve completed the Unleash Your Inner Lights experience. Seize your exclusive gift at the gift redemption counter.',
+            'name' => "THE LIBRE L'EAU NU[D]E LOOK ",
+            'description' => "Discover YSL Beauty's sun-kissed look that radiates Summer Freedom, just like Dua Lipa.",
+        ]);
+
+        Station::create([
+            'name' => "GIFT REDEMPTION ",
+            'description' => "You've completed the 'Summer Freedom' experience.Redeem your YSL Discovery Kit at the gift redemption counter .",
         ]);
 
         $role = Role::create(['name' => 'client']);

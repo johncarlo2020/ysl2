@@ -24,16 +24,19 @@
         </div>
         <div id="mainContent" class="text-center text-content">
             <div class="content">
-                <h2 class="station-born ">UNLEASH YOUR INNER LIGHTS</h2>
+                <h2 class="station-born ">LIBRE L'EAU NUE
+                SUMMER FREEDOM IN A SCENT</h2>
             </div>
             <div class="station-img">
-                <img src="{{ asset('images/new/ysl_dmi_hallmark_eid-25.gif') }}" alt="" />
+                <img src="{{ asset('images/new/landing.webp') }}" alt="" />
             </div>
             <div class="content">
-                <p class="landing-tagline">Indulge in YSL Beauty's most coveted icons to reveal your inner radiance.</p>
+                <p class="landing-tagline">Embody Dua Lipa’s radiant, sultry iconicity and attune
+                your senses to the blissful heat of Mediterranean
+                summer.</p>
             </div>
-            <div class="container mt-2 w-50">
-                <a class="button-discover" href="{{ route('dashboard') }}"> DISCOVER NOW</a>
+            <div class="container mt-2" style="width: 65%;">
+                <a class="button-discover" href="{{ route('dashboard') }}"> CLICK TO START JOURNEY</a>
             </div>
         </div>
     </div>
