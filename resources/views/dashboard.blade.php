@@ -10,7 +10,7 @@
                 <div class="tile {{ $station->id %2 == 0? '':'reverse' }}">
                     <p class="station-number">{{$station->id}}</p>
                     <div class="img-container {{$station->status == true ? 'active':''}}">
-                        <img src="{{ asset('images/S' . $station->id . 'libre.webp') }}" alt="" />
+                        <img src="{{ asset('images/newLibreImageS' . $station->id . '.webp') }}" alt="" />
                         <div class="marker">
                             <p>CHECK-IN SUCCESSFUL</p>
                         </div>

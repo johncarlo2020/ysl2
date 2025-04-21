@@ -40,7 +40,7 @@
                 <p class="tag-line">{!! $station->description !!}</p>
             </div>
             <div class="mt-3 station-img">
-                <img src="{{ asset('images/S' . $station->id . 'libre.webp') }}" alt="" />
+                <img src="{{ asset('images/newLibreImageS' . $station->id . '.webp') }}" alt="" />
 
             </div>
 
@@ -58,7 +58,7 @@
             </div> -->
             @else
             <div class="scanner-button">
-                <p class="mb-2">Checked In</p>
+                <p class="mb-2" style="color: black;">Checked In</p>
                 <a class="button" href="{{ route('dashboard') }}"> Back</a>
             </div>
             @endif
