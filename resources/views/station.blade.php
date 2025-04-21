@@ -40,7 +40,7 @@
                 <p class="tag-line">{!! $station->description !!}</p>
             </div>
             <div class="mt-3 station-img">
-                <img src="{{ asset('images/newLibreImageS' . $station->id . '.webp') }}" alt="" />
+                <img src="{{ asset('images/libre' . $station->id . '.webp') }}" alt="" />
 
             </div>
 

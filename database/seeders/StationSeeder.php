@@ -21,8 +21,8 @@ class StationSeeder extends Seeder
     public function run()
     {
         Station::create([
-            'name' => "LIBRE L'EAU NUE SUMMER FREEDOM IN A SCENT",
-            'description' => 'SMELL IT. FEEL IT. <br> A new sensorial fragrance gesture for pulse points, body, and <br> hair, to suit your mood..',
+            'name' => "LIBRE L'EAU NUE BEYOND A FRAGRANCE ",
+            'description' => 'SMELL IT. FEEL IT. <br> A new sensorial fragrance gesture for pulse points, body, and <br> hair, to suit your mood.',
         ]);
 
         Station::create([
