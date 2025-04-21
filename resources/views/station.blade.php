@@ -149,7 +149,7 @@
                     // Get the last character of the QR code message
                     const lastCharacter = trimmedMessage.charAt(trimmedMessage.length - 1);
                     $('.check').addClass('fa-circle-check text-success');
-                    if (lastCharacter == 5) {
+                    if (lastCharacter == 4) {
                         var name = 'GIFT HAS BEEN SUCCESSFULLY REDEEMED';
                         $('.station-name-modal').html(name);
                         $('.message').addClass('d-none');
