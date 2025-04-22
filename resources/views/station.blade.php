@@ -66,7 +66,7 @@
         <div id="scannerContainer" class="scanner-container d-none">
             <!-- <button id="close" class="mx-auto mt-4 camera-btn">x</button> -->
             <div class="content">
-                <h1 class="station-born">UNLEASH YOUR INNER LIGHTS</h1>
+                <h1 class="station-born">LIBRE L'EAU NUE SUMMER FREEDOM IN A SCENT</h1>
             </div>
             <div style="width: 80vw mx-auto" id="reader"></div>
             <div class="p-3 mt-3">
