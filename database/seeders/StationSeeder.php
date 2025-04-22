@@ -22,12 +22,12 @@ class StationSeeder extends Seeder
     {
         Station::create([
             'name' => "LIBRE L'EAU NUE BEYOND A FRAGRANCE ",
-            'description' => 'SMELL IT. FEEL IT. <br> A new sensorial fragrance gesture for pulse points, body, and <br> hair, to suit your mood.',
+            'description' => 'SMELL IT. FEEL IT. <br> A new sensorial fragrance gesture for pulse points, body, <br> and  hair, to suit your mood.',
         ]);
 
         Station::create([
             'name' => 'IMMERSE IN GOLDEN HOUR ',
-            'description' => 'Step into the magical twilight hours,<br> Just before the sun sets and the night begins. <br><br> Capture the unforgettable moment <br> and share with your loved ones.',
+            'description' => 'Step into the magical twilight hours,<br> just before the sun sets and the night begins. <br><br> Capture the unforgettable moment <br> and share with your loved ones.',
         ]);
 
         Station::create([

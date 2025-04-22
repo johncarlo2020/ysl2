@@ -26,10 +26,10 @@
 
                         <div class="text-content">
                             <p class="px-5 station-name-modal">
-                                LIBRE L'EAU NUE SUMMER FREEDOM IN A SCENT
+                                LIBRE L'EAU NUE <br> SUMMER FREEDOM IN A SCENT
                             </p>
                             <p class="px-5 message">Kindly complete
-                                Station 1 - Station 3 to proceed to the Gift Redemption Station</p>
+                                Station 1 - 3 to proceed to the Gift Redemption Station</p>
                         </div>
                         <div class="">
                             <button type="button" onclick="test()" class="button" data-bs-dismiss="modal">Close</button>
@@ -41,7 +41,7 @@
     </div>
     <div class="dashboard main main-bg safari-padding">
         <div class="branding-container">@include('components.branding')</div>
-        <h1 class="station-born">LIBRE L'EAU NUE SUMMER FREEDOM IN A SCENT</h1>
+        <h1 class="station-born">LIBRE L'EAU NUE <br> SUMMER FREEDOM IN A SCENT</h1>
 
         <div class="content">
             @foreach ($stations as $station)
