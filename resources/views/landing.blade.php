@@ -24,14 +24,14 @@
         </div>
         <div id="mainContent" class="text-center text-content">
             <div class="content">
-                <h2 class="station-born ">LIBRE L'EAU NUE
+                <h2 class="station-born ">LIBRE L'EAU NUE<br>
                 SUMMER FREEDOM IN A SCENT</h2>
             </div>
             <div class="station-img">
                 <img src="{{ asset('images/new/landing.webp') }}" alt="" />
             </div>
             <div class="content">
-                <p class="landing-tagline">Embody Dua Lipa’s radiant, sultry iconicity and attune
+                <p class="landing-tagline px-2">Embody Dua Lipa’s radiant, sultry iconicity and attune
                 your senses to the blissful heat of Mediterranean
                 summer.</p>
             </div>
