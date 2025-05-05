@@ -33,6 +33,8 @@
                 <h2 class="station-name">
                     @if($station->id == 4)
                     Congratulations!
+                    @elseif($station->id == 1)
+                    LIBRE L'EAU NUE <br> BEYOND A FRAGRANCE
                     @else
                     {{ $station->name }}
                     @endif

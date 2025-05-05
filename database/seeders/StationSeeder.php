@@ -32,7 +32,7 @@ class StationSeeder extends Seeder
 
         Station::create([
             'name' => "THE LIBRE L'EAU NU[D]E LOOK ",
-            'description' => "Discover YSL Beauty's sun-kissed look that radiates Summer <br> Freedom, just like Dua Lipa.",
+            'description' => "Discover YSL Beauty's sun-kissed look that radiates <br> Summer Freedom, just like Dua Lipa.",
         ]);
 
         Station::create([
