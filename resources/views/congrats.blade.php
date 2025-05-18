@@ -93,7 +93,7 @@
     </style>
     <div class="congrats">
         <div class="branding-container">@include('components.branding')</div>
-        <h1 class="station-born ">LIBRE L'EAU NUE <br> SUMMER FREEDOM IN A SCENT</h1>
+        <h1 class="station-born ">{{ env('APP_TITLE') }}</h1>
 
         <p>Visit</p>
         <div class="branding">
