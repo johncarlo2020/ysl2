@@ -31,13 +31,8 @@
             <div class="content">
                 <!-- <h1 class="station-born">UNLEASH YOUR INNER LIGHTS</h1> -->
                 <h2 class="station-name">
-                    @if($station->id == 4)
-                    Congratulations!
-                    @elseif($station->id == 1)
-                    LIBRE L'EAU NUE <br> BEYOND A FRAGRANCE
-                    @else
+
                     {{ $station->name }}
-                    @endif
                 </h2>
                 <p class="tag-line">{!! $station->description !!}</p>
             </div>
@@ -68,7 +63,7 @@
         <div id="scannerContainer" class="scanner-container d-none">
             <!-- <button id="close" class="mx-auto mt-4 camera-btn">x</button> -->
             <div class="content">
-                <h1 class="station-born">LIBRE L'EAU NUE <br> SUMMER FREEDOM IN A SCENT</h1>
+                <h1 class="station-born">{{ env('APP_TITLE') }}</h1>
             </div>
             <div style="width: 80vw mx-auto" id="reader"></div>
             <div class="p-3 mt-3">
