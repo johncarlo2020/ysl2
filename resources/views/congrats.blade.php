@@ -91,18 +91,23 @@
                 margin:0;
         }
     </style>
-    <div class="congrats">
+    <div class="congrats main main-bg safari-padding">
         <div class="branding-container">@include('components.branding')</div>
-        <h1 class="station-born ">{{ env('APP_TITLE') }}</h1>
+        <h1 class="station-born">{{ env('APP_TITLE') }}</h1>
 
-        <p>Visit</p>
-        <div class="branding">
-            <a href="https://www.yslbeauty.com.my/en_MY/eid-2025.html">
-                <img class="logo" src="{{ asset('images/logo-dark.webp') }}" alt="">
+        <div class="content">
+            <div class="content">
+                <p>Visit</p>
+                <div class="branding">
+                    <a href="https://www.yslbeauty.com.my/en_MY/eid-2025.html">
+                        <img class="logo" src="{{ asset('images/logo-dark.webp') }}" alt="">
 
-            </a>
+                    </a>
+                </div>
+                <a class="white" href="https://www.yslbeauty.com.my/en_MY/eid-2025.html">for more information</a>
+            </div>
+
         </div>
-        <a class="white" href="https://www.yslbeauty.com.my/en_MY/eid-2025.html">for more information</a>
     </div>
 </body>
 
