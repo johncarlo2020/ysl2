@@ -38,7 +38,7 @@
             </p>
         </div>
         <div class="container">
-            <a class="button-error" href="https://event-my-ysl-dpcis.cprv.io/?redirect_url=&trans_source=W70"> Join
+            <a class="button-error" href="{{ env('APP_CPRV') }}"> Join
                 Now</a>
         </div>
     </div>
