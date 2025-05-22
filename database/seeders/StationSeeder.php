@@ -32,7 +32,7 @@ class StationSeeder extends Seeder
 
         Station::create([
             'name' => "THE LOVESHINE STUDIO",
-            'description' => "Experience the YSL Loveshine photobooth,  <br> on social media & hashtag #YSLBEAUTYSG <br> #YSLBEAUTYLOVEGAME #YSLMAKEUP",
+            'description' => "Experience the YSL Loveshine photobooth,  <br> Post on social media & hashtag #YSLBEAUTYSG <br> #YSLBEAUTYLOVEGAME #YSLMAKEUP",
         ]);
 
         Station::create([

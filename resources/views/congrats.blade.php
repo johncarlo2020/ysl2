@@ -90,6 +90,9 @@
                 width: 80%;
                 margin:0;
         }
+        .congrats-branding{
+            margin-bottom:10px;
+        }
     </style>
     <div class="congrats main main-bg safari-padding">
         <div class="branding-container">@include('components.branding')</div>
@@ -98,13 +101,13 @@
         <div class="content">
             <div class="content">
                 <p>Visit</p>
-                <div class="branding">
-                    <a href="https://www.yslbeauty.com.my/en_MY/eid-2025.html">
+                <div class="branding congrats-branding" >
+                    <a href="https://www.yslbeauty.com.sg/en_SG/ysl-beauty-icons/ ">
                         <img class="logo" src="{{ asset('images/logo-dark.webp') }}" alt="">
 
                     </a>
                 </div>
-                <a class="white" href="https://www.yslbeauty.com.my/en_MY/eid-2025.html">for more information</a>
+                <a class="white" href="https://www.yslbeauty.com.sg/en_SG/ysl-beauty-icons/ ">for more information</a>
             </div>
 
         </div>
