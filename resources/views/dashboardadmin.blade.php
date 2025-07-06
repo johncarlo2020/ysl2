@@ -29,14 +29,14 @@
                                     {{ $data['usersCount'] }}
                                 </h5>
                                 {{-- <p class="mb-0">
-                                    <span class="text-success text-sm font-weight-bolder">+55%</span>
-                                    since yesterday
-                                </p> --}}
+                                <span class="text-success text-sm font-weight-bolder">+55%</span>
+                                since yesterday
+                            </p> --}}
                             </div>
                         </div>
                         <div class="col-4 text-end">
                             <div class="icon icon-shape bg-gradient-primary shadow-primary text-center rounded-circle">
-                                <i class="ni ni-money-coins text-lg opacity-10" aria-hidden="true"></i>
+                                <i class="fa-solid fa-user text-lg opacity-10" aria-hidden="true"></i>
                             </div>
                         </div>
                     </div>
@@ -54,14 +54,14 @@
                                     {{ $data['userToday'] }}
                                 </h5>
                                 {{-- <p class="mb-0">
-                                    <span class="text-success text-sm font-weight-bolder">+3%</span>
-                                    since last week
-                                </p> --}}
+                                <span class="text-success text-sm font-weight-bolder">+3%</span>
+                                since last week
+                            </p> --}}
                             </div>
                         </div>
                         <div class="col-4 text-end">
                             <div class="icon icon-shape bg-gradient-danger shadow-danger text-center rounded-circle">
-                                <i class="ni ni-world text-lg opacity-10" aria-hidden="true"></i>
+                                <i class="fa-solid fa-calendar-day text-lg opacity-10" aria-hidden="true"></i>
                             </div>
                         </div>
                     </div>
@@ -83,7 +83,7 @@
                         </div>
                         <div class="col-4 text-end">
                             <div class="icon icon-shape bg-gradient-success shadow-success text-center rounded-circle">
-                                <i class="ni ni-paper-diploma text-lg opacity-10" aria-hidden="true"></i>
+                                <i class="fa-solid fa-percent text-lg opacity-10" aria-hidden="true"></i>
                             </div>
                         </div>
                     </div>
@@ -104,7 +104,7 @@
                         </div>
                         <div class="col-4 text-end">
                             <div class="icon icon-shape bg-gradient-warning shadow-warning text-center rounded-circle">
-                                <i class="ni ni-cart text-lg opacity-10" aria-hidden="true"></i>
+                                <i class="fa-solid fa-circle-check text-lg opacity-10" aria-hidden="true"></i>
                             </div>
                         </div>
                     </div>
@@ -135,7 +135,7 @@
         @endforeach
     </div>
     <div class="row mt-4">
-        <div class="col-lg-6 mb-lg-0 mb-4">
+        <div class="col-lg-6 mb-lg-0 mb-3">
             <div class="card z-index-2 h-100">
                 <div class="card-body p-3">
                     <figure class="highcharts-figure">
@@ -144,39 +144,20 @@
                 </div>
             </div>
         </div>
-        <div class="col-lg-6 mb-lg-0 mb-4">
-            <div class="card z-index-2 h-100">
-                <div class="card-header pb-0 pt-3 bg-transparent">
-                    <div class="row align-items-center">
-                        <div class="col">
-                            <h6 class="text-capitalize mb-0"></h6>
-                        </div>
-                        <div class="col-auto">
-                            <div class="form-group mb-0 mr-3 ml-2">
-                                <select class="form-control form-control-sm" id="date-format-select">
-                                    @foreach ($data['dates'] as $key => $date)
-                                        <option value="{{ $date['date'] }}">{{ $date['date'] }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                    </div>
 
-                </div>
-                <div class="card-body p-3">
+        <div class="col-lg-6 mb-lg-0 mb-3">
+            <div class="card z-index-2 h-100">
+                <div class="card-body card-with-filter p-3">
                     <figure class="highcharts-figure">
                         <div id="container"></div>
                     </figure>
                 </div>
             </div>
         </div>
-
-
     </div>
-
     <div class="row mt-4">
-        <div class="col-lg-12 mb-lg-0 mb-4">
-            <div class="card ">
+        <div class="col-lg-12 mb-lg-0 mb-3">
+            <div class="card card h-100">
                 <div class="card-header pb-0 p-3">
                     <div class="d-flex justify-content-between">
                         <h6 class="mb-2">Customer</h6>
@@ -210,7 +191,8 @@
                                                 </p>
                                                 <h6
                                                     class="text-sm mb-0 {{ $station['value'] ? 'text-success' : 'text-danger' }}">
-                                                    {{ $station['value'] ? 'Yes' : 'No' }}</h6>
+                                                    {{ $station['value'] ? 'Yes' : 'No' }}
+                                                </h6>
 
                                             </div>
                                         </td>
@@ -226,12 +208,7 @@
                 </div>
             </div>
         </div>
-
-
-
-
-
-    </div>
+     </div>
     <script src="{{ asset('assets/js/core/bootstrap.min.js') }}"></script>
     <script src="{{ asset('assets/js/plugins/perfect-scrollbar.min.js') }}"></script>
     <script src="{{ asset('assets/js/plugins/smooth-scrollbar.min.js') }}"></script>
@@ -254,57 +231,48 @@
     <script src="https://code.highcharts.com/modules/export-data.js"></script>
     <script src="https://code.highcharts.com/modules/accessibility.js"></script>
 
+    <style>
+        .highcharts-data-table table {
+            border-collapse: collapse;
+            border-spacing: 0;
+            background-color: transparent;
+            width: 100%;
+            max-width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        .highcharts-data-table th,
+        .highcharts-data-table td {
+            border: 1px solid #dee2e6;
+            padding: .75rem;
+            vertical-align: top;
+        }
+
+        .highcharts-data-table thead th {
+            vertical-align: bottom;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .highcharts-data-table tbody+tbody {
+            border-top: 2px solid #dee2e6;
+        }
+
+        .highcharts-data-table .highcharts-table-caption {
+            caption-side: bottom;
+            padding-top: .75rem;
+            padding-bottom: .75rem;
+            color: #6c757d;
+            text-align: left;
+        }
+    </style>
 
     <script>
         var labels = [];
-        var labels2 = [];
-
         var data = [];
-        var data2 = [];
-        var chart2;
-        var selectedDate = $('#date-format-select').val();
-
-        // Listen for change event on select element
-        $('#date-format-select').change(function() {
-            selectedDate = $(this).val(); // Get selected date
-
-            // Assuming $data['registrationsPerHour'] is an associative array where keys are dates
-            // and values are arrays of registration data
-            var newChart = @json($data['registrationsPerHour']);
-
-
-            // Assuming newChart contains an array of registration data
-            console.log(selectedDate);
-            newData
-
-            var newLabel = [];
-            var newData = [];
-
-
-            // Assuming 'newChart' is in the format required by Chart.js
-            newChart[selectedDate].forEach((dataPoint) => {
-                newLabel.push(dataPoint
-                    .hour);
-                newData.push(dataPoint
-                    .registrations);
-
-            });
-
-            high.xAxis[0].setCategories(newLabel);
-
-            high.series[0].setData(newData);
-            high.setTitle({
-                text: 'Customers per Hour on ' + selectedDate
-            });
-        });
-
         var permissionName = "{{ $permission }}";
 
         var chart = @json($data['usersDaily']);
         console.log(chart);
-
-        var day1 = "{{ $data['dates'][0]['date'] }}";
-        var chart2 = @json($data['registrationsPerHour'][$data['dates'][0]['date']]);
 
         Object.keys(chart).forEach(function(date, index) {
             var dateObj = new Date(date);
@@ -316,62 +284,84 @@
             data.push(chart[date]); // Push the count for the corresponding date
         });
 
+        var registrationsPerHour = @json($data['registrationsPerHour']);
+        var hours = Object.keys(registrationsPerHour).sort(function(a, b) {
+            var timeA = new Date('1970/01/01 ' + a.replace(/([ap]m)/, ' $1'));
+            var timeB = new Date('1970/01/01 ' + b.replace(/([ap]m)/, ' $1'));
+            return timeA - timeB;
+        });
+        var allDates = [];
 
-        chart2.forEach(function(obj) {
-            // Log index
+        // Get all unique dates
+        for (var hour in registrationsPerHour) {
+            if (registrationsPerHour.hasOwnProperty(hour)) {
+                registrationsPerHour[hour].forEach(function(item) {
+                    if (allDates.indexOf(item.date) === -1) {
+                        allDates.push(item.date);
+                    }
+                });
+            }
+        }
+        allDates.sort();
 
-            // Push date and hour as label
-            labels2.push(obj.hour);
-
-            // Push registrations count
-            data2.push(obj.registrations);
+        // Prepare series data
+        var seriesData = allDates.map(function(date) {
+            var dataPoints = hours.map(function(hour) {
+                var registration = registrationsPerHour[hour].find(r => r.date === date);
+                return registration ? registration.registrations : 0;
+            });
+            return {
+                name: date,
+                data: dataPoints
+            };
         });
 
         var high = Highcharts.chart('container', {
             chart: {
-                type: 'column' // Set chart type to 'column'
+                type: 'column',
+                height: 400
             },
             title: {
-                text: 'Customers per Hour',
+                text: 'Hourly Customer Registrations by Date',
                 align: 'left'
             },
-            yAxis: {
-                title: {
-                    text: 'Registrations'
-                }
-            },
             xAxis: {
-                categories: labels2, // Use labels2 as xAxis categories
-                title: {
-                    text: 'Hour'
-                },
+                categories: hours,
+                crosshair: true,
                 accessibility: {
-                    rangeDescription: labels2.join(', ') // Set range description using labels2
+                    description: 'Hours'
                 }
             },
-            legend: {
-                layout: 'vertical',
-                align: 'right',
-                verticalAlign: 'middle'
+            yAxis: {
+                min: 0,
+                title: {
+                    text: 'Number of Registrations'
+                }
             },
-            series: [{
-                name: 'Registration',
-                data: data2
-            }],
+            tooltip: {
+                headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+                pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+                    '<td style="padding:0"><b>{point.y} registrations</b></td></tr>',
+                footerFormat: '</table>',
+                shared: true,
+                useHTML: true
+            },
             plotOptions: {
                 column: {
+                    pointPadding: 0.2,
+                    borderWidth: 0,
                     dataLabels: {
                         enabled: true,
                         formatter: function() {
-                            return this.y; // Display the data value as the label
-                        },
-                        inside: false,
-                        verticalAlign: 'top', // Position the label at the top of the column
-                        crop: false,
-                        overflow: 'none'
+                            if (this.y > 0) {
+                                return this.y;
+                            }
+                            return null;
+                        }
                     }
                 }
             },
+            series: seriesData,
             responsive: {
                 rules: [{
                     condition: {
@@ -390,7 +380,8 @@
 
         var high2 = Highcharts.chart('container2', {
             chart: {
-                type: 'column' // Set chart type to 'column'
+                type: 'spline', // Changed from 'line' to 'spline' for curved lines
+                height: 400
             },
             title: {
                 text: 'Customers Overview',
@@ -403,11 +394,8 @@
             },
             xAxis: {
                 categories: labels, // Use labels2 as xAxis categories
-                title: {
-                    text: 'Hour'
-                },
                 accessibility: {
-                    rangeDescription: labels.join(', ') // Set range description using labels2
+                    rangeDescription: labels.join(', ')
                 }
             },
             legend: {
@@ -420,14 +408,19 @@
                 data: data
             }],
             plotOptions: {
-                column: {
+                series: {
+                    fill: true, // enable area under the line
+                    borderColor: '#3b82f6', // blue line
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)', // shaded area
+                    pointBackgroundColor: '#3b82f6',
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
                     dataLabels: {
                         enabled: true,
                         formatter: function() {
-                            return this.y; // Display the data value as the label
+                            return this.y; // Show the count at each dot
                         },
-                        inside: false,
-                        verticalAlign: 'top', // Position the label at the top of the column
+                        verticalAlign: 'bottom',
                         crop: false,
                         overflow: 'none'
                     }
@@ -450,262 +443,5 @@
         });
 
 
-        // function exportToPNG() {
-        //     html2canvas(document.getElementById('chart-line'), {
-        //         onrendered: function(canvas) {
-        //             var link = document.createElement('a');
-        //             link.href = canvas.toDataURL('image/png');
-        //             link.download = 'chart.png';
-        //             link.click();
-        //         }
-        //     });
-        // }
-
-        function exportToPDF() {
-            var element = document.getElementById('chart-line');
-            html2pdf()
-                .from(element)
-                .save('overview.pdf');
-        }
-
-        function exportToJPEG() {
-            var canvas = document.getElementById('chart-line');
-            var dataURL = canvas.toDataURL('image/jpeg');
-            var link = document.createElement('a');
-            link.href = dataURL;
-            link.download = 'chart.jpeg';
-            link.click();
-        }
-
-        function exportToPDF2() {
-            var canvas = document.getElementById('chart-line2');
-            var pageWidth = 595; // A4 page width in pixels
-            var pageHeight = 842; // A4 page height in pixels
-
-            // Set the canvas dimensions to fit within the page
-            canvas.width = pageWidth;
-            canvas.height = pageHeight;
-
-            // Get the context of the canvas
-            var ctx = canvas.getContext('2d');
-            // Here you would draw your chart onto the canvas using the context 'ctx'
-            // Ensure that the chart is drawn within the canvas dimensions
-
-            // Convert the canvas to a data URL
-            var dataURL = canvas.toDataURL();
-
-            // Create a new image element
-            var img = new Image();
-            img.src = dataURL;
-
-            // Create a new PDF document
-            var pdf = new jsPDF('p', 'pt', [pageWidth, pageHeight]);
-
-            // Add the image to the PDF document
-            pdf.addImage(img, 'PNG', 0, 0, pageWidth, pageHeight);
-
-            // Save the PDF document
-            pdf.save('overview.pdf');
-        }
-
-        function exportToJPEG2() {
-            var canvas = document.getElementById('chart-line2');
-            var dataURL = canvas.toDataURL('image/jpeg');
-            var link = document.createElement('a');
-            link.href = dataURL;
-            link.download = 'chart.jpeg';
-            link.click();
-        }
-
-
-
-        // Iterate over the keys (dates) of the associative array
-
-        // Assuming chart2 is an object with hour keys and registration counts as values
-
-
-        // Iterate over each object in chart2 array
-
-
-        var ctx1 = document.getElementById("chart-line").getContext("2d");
-        var ctx2 = document.getElementById("chart-line2").getContext("2d");
-
-
-        var gradientStroke1 = ctx1.createLinearGradient(0, 230, 0, 50);
-        var gradientStroke2 = ctx2.createLinearGradient(0, 230, 0, 50);
-
-
-        gradientStroke1.addColorStop(1, 'rgba(94, 114, 228, 0.2)');
-        gradientStroke1.addColorStop(0.2,
-            'rgba(94, 114, 228, 0.0)');
-        gradientStroke1.addColorStop(0, 'rgba(94, 114, 228, 0)');
-
-        gradientStroke2.addColorStop(1, 'rgba(94, 114, 228, 0.2)');
-        gradientStroke2.addColorStop(0.2,
-            'rgba(94, 114, 228, 0.0)');
-        gradientStroke2.addColorStop(0, 'rgba(94, 114, 228, 0)');
-        new Chart(ctx1, {
-            type: "bar",
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: "Customers",
-                    tension: 0.4,
-                    borderWidth: 0,
-                    pointRadius: 0,
-                    borderColor: "#5e72e4",
-                    backgroundColor: gradientStroke1,
-                    borderWidth: 3,
-                    fill: true,
-                    data: data,
-                    maxBarThickness: 50
-
-                }],
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false,
-                    }
-                },
-                interaction: {
-                    intersect: false,
-                    mode: 'index',
-                },
-                scales: {
-                    y: {
-                        grid: {
-                            drawBorder: false,
-                            display: true,
-                            drawOnChartArea: true,
-                            drawTicks: false,
-                            borderDash: [5, 5]
-                        },
-                        ticks: {
-                            display: true,
-                            padding: 10,
-                            color: '#fbfbfb',
-                            font: {
-                                size: 11,
-                                family: "Open Sans",
-                                style: 'normal',
-                                lineHeight: 2
-                            },
-                        }
-                    },
-                    x: {
-                        grid: {
-                            drawBorder: false,
-                            display: false,
-                            drawOnChartArea: false,
-                            drawTicks: false,
-                            borderDash: [5, 5]
-                        },
-                        ticks: {
-                            display: true,
-                            color: '#ccc',
-                            padding: 20,
-                            font: {
-                                size: 11,
-                                family: "Open Sans",
-                                style: 'normal',
-                                lineHeight: 2
-                            },
-                        }
-                    },
-                },
-            },
-        });
-
-        var chart2 = new Chart(ctx2, {
-            type: "bar",
-            data: {
-                labels: labels2,
-                datasets: [{
-                    label: selectedDate,
-                    tension: 0.4,
-                    borderWidth: 0,
-                    pointRadius: 0,
-                    borderColor: "#5e72e4",
-                    backgroundColor: gradientStroke2,
-                    borderWidth: 3,
-                    fill: true,
-                    data: data2,
-                    maxBarThickness: 70
-                }],
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false,
-                    },
-                    tooltip: {
-                        enabled: false
-                    },
-                    datalabels: {
-                        display: true,
-                        color: 'black', // Set the color of the labels
-                        font: {
-                            weight: 'bold' // Set the font weight of the labels
-                        },
-                        anchor: 'end', // Position of the labels relative to the anchor point
-                        align: 'top', // Alignment of the labels relative to the anchor point
-                        formatter: function(value) {
-                            return value; // Return the value to be displayed
-                        }
-                    }
-                },
-                interaction: {
-                    intersect: false,
-                    mode: 'index',
-                },
-                scales: {
-                    y: {
-                        grid: {
-                            drawBorder: false,
-                            display: true,
-                            drawOnChartArea: true,
-                            drawTicks: false,
-                            borderDash: [5, 5]
-                        },
-                        ticks: {
-                            display: true,
-                            padding: 10,
-                            color: '#fbfbfb',
-                            font: {
-                                size: 11,
-                                family: "Open Sans",
-                                style: 'normal',
-                                lineHeight: 2
-                            },
-                        }
-                    },
-                    x: {
-                        grid: {
-                            drawBorder: false,
-                            display: false,
-                            drawOnChartArea: false,
-                            drawTicks: false,
-                            borderDash: [5, 5]
-                        },
-                        ticks: {
-                            display: true,
-                            color: '#ccc',
-                            padding: 20,
-                            font: {
-                                size: 11,
-                                family: "Open Sans",
-                                style: 'normal',
-                                lineHeight: 2
-                            },
-                        }
-                    },
-                },
-            },
-        });
     </script>
 @endsection

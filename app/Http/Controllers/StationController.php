@@ -152,21 +152,23 @@ class StationController extends Controller
         }
     }
 
-    public function admin()
+       public function admin()
     {
         $admin = User::find(auth()->id());
         $permission = $admin->getPermissionNames()->first();
         $today = Carbon::today();
-        $startDate = Carbon::create(2024, 7, 10);
-        $data['users'] = User::with('stationUser')->take(4)->orderBy('id', 'desc')->get();
-        $data['usersCount'] = User::whereDate('created_at', '>=', $startDate->toDateString())->count();
-        $data['userToday'] = User::whereDate('created_at', $today)->count();
-        $stations = Station::pluck('name', 'id');
-        $station_count = count($stations);
-        $usersWithSixStationUsers = User::with('stationUser')->whereDate('created_at', '>=', $startDate->toDateString())->has('stationUser', '>=', $station_count)->count();
+        $startDate = Carbon::create(2025, 6, 17);
+        $data['users'] = User::with('stationUser')->take(4)->orderBy('id', 'desc')->where(DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d")'), '>=', $startDate->toDateString())
+            ->get();
+        $data['usersCount'] = User::whereDate('created_at', '>=', $startDate->toDateString())->where(DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d")'), '>=', $startDate->toDateString())
+            ->count();
+        $data['userToday'] = User::whereDate('created_at', $today)->where(DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d")'), '>=', $startDate->toDateString())
+            ->count();
+
+
+        $usersWithSixStationUsers = User::with('stationUser')->whereDate('created_at', '>=', $startDate->toDateString())->has('stationUser', '>=', 5)->count();
         // dd($usersWithSixStationUsers);
         $data['completedUsers'] = $usersWithSixStationUsers;
-
         // dd($usersWithSixStationUsers);
 
         if ($data['usersCount'] > 0) {
@@ -179,23 +181,17 @@ class StationController extends Controller
         $userCountsArray = [];
         $data['dates'] = User::select(DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d") as date'))->where(DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d")'), '>=', $startDate->toDateString())->groupBy('date')->get();
 
-        //   dd($data['where']);
-
         $data['registrationsPerHour'] = User::select(
-            DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d") as date'),
-            DB::raw('CONCAT(
-                CASE WHEN (DATE_FORMAT(created_at, "%H") + 8) % 12 = 0 THEN 12 ELSE (DATE_FORMAT(created_at, "%H") + 8) % 12 END,
-                IF((DATE_FORMAT(created_at, "%H") + 8) >= 12, "pm", "am")
-            ) as hour'),
-
-            DB::raw('COUNT(*) as registrations'),
+            DB::raw('DATE(DATE_ADD(created_at, INTERVAL 8 HOUR)) as date'),
+            DB::raw('LOWER(DATE_FORMAT(DATE_ADD(created_at, INTERVAL 8 HOUR), "%l%p")) as hour'),
+            DB::raw('COUNT(*) as registrations')
         )
-            ->where(DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d")'), '>=', $startDate->toDateString())
-
+            ->whereNotNull('created_at')
+            ->where(DB::raw('DATE(DATE_ADD(created_at, INTERVAL 8 HOUR))'), '>=', $startDate->toDateString())
             ->groupBy('date', 'hour')
+            ->havingRaw('hour IS NOT NULL AND hour <> \'\'')
             ->get()
-            ->groupBy('date');
-        //  dd($data);
+            ->groupBy('hour');
 
         foreach ($userCounts as $userCount) {
             if ($userCount['date'] >= $startDate->toDateString()) {
@@ -206,6 +202,8 @@ class StationController extends Controller
         // $completed = StationUser::w
 
         $averageTimespentByStation = StationUser::select('station_id', \DB::raw('AVG(time_spent) as average_timespent'))->groupBy('station_id')->get()->keyBy('station_id');
+
+        $stations = Station::pluck('name', 'id');
 
         $count = 0;
 
@@ -223,11 +221,12 @@ class StationController extends Controller
 
         $data['stations'] = $stations->map(function ($name, $id) use ($userStations, $averageTimespentByStation) {
             return [
-                'id' => $id,
                 'name' => $name,
                 'average_timespent' => number_format(($averageTimespentByStation->get($id)['average_timespent'] ?? 0) / 60, 2),
+                'id' => $id,
             ];
         });
+
 
         $averagePlaytimeByUser = StationUser::select('user_id', DB::raw('SUM(time_spent) / 60 as total_playtime'))->groupBy('user_id')->get();
 
@@ -238,6 +237,8 @@ class StationController extends Controller
 
         return view('dashboardadmin', compact('data', 'permission'));
     }
+
+
     public function users()
     {
         $today = Carbon::today();
