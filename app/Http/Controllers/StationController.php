@@ -223,6 +223,7 @@ class StationController extends Controller
 
         $data['stations'] = $stations->map(function ($name, $id) use ($userStations, $averageTimespentByStation) {
             return [
+                'id' => $id,
                 'name' => $name,
                 'average_timespent' => number_format(($averageTimespentByStation->get($id)['average_timespent'] ?? 0) / 60, 2),
             ];
