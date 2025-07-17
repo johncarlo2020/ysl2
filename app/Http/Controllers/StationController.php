@@ -181,17 +181,57 @@ class StationController extends Controller
         $userCountsArray = [];
         $data['dates'] = User::select(DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d") as date'))->where(DB::raw('DATE_FORMAT(created_at, "%Y-%m-%d")'), '>=', $startDate->toDateString())->groupBy('date')->get();
 
-        $data['registrationsPerHour'] = User::select(
-            DB::raw('DATE(DATE_ADD(created_at, INTERVAL 8 HOUR)) as date'),
-            DB::raw('LOWER(DATE_FORMAT(DATE_ADD(created_at, INTERVAL 8 HOUR), "%l%p")) as hour'),
-            DB::raw('COUNT(*) as registrations')
-        )
-            ->whereNotNull('created_at')
-            ->where(DB::raw('DATE(DATE_ADD(created_at, INTERVAL 8 HOUR))'), '>=', $startDate->toDateString())
-            ->groupBy('date', 'hour')
-            ->havingRaw('hour IS NOT NULL AND hour <> \'\'')
-            ->get()
-            ->groupBy('hour');
+        // $data['registrationsPerHour'] = User::select(
+        //     DB::raw('DATE(DATE_ADD(created_at, INTERVAL 8 HOUR)) as date'),
+        //     DB::raw('LOWER(DATE_FORMAT(DATE_ADD(created_at, INTERVAL 8 HOUR), "%l%p")) as hour'),
+        //     DB::raw('COUNT(*) as registrations')
+        // )
+        //     ->whereNotNull('created_at')
+        //     ->where(DB::raw('DATE(DATE_ADD(created_at, INTERVAL 8 HOUR))'), '>=', $startDate->toDateString())
+        //     // ->whereBetween(DB::raw('HOUR(DATE_ADD(created_at, INTERVAL 8 HOUR))'), [10, 22]) // 10AM to 10PM
+        //     ->groupBy('date', 'hour')
+        //     ->havingRaw('hour IS NOT NULL AND hour <> \'\'')
+        //     ->get()
+        //     ->groupBy('hour');
+        
+            $rawData = User::select(
+                DB::raw('DATE(DATE_ADD(created_at, INTERVAL 8 HOUR)) as date'),
+                DB::raw('LOWER(DATE_FORMAT(DATE_ADD(created_at, INTERVAL 8 HOUR), "%l%p")) as hour'),
+                DB::raw('COUNT(*) as registrations')
+            )
+                ->whereNotNull('created_at')
+                ->where(DB::raw('DATE(DATE_ADD(created_at, INTERVAL 8 HOUR))'), '>=', $startDate->toDateString())
+                ->whereBetween(DB::raw('HOUR(DATE_ADD(created_at, INTERVAL 8 HOUR))'), [10, 22]) // 10AM to 10PM
+                ->groupBy('date', 'hour')
+                ->havingRaw('hour IS NOT NULL AND hour <> \'\'')
+                ->get()
+                ->groupBy('hour');
+
+            $hours = collect(range(10, 22))->mapWithKeys(function ($h) {
+                $label = strtolower(Carbon::createFromTime($h)->format('gA')); 
+                return [$label => 0];
+            });
+
+            $data['registrationsPerHour'] = $hours->map(function ($_, $hour) use ($rawData) {
+                if (isset($rawData[$hour])) {
+                    return $rawData[$hour]->map(function ($item) {
+                        return [
+                            'date' => $item->date,
+                            'hour' => $item->hour,
+                            'registrations' => $item->registrations,
+                        ];
+                    });
+                }
+            
+                // No data for this hour — return one entry with null date and 0 registrations
+                return collect([
+                    [
+                        'date' => null,
+                        'hour' => $hour,
+                        'registrations' => 0,
+                    ]
+                ]);
+            });
 
         foreach ($userCounts as $userCount) {
             if ($userCount['date'] >= $startDate->toDateString()) {
