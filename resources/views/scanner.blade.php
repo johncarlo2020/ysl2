@@ -107,7 +107,7 @@
 
             console.log("Scanned code: " + code);
             // Generate QR code for the dashboard link
-            generateQRCode('https://gurney.celebrateingold.com/register?id=' + code);
+            generateQRCode('https://my.libresummerfreedom.com/register?id=' + code);
 
             // Show the modal
             $("#qrModal").modal("show");
@@ -119,7 +119,7 @@
     $('#add-code').click(function () {
         console.log($('#manual-code').val());
 
-        generateQRCode('https://gurney.celebrateingold.com/register?id=' + $('#manual-code').val());
+        generateQRCode('https://my.libresummerfreedom.com/register?id=' + $('#manual-code').val());
 
         // Show the modal
         $("#qrModal").modal("show");

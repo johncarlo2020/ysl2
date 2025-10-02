@@ -24,16 +24,13 @@
         </div>
         <div id="mainContent" class="text-center text-content">
             <div class="content">
-                <h2 class="station-born ">LIBRE L'EAU NUE<br>
-                SUMMER FREEDOM IN A SCENT</h2>
+                <h2 class="station-born ">WHAT MAKES YOU LIBRE ?</h2>
             </div>
             <div class="station-img">
                 <img src="{{ asset('images/new/landing.webp') }}" alt="" />
             </div>
             <div class="content">
-                <p class="landing-tagline px-2">Embody Dua Lipa’s radiant, sultry iconicity and attune
-                your senses to the blissful heat of Mediterranean
-                summer.</p>
+                <p class="landing-tagline px-2">Discover the new, breathtaking campaign for LIBRE. A powerful ode to being Free At Heart.</p>
             </div>
             <div class="container mt-2" style="width: 65%;">
                 <a class="button-discover" href="{{ route('dashboard') }}"> CLICK TO START JOURNEY</a>

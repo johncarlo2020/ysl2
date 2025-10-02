@@ -21,23 +21,23 @@ class StationSeeder extends Seeder
     public function run()
     {
         Station::create([
-            'name' => "LIBRE L'EAU NUE BEYOND A FRAGRANCE ",
-            'description' => 'SMELL IT. FEEL IT. <br> A new sensorial fragrance gesture for pulse points, body, <br> and  hair, to suit your mood.',
+            'name' => "DISCOVER THE ICONS",
+            'description' => 'Entice your senses with iconic fragrances from YSL Beauty. Get a stroll through the olfactory notes and uncover the daring ingredients.',
         ]);
 
         Station::create([
-            'name' => 'IMMERSE IN GOLDEN HOUR ',
-            'description' => 'Step into the magical twilight hours,<br> just before the sun sets and the night begins. <br><br> Capture the unforgettable moment <br> and share with your loved ones.',
+            'name' => 'THE REFILL ERA',
+            'description' => 'Feel and explore a world of forever freedom with the iconic refills.',
         ]);
 
         Station::create([
-            'name' => "THE LIBRE L'EAU NU[D]E LOOK ",
-            'description' => "Discover YSL Beauty's sun-kissed look that radiates <br> Summer Freedom, just like Dua Lipa.",
+            'name' => "MY LIBRE MOMENT",
+            'description' => "Freedom to be yourself. Freedom of choice. No compromise. Your own rules. <br> <br> Snap a photo, post on social media & hashtag <br> #YSLBEAUTYMY #YSLFRAGRANCE #YSLLIBRE",
         ]);
 
         Station::create([
-            'name' => "GIFT REDEMPTION ",
-            'description' => "You've completed the <br> 'Summer Freedom' experience. <br> <br>Redeem your YSL Discovery Kit at the gift redemption <br> counter .",
+            'name' => "FEEL-GOOD KIT REDEMPTION",
+            'description' => "Redeem your YSL Beauty Discovery Gift at the gift redemption counter.",
         ]);
 
         $role = Role::create(['name' => 'client']);

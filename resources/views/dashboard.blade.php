@@ -26,7 +26,7 @@
 
                         <div class="text-content">
                             <p class="px-5 station-name-modal">
-                                LIBRE L'EAU NUE <br> SUMMER FREEDOM IN A SCENT
+                            WHAT MAKES YOU LIBRE ?
                             </p>
                             <p class="px-5 message">Kindly complete
                                 Station 1 - 3 to proceed to the Gift Redemption Station</p>
@@ -41,7 +41,9 @@
     </div>
     <div class="dashboard main main-bg safari-padding">
         <div class="branding-container">@include('components.branding')</div>
-        <h1 class="station-born">LIBRE L'EAU NUE <br> SUMMER FREEDOM IN A SCENT</h1>
+        <h1 class="station-born">YOUR FOREVER <br> SCENT OF FREEDOM</h1>
+        <br>
+        <h5 class="text-center landing-description">Click on any of the stations below <br> to begin your adventure.</h2>
 
         <div class="content">
             @foreach ($stations as $station)

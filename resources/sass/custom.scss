@@ -735,7 +735,7 @@ a:active {
     }
 }
 .station-name-dashboard {
-    font-family: "Singulier";
+    font-family: "Singulier-Bold";
     font-size: 13px;
     align-items: center;
     text-align: center;
@@ -745,6 +745,12 @@ a:active {
     font-size: 14px;
     letter-spacing: 1px;
     margin: 10px;
+}
+
+.landing-description {
+    font-family: "Singulier";
+    font-size: 16px;
+    letter-spacing: 1px;
 }
 
 .check-mark {
