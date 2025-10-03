@@ -10,6 +10,10 @@
             font-weight: bolder;
             letter-spacing: 3px;
         }
+
+        #scanCompleteModal .modal-dialog {
+            max-width: 800px;
+        }
     </style>
     <div class="modal fade " id="scanCompleteModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
@@ -17,10 +21,9 @@
                 <div class="modal-body">
                     <div class="text-center content">
                         <div class="image-check d-flex justify-content-center">
-                            <div class="border rounded-circle d-flex justify-content-center align-items-center"
-                                style="width: 50px; height: 50px; margin-bottom:20px;">
-                                <i class="fa-solid fa-exclamation d-block" style="font-size: 25px;
-                                                                    "></i>
+                            <div class="border border-dark rounded-circle d-flex justify-content-center align-items-center"
+                                style="width: 50px; height: 50px; margin-bottom:20px; border-width: 3px !important;">
+                                <i class="fa-solid fa-exclamation d-block" style="font-size: 25px; color: black;"></i>
                             </div>
                         </div>
 

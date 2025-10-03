@@ -27,7 +27,7 @@ class StationSeeder extends Seeder
 
         Station::create([
             'name' => 'THE REFILL ERA',
-            'description' => 'Feel and explore a world of forever freedom with the iconic refills.',
+            'description' => 'Feel and explore a world of forever freedom <br> with the iconic refills.',
         ]);
 
         Station::create([
@@ -36,7 +36,7 @@ class StationSeeder extends Seeder
         ]);
 
         Station::create([
-            'name' => "FEEL-GOOD KIT REDEMPTION",
+            'name' => "FEEL-GOOD KIT <br> REDEMPTION",
             'description' => "Redeem your YSL Beauty Discovery Gift at the gift redemption counter.",
         ]);
 

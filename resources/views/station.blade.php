@@ -66,7 +66,7 @@
         <div id="scannerContainer" class="scanner-container d-none">
             <!-- <button id="close" class="mx-auto mt-4 camera-btn">x</button> -->
             <div class="content">
-                <h1 class="station-born">WHAT MAKES YOU LIBRE ?</h1>
+                <h1 class="station-born">YOUR FOREVER <br> SCENT OF FREEDOM</h1>
             </div>
             <div style="width: 80vw mx-auto" id="reader"></div>
             <div class="p-3 mt-3">
@@ -162,7 +162,7 @@
                     mainContent.classList.remove('d-none');
                     scannerContainer.classList.add('d-none');
 
-                    $('#scanCompleteModal').modal('show');
+                    $('#scanCompleteModal').modal('sho ');
                 },
                 error: function(xhr, status, error) {
                     console.error('Error sending QR Code message:', error);
