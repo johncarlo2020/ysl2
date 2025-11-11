@@ -71,6 +71,7 @@ class StationController extends Controller
             return $product;
         });
 
+
         return view('rollet', compact('products'));
     }
 

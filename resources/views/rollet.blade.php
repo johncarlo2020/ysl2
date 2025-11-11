@@ -397,6 +397,7 @@
 
             var rouletteSize = 870;
             var numberOfSlots = {{ count($products) }};
+            console.log(numberOfSlots);
             console.log(numberOfSlots); // Get the number of products dynamically
             var slotAngle = 360 / numberOfSlots;
             var degrees = (180 - slotAngle) / 2;

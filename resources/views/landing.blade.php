@@ -24,10 +24,10 @@
         </div>
         <div id="mainContent" class="text-center text-content">
             <div class="content">
-                <h2 class="station-born ">UNLEASH YOUR INNER LIGHTS</h2>
+                <h2 class="station-born ">CELEBRATE THE SEASON <br> IN GOLD</h2>
             </div>
             <div class="station-img">
-                <img src="{{ asset('images/new/ysl_dmi_hallmark_eid-25.gif') }}" alt="" />
+                <img src="{{ asset('images/new/MAIN.webp') }}" alt="" />
             </div>
             <div class="content">
                 <p class="landing-tagline">Indulge in YSL Beauty's most coveted icons to reveal your inner radiance.</p>
