@@ -264,9 +264,9 @@ a:active {
     justify-content: center;
     align-items: center;
     .logo {
-       height: 37px;
+       height: 60px;
         object-fit: contain;
-        margin: 4.5vh 0;
+        margin: 2.5vh 0;
     }
 }
 
@@ -620,11 +620,14 @@ a:active {
             color: #ffffff;
         }
 
-        p .tag-line {
-            font-family: "Singulier-light";
-            font-size: 14px;
-            color: white;
-        }
+    }
+
+    .tag-line {
+        font-family: "Singulier";
+        font-size: 14px;
+        color: white;
+        margin-top: 20px;
+        padding: 0 20px;
     }
 
     .station-img video {
@@ -812,7 +815,7 @@ a:active {
         align-items: center;
     }
     .branding .logo {
-        width: 40px;
+        width: 60px;
     }
     .form-container {
         width: 355px;

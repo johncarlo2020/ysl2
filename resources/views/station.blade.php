@@ -65,7 +65,7 @@
         <div id="scannerContainer" class="scanner-container d-none">
             <!-- <button id="close" class="mx-auto mt-4 camera-btn">x</button> -->
             <div class="content">
-                <h1 class="station-born">{{ env('APP_TITLE') }}</h1>
+                <h1 class="station-born">ADORN IN GOLD</h1>
             </div>
             <div style="width: 80vw mx-auto" id="reader"></div>
             <div class="p-3 mt-3">

@@ -190,7 +190,7 @@
         .bottom-message h2 {
             font-size: 50px;
             letter-spacing: 2px;
-            color: #000;
+            color:white;
         }
 
         .dot {

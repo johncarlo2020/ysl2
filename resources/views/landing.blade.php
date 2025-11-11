@@ -35,7 +35,7 @@
 
                 Adorn yourself. Express your edge.</p>
             </div>
-            <div class="container mt-2" style="width: 65%;">
+            <div class="container mt-5" style="width: 65%;">
                 <a class="button-discover" href="{{ route('dashboard') }}"> CLICK TO START JOURNEY</a>
             </div>
         </div>
