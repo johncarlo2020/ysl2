@@ -9,5 +9,5 @@ class Locker extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'percentage', 'allocation', 'available'];
+    protected $fillable = ['name', 'sku_code', 'description', 'percentage', 'allocation', 'available'];
 }

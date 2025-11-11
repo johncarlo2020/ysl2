@@ -34,12 +34,14 @@
 
                     {{ $station->name }}
                 </h2>
-                <p class="tag-line">{!! $station->description !!}</p>
             </div>
             <div class="mt-3 station-img">
                 <img src="{{ asset('images/station 0' . $station->id . '.webp') }}" alt="" />
+                <p class="tag-line text-white">{!! $station->description !!}</p>
+
 
             </div>
+
 
             @if ($user == false)
 

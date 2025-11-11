@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(StationSeeder::class);
         $this->call(CountriesTableSeeder::class);
+        $this->call(LockerSeeder::class);
 
 
     }

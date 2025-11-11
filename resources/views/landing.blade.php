@@ -31,7 +31,9 @@
                 <img src="{{ asset('images/new/landing.webp') }}" alt="" />
             </div>
             <div class="content">
-                <p class="landing-tagline px-2">Turn up the heat and let the love games begin with the new YSL Loveshine Plumping Lip Oil Gloss.</p>
+                <p class="landing-tagline px-2">Dare to celebrate the holiday season unapologetically. From bold fragrances to starriest makeup icons.<br> <br>
+
+                Adorn yourself. Express your edge.</p>
             </div>
             <div class="container mt-2" style="width: 65%;">
                 <a class="button-discover" href="{{ route('dashboard') }}"> CLICK TO START JOURNEY</a>

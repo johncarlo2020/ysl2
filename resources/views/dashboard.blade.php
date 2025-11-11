@@ -41,7 +41,7 @@
     </div>
     <div class="dashboard main main-bg safari-padding">
         <div class="branding-container">@include('components.branding')</div>
-        <h1 class="station-born">{{ env('APP_TITLE') }}</h1>
+        <h1 class="station-born">ADORN IN GOLD</h1>
 
         <div class="content">
             @foreach ($stations as $station)

@@ -525,13 +525,13 @@ a:active {
 
     .title-container {
         text-align: center;
-        color: black;
+        color: white;
     }
 
     h1 {
         font-family: "Singulier-Bold";
         font-size: 5vw;
-        color: black;
+        color: rgb(255, 255, 255);
         letter-spacing: 1px;
         text-align: center;
         margin-top: 20px;
@@ -599,7 +599,7 @@ a:active {
             padding: 0;
             margin: 0;
             margin-bottom: 18px;
-            color: #000;
+            color: #ffffff;
         }
         .station-number {
             font-size: 20px;
@@ -617,12 +617,13 @@ a:active {
             padding: 0;
             margin: 0;
             margin-bottom: 1vh;
-            color: #000;
+            color: #ffffff;
         }
 
-        .tag-line {
+        p .tag-line {
             font-family: "Singulier-light";
             font-size: 14px;
+            color: white;
         }
     }
 
@@ -741,10 +742,11 @@ a:active {
     text-align: center;
 }
 .landing-tagline {
-    font-family: "Singulier";
-    font-size: 14px;
+    font-family: "Singulier Regular";
+    font-size: 13px;
     letter-spacing: 1px;
     margin: 10px;
+    color: white;
 }
 
 .check-mark {
