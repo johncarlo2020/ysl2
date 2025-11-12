@@ -42,6 +42,7 @@
 
         p {
             margin: 0;
+            color: white;
         }
 
         .main-logo {
@@ -71,7 +72,7 @@
         }
 
         .white {
-            color: black;
+            color: white;
         }
 
         .visit {
@@ -103,7 +104,7 @@
                 <p>Visit</p>
                 <div class="branding congrats-branding" >
                     <a href="https://www.yslbeauty.com.my/en_MY/holiday-gurney-podium-pre-registration.html?srsltid=AfmBOoqZv9CgBGnZfuPJQ6c4-cfd6Dfg9UZCF6tr0Pz9JOBW13b3xf16">
-                        <img class="logo" src="{{ asset('images/logo-dark.webp') }}" alt="">
+                        <img class="logo" src="{{ asset('images/logo-large1.webp') }}" alt="">
 
                     </a>
                 </div>
