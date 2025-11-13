@@ -511,7 +511,6 @@
                     return p.id === selectedProduct.id;
                 }) + 1;
 
-                selectedProduct = num;
                 return num;
             }
             // Optionally, you can trigger a real roulette spin to show animation
@@ -519,6 +518,7 @@
                 if (isClicked) return;
                 isClicked = true;
                 var num = spinRoulette();
+                selectedProduct = num; // Store the selected product number
                 var numID = 'number-' + num;
 
                 $('#rouletteAnimation').remove();
