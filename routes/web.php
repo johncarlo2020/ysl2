@@ -32,6 +32,7 @@ Route::get('/congrats', function () {
     return view('congrats');
 })->name('congrats');
 Route::get('/roulette', 'App\Http\Controllers\StationController@roulette')->name('rollet');
+Route::get('/test-roulette', 'App\Http\Controllers\StationController@testRoulette')->name('test.roulette');
 Route::post('/stock', 'App\Http\Controllers\StationController@stock')->name('stock');
 
 Route::post('/checkExisting', 'App\Http\Controllers\StationController@checkExisting')->name('checkExisting');

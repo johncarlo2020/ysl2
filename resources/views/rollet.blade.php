@@ -453,21 +453,66 @@
 
             let isClicked = false;
             function spinRoulette() {
-                var num;
-                var random = Math.random() * totalProbability; // Get a random number between 0 and 100
-                var cumulativeProbability = 0;
+                // Step 1: Define tier percentages (fixed)
+                var tierPercentages = {
+                    'rare': 10,      // 10%
+                    'medium': 30,    // 30%
+                    'common': 60     // 60%
+                };
 
-                // Find the selected product based on its probability range
-                for (var i = 0; i < products.length; i++) {
-                    cumulativeProbability += products[i].percentage;
-                    if (random <= cumulativeProbability) {
-                        num = i + 1; // Product number is 1-based
-                        break;
+                // Step 2: Select tier based on tier percentage
+                var tierRandom = Math.random() * 100;
+                var selectedTier;
+
+                if (tierRandom < tierPercentages.rare) {
+                    selectedTier = 'rare';
+                } else if (tierRandom < tierPercentages.rare + tierPercentages.medium) {
+                    selectedTier = 'medium';
+                } else {
+                    selectedTier = 'common';
+                }
+
+                console.log('Selected tier: ' + selectedTier + ' (random: ' + tierRandom + ')');
+
+                // Step 3: Filter products by selected tier that have available quantity
+                var tierProducts = products.filter(function(product) {
+                    return product.tier === selectedTier && product.available > 0;
+                });
+
+                // If no products available in selected tier, try other tiers
+                if (tierProducts.length === 0) {
+                    console.log('No products available in ' + selectedTier + ' tier, trying other tiers');
+
+                    var tierOrder = ['common', 'medium', 'rare'];
+                    for (var i = 0; i < tierOrder.length; i++) {
+                        if (tierOrder[i] !== selectedTier) {
+                            tierProducts = products.filter(function(product) {
+                                return product.tier === tierOrder[i] && product.available > 0;
+                            });
+
+                            if (tierProducts.length > 0) {
+                                selectedTier = tierOrder[i];
+                                console.log('Found products in ' + selectedTier + ' tier');
+                                break;
+                            }
+                        }
                     }
                 }
 
+                // Step 4: Select product with highest available quantity in the tier
+                var selectedProduct = tierProducts.reduce(function(max, product) {
+                    return product.available > max.available ? product : max;
+                }, tierProducts[0]);
+
+                console.log('Selected product: ' + selectedProduct.name + ' with ' + selectedProduct.available + ' available');
+
+                // Find the index (1-based) in the original products array
+                var num = products.findIndex(function(p) {
+                    return p.id === selectedProduct.id;
+                }) + 1;
+
                 selectedProduct = num;
-                return num; // Return the selected product number
+                return num;
             }
             // Optionally, you can trigger a real roulette spin to show animation
             $('.roulette').before().click(function() {

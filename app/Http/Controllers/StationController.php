@@ -74,6 +74,13 @@ class StationController extends Controller
         return view('rollet', compact('products'));
     }
 
+    public function testRoulette()
+    {
+        $products = Locker::get();
+
+        return view('test-roulette', compact('products'));
+    }
+
     public function stock(Request $request)
     {
         $products = Locker::find($request->id);
@@ -193,7 +200,7 @@ class StationController extends Controller
         //     ->havingRaw('hour IS NOT NULL AND hour <> \'\'')
         //     ->get()
         //     ->groupBy('hour');
-        
+
             $rawData = User::select(
                 DB::raw('DATE(DATE_ADD(created_at, INTERVAL 8 HOUR)) as date'),
                 DB::raw('LOWER(DATE_FORMAT(DATE_ADD(created_at, INTERVAL 8 HOUR), "%l%p")) as hour'),
@@ -208,7 +215,7 @@ class StationController extends Controller
                 ->groupBy('hour');
 
             $hours = collect(range(10, 22))->mapWithKeys(function ($h) {
-                $label = strtolower(Carbon::createFromTime($h)->format('gA')); 
+                $label = strtolower(Carbon::createFromTime($h)->format('gA'));
                 return [$label => 0];
             });
 
@@ -222,7 +229,7 @@ class StationController extends Controller
                         ];
                     });
                 }
-            
+
                 // No data for this hour — return one entry with null date and 0 registrations
                 return collect([
                     [
