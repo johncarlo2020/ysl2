@@ -5,17 +5,17 @@ function testRoulette(totalSpins) {
     console.log('=== STARTING ROULETTE TEST ===');
     console.log('Total spins: ' + totalSpins);
     console.log('');
-    
+
     // Create a deep copy of products to avoid modifying the original
     var testProducts = JSON.parse(JSON.stringify(products));
-    
+
     var results = {};
     var tierResults = {
         'rare': 0,
         'medium': 0,
         'common': 0
     };
-    
+
     // Initialize results
     testProducts.forEach(function(product, index) {
         results[product.id] = {
@@ -26,7 +26,7 @@ function testRoulette(totalSpins) {
             count: 0
         };
     });
-    
+
     // Spin function
     function testSpin() {
         var tierPercentages = {
@@ -34,10 +34,10 @@ function testRoulette(totalSpins) {
             'medium': 30,
             'common': 60
         };
-        
+
         var tierRandom = Math.random() * 100;
         var selectedTier;
-        
+
         if (tierRandom < tierPercentages.rare) {
             selectedTier = 'rare';
         } else if (tierRandom < tierPercentages.rare + tierPercentages.medium) {
@@ -45,11 +45,11 @@ function testRoulette(totalSpins) {
         } else {
             selectedTier = 'common';
         }
-        
+
         var tierProducts = testProducts.filter(function(product) {
             return product.tier === selectedTier && product.available > 0;
         });
-        
+
         if (tierProducts.length === 0) {
             var tierOrder = ['common', 'medium', 'rare'];
             for (var i = 0; i < tierOrder.length; i++) {
@@ -57,7 +57,7 @@ function testRoulette(totalSpins) {
                     tierProducts = testProducts.filter(function(product) {
                         return product.tier === tierOrder[i] && product.available > 0;
                     });
-                    
+
                     if (tierProducts.length > 0) {
                         selectedTier = tierOrder[i];
                         break;
@@ -65,21 +65,21 @@ function testRoulette(totalSpins) {
                 }
             }
         }
-        
+
         if (tierProducts.length === 0) {
             return null;
         }
-        
+
         var selectedProduct = tierProducts.reduce(function(max, product) {
             return product.available > max.available ? product : max;
         }, tierProducts[0]);
-        
+
         selectedProduct.available--;
         tierResults[selectedTier]++;
-        
+
         return selectedProduct;
     }
-    
+
     // Run all spins
     for (var i = 0; i < totalSpins; i++) {
         var selected = testSpin();
@@ -88,18 +88,18 @@ function testRoulette(totalSpins) {
             results[selected.id].available--;
         }
     }
-    
+
     // Display results
     console.log('=== TIER DISTRIBUTION ===');
     console.log('Rare (Expected 10%): ' + tierResults.rare + ' (' + ((tierResults.rare / totalSpins) * 100).toFixed(2) + '%)');
     console.log('Medium (Expected 30%): ' + tierResults.medium + ' (' + ((tierResults.medium / totalSpins) * 100).toFixed(2) + '%)');
     console.log('Common (Expected 60%): ' + tierResults.common + ' (' + ((tierResults.common / totalSpins) * 100).toFixed(2) + '%)');
     console.log('');
-    
+
     console.log('=== LOCKER DISTRIBUTION ===');
     console.log('Locker | Tier    | Allocation | Selected | Percentage | Remaining');
     console.log('-------|---------|------------|----------|------------|----------');
-    
+
     Object.keys(results).forEach(function(key) {
         var result = results[key];
         var percentage = ((result.count / totalSpins) * 100).toFixed(2);
@@ -108,32 +108,32 @@ function testRoulette(totalSpins) {
         var countPadded = ('        ' + result.count).slice(-8);
         var percentPadded = ('       ' + percentage + '%').slice(-10);
         var remainingPadded = ('         ' + result.available).slice(-9);
-        
+
         console.log(
-            ('  ' + result.name).slice(-4) + '   | ' + 
-            tierPadded + ' | ' + 
-            allocationPadded + ' | ' + 
-            countPadded + ' | ' + 
-            percentPadded + ' | ' + 
+            ('  ' + result.name).slice(-4) + '   | ' +
+            tierPadded + ' | ' +
+            allocationPadded + ' | ' +
+            countPadded + ' | ' +
+            percentPadded + ' | ' +
             remainingPadded
         );
     });
-    
+
     console.log('');
     console.log('=== SUMMARY ===');
     console.log('Total spins completed: ' + totalSpins);
     console.log('Total items distributed: ' + Object.keys(results).reduce(function(sum, key) { return sum + results[key].count; }, 0));
-    
+
     // Calculate which lockers ran out
     var emptyLockers = Object.keys(results).filter(function(key) { return results[key].available === 0; });
     if (emptyLockers.length > 0) {
         console.log('');
         console.log('Lockers that ran out of stock: ' + emptyLockers.map(function(key) { return results[key].name; }).join(', '));
     }
-    
+
     console.log('');
     console.log('=== TEST COMPLETE ===');
-    
+
     return results;
 }
 
