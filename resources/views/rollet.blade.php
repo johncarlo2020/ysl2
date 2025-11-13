@@ -499,12 +499,30 @@
                     }
                 }
 
-                // Step 4: Select product with highest available quantity in the tier
-                var selectedProduct = tierProducts.reduce(function(max, product) {
-                    return product.available > max.available ? product : max;
-                }, tierProducts[0]);
+                // Step 4: Calculate total quantity in the tier
+                var totalQtyInTier = tierProducts.reduce(function(sum, product) {
+                    return sum + product.available;
+                }, 0);
 
-                console.log('Selected product: ' + selectedProduct.name + ' with ' + selectedProduct.available + ' available');
+                // Calculate percentage for each product in tier based on available quantity
+                var random = Math.random() * totalQtyInTier;
+                var cumulativeQty = 0;
+                var selectedProduct = null;
+
+                for (var i = 0; i < tierProducts.length; i++) {
+                    cumulativeQty += tierProducts[i].available;
+                    if (random <= cumulativeQty) {
+                        selectedProduct = tierProducts[i];
+                        break;
+                    }
+                }
+
+                // Fallback to first product if none selected
+                if (!selectedProduct) {
+                    selectedProduct = tierProducts[0];
+                }
+
+                console.log('Selected product: ' + selectedProduct.name + ' with ' + selectedProduct.available + ' available (total in tier: ' + totalQtyInTier + ')');
 
                 // Find the index (1-based) in the original products array
                 var num = products.findIndex(function(p) {
