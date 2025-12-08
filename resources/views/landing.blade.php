@@ -31,7 +31,7 @@
                 <img src="{{ asset('images/new/landing.webp') }}" alt="" />
             </div>
             <div class="content">
-                <p class="landing-tagline px-2">Dare to celebrate the holiday season unapologetically. From bold fragrances to starriest makeup icons.<br> <br>
+                <p class="landing-tagline px-2">Dare to celebrate the holiday season unapologetically. From iconic fragrances to starriest makeup icons.<br> <br>
 
                 Adorn yourself. Express your edge.</p>
             </div>

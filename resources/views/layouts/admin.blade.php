@@ -78,7 +78,7 @@
                     <a class="nav-link {{ request()->routeIs('users') ? 'active' : '' }}" href="{{ route('users') }}">
                         <div
                             class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                            <i class="ni ni-calendar-grid-58 text-warning text-sm opacity-10"></i>
+                            <i class="ni ni-single-02 text-warning text-sm opacity-10"></i>
                         </div>
                         <span class="nav-link-text ms-1">Users</span>
                     </a>
@@ -88,9 +88,19 @@
                     <a class="nav-link {{ request()->routeIs('stocks') ? 'active' : '' }}" href="{{ route('stocks') }}">
                         <div
                             class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                            <i class="ni ni-calendar-grid-58 text-warning text-sm opacity-10"></i>
+                            <i class="ni ni-box-2 text-success text-sm opacity-10"></i>
                         </div>
                         <span class="nav-link-text ms-1">Stocks</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('refill.logs') ? 'active' : '' }}" href="{{ route('refill.logs') }}">
+                        <div
+                            class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                            <i class="ni ni-bullet-list-67 text-info text-sm opacity-10"></i>
+                        </div>
+                        <span class="nav-link-text ms-1">Refill Logs</span>
                     </a>
                 </li>
 
@@ -102,7 +112,7 @@
                         href="{{ route('scanner') }}">
                         <div
                             class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                            <i class="ni ni-mobile-button text-warning text-sm opacity-10"></i>
+                            <i class="ni ni-camera-compact text-danger text-sm opacity-10"></i>
                         </div>
                         <span class="nav-link-text ms-1">Scanner</span>
                     </a>

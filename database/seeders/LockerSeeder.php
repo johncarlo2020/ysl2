@@ -5,6 +5,8 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Locker;
+use App\Models\RefillLog;
+use App\Models\User;
 use Carbon\Carbon;
 
 class LockerSeeder extends Seeder
@@ -21,8 +23,8 @@ class LockerSeeder extends Seeder
                 'description' => 'YSL MYSLF PHONE RING S2 25 FCA',
                 'tier' => 'medium',
                 'percentage' => 5.64,
-                'allocation' => 150,
-                'available' => 150,
+                'allocation' => 100,
+                'available' => 100,
                 'created_at' => Carbon::parse('2024-11-13 03:27:21'),
                 'updated_at' => Carbon::parse('2024-11-24 21:40:53'),
             ],
@@ -32,8 +34,8 @@ class LockerSeeder extends Seeder
                 'description' => 'YSL XMAS 25 MIRROR GWP FCA',
                 'tier' => 'medium',
                 'percentage' => 11.28,
-                'allocation' => 300,
-                'available' => 300,
+                'allocation' => 150,
+                'available' => 150,
                 'created_at' => Carbon::parse('2024-11-13 03:27:21'),
                 'updated_at' => Carbon::parse('2024-12-09 08:46:13'),
             ],
@@ -43,8 +45,8 @@ class LockerSeeder extends Seeder
                 'description' => 'YSL LIBRE KEYCHAIN S2 25 FCA',
                 'tier' => 'medium',
                 'percentage' => 7.52,
-                'allocation' => 200,
-                'available' => 200,
+                'allocation' => 100,
+                'available' => 100,
                 'created_at' => Carbon::parse('2024-11-13 03:27:21'),
                 'updated_at' => Carbon::parse('2024-11-24 19:50:44'),
             ],
@@ -54,8 +56,8 @@ class LockerSeeder extends Seeder
                 'description' => 'LIBRE EDP 1.2ML MYSLF EDP 1.2ML IMG 1ML X2',
                 'tier' => 'common',
                 'percentage' => 26.32,
-                'allocation' => 700,
-                'available' => 700,
+                'allocation' => 350,
+                'available' => 350,
                 'created_at' => Carbon::parse('2024-11-13 03:27:21'),
                 'updated_at' => Carbon::parse('2024-11-24 21:29:28'),
             ],
@@ -65,8 +67,8 @@ class LockerSeeder extends Seeder
                 'description' => 'TPS MOISTUREGLOW T5ML TS/NP RIS, MVEFC 2ML MINI NU R22 /TRUST',
                 'tier' => 'common',
                 'percentage' => 11.28,
-                'allocation' => 300,
-                'available' => 300,
+                'allocation' => 200,
+                'available' => 200,
                 'created_at' => Carbon::parse('2024-11-13 03:27:21'),
                 'updated_at' => Carbon::parse('2024-11-24 21:00:36'),
             ],
@@ -76,8 +78,8 @@ class LockerSeeder extends Seeder
                 'description' => 'LVDP BLOUSE MINI 7.5ML TS/MAD',
                 'tier' => 'rare',
                 'percentage' => 11.28,
-                'allocation' => 300,
-                'available' => 300,
+                'allocation' => 140,
+                'available' => 140,
                 'created_at' => Carbon::parse('2024-11-13 03:27:21'),
                 'updated_at' => Carbon::parse('2024-11-24 19:46:48'),
             ],
@@ -87,8 +89,8 @@ class LockerSeeder extends Seeder
                 'description' => 'RPC 1966 MINI, AH GLOW FDT 5ML TUBE LN1',
                 'tier' => 'common',
                 'percentage' => 9.77,
-                'allocation' => 260,
-                'available' => 260,
+                'allocation' => 140,
+                'available' => 140,
                 'created_at' => Carbon::parse('2024-11-13 03:27:21'),
                 'updated_at' => Carbon::parse('2024-11-24 21:31:11'),
             ],
@@ -98,8 +100,8 @@ class LockerSeeder extends Seeder
                 'description' => 'YSLY LE PARFUM R25 10ML TS',
                 'tier' => 'rare',
                 'percentage' => 7.52,
-                'allocation' => 200,
-                'available' => 200,
+                'allocation' => 100,
+                'available' => 100,
                 'created_at' => Carbon::parse('2024-11-13 03:27:21'),
                 'updated_at' => Carbon::parse('2024-12-09 09:05:15'),
             ],
@@ -109,8 +111,8 @@ class LockerSeeder extends Seeder
                 'description' => 'BO EDP V10ML TS NU / NF3',
                 'tier' => 'rare',
                 'percentage' => 7.52,
-                'allocation' => 200,
-                'available' => 200,
+                'allocation' => 100,
+                'available' => 100,
                 'created_at' => Carbon::parse('2024-11-13 03:27:21'),
                 'updated_at' => Carbon::parse('2024-11-24 20:35:22'),
             ],
@@ -129,6 +131,107 @@ class LockerSeeder extends Seeder
 
         foreach ($lockers as $locker) {
             Locker::create($locker);
+        }
+
+        // Seed some refill logs
+        $adminUser = User::where('email', 'admin@example.com')->first();
+        $userId = $adminUser ? $adminUser->id : null;
+
+        $refillLogs = [
+            [
+                'locker_id' => 1,
+                'previous_amount' => 0,
+                'quantity_added' => 100,
+                'new_amount' => 100,
+                'user_id' => $userId,
+                'created_at' => Carbon::parse('2024-11-20 10:00:00'),
+                'updated_at' => Carbon::parse('2024-11-20 10:00:00'),
+            ],
+            [
+                'locker_id' => 2,
+                'previous_amount' => 0,
+                'quantity_added' => 150,
+                'new_amount' => 150,
+                'user_id' => $userId,
+                'created_at' => Carbon::parse('2024-11-21 14:30:00'),
+                'updated_at' => Carbon::parse('2024-11-21 14:30:00'),
+            ],
+            [
+                'locker_id' => 3,
+                'previous_amount' => 0,
+                'quantity_added' => 100,
+                'new_amount' => 100,
+                'user_id' => $userId,
+                'created_at' => Carbon::parse('2024-11-21 16:00:00'),
+                'updated_at' => Carbon::parse('2024-11-21 16:00:00'),
+            ],
+            [
+                'locker_id' => 4,
+                'previous_amount' => 0,
+                'quantity_added' => 350,
+                'new_amount' => 350,
+                'user_id' => $userId,
+                'created_at' => Carbon::parse('2024-11-22 09:15:00'),
+                'updated_at' => Carbon::parse('2024-11-22 09:15:00'),
+            ],
+            [
+                'locker_id' => 5,
+                'previous_amount' => 0,
+                'quantity_added' => 200,
+                'new_amount' => 200,
+                'user_id' => $userId,
+                'created_at' => Carbon::parse('2024-11-22 11:30:00'),
+                'updated_at' => Carbon::parse('2024-11-22 11:30:00'),
+            ],
+            [
+                'locker_id' => 6,
+                'previous_amount' => 0,
+                'quantity_added' => 140,
+                'new_amount' => 140,
+                'user_id' => $userId,
+                'created_at' => Carbon::parse('2024-11-23 16:45:00'),
+                'updated_at' => Carbon::parse('2024-11-23 16:45:00'),
+            ],
+            [
+                'locker_id' => 7,
+                'previous_amount' => 0,
+                'quantity_added' => 140,
+                'new_amount' => 140,
+                'user_id' => $userId,
+                'created_at' => Carbon::parse('2024-11-23 18:20:00'),
+                'updated_at' => Carbon::parse('2024-11-23 18:20:00'),
+            ],
+            [
+                'locker_id' => 8,
+                'previous_amount' => 0,
+                'quantity_added' => 100,
+                'new_amount' => 100,
+                'user_id' => $userId,
+                'created_at' => Carbon::parse('2024-11-24 11:20:00'),
+                'updated_at' => Carbon::parse('2024-11-24 11:20:00'),
+            ],
+            [
+                'locker_id' => 9,
+                'previous_amount' => 0,
+                'quantity_added' => 100,
+                'new_amount' => 100,
+                'user_id' => $userId,
+                'created_at' => Carbon::parse('2024-11-24 13:00:00'),
+                'updated_at' => Carbon::parse('2024-11-24 13:00:00'),
+            ],
+            [
+                'locker_id' => 10,
+                'previous_amount' => 0,
+                'quantity_added' => 50,
+                'new_amount' => 50,
+                'user_id' => $userId,
+                'created_at' => Carbon::parse('2024-11-24 15:30:00'),
+                'updated_at' => Carbon::parse('2024-11-24 15:30:00'),
+            ],
+        ];
+
+        foreach ($refillLogs as $log) {
+            RefillLog::create($log);
         }
     }
 }

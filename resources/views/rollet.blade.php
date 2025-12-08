@@ -185,6 +185,7 @@
             margin-bottom: 10px;
             color: #D4A859;
             font-weight: 700;
+            cursor: pointer;
         }
 
         .bottom-message h2 {
@@ -352,7 +353,7 @@
         <button id="end" class="btn discover-btn rounded-pill d-none" onclick="refresh()">END</button>
 
         <div id="bottomMessage" class="bottom-message d-none">
-            <h1>READY</h1>
+            <h1 onclick="location.reload();">READY</h1>
             <h2>SPIN THE WHEEL</h2>
         </div>
     </div>

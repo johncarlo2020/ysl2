@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Station;
 use App\Models\User;
 use App\Models\Locker;
+use App\Models\RefillLog;
 
 use App\Models\StationUser;
 use DB;
@@ -84,24 +85,98 @@ class StationController extends Controller
     public function stock(Request $request)
     {
         $products = Locker::find($request->id);
+        $previousAmount = $products->available;
         $products->available = $products->available - 1;
         $products->save();
+        
+        // Log the roulette activity
+        RefillLog::create([
+            'locker_id' => $products->id,
+            'type' => 'roulette',
+            'previous_amount' => $previousAmount,
+            'quantity_added' => -1, // Negative for deduction
+            'new_amount' => $products->available,
+            'user_id' => auth()->id(),
+            'notes' => 'Prize won from roulette by ' . (auth()->user()->name ?? 'Guest')
+        ]);
+        
         return $products;
     }
 
     public function refill(Request $request)
     {
+        $request->validate([
+            'id' => 'required|exists:lockers,id',
+            'quantity' => 'nullable|integer|min:1'
+        ]);
+
         $products = Locker::find($request->id);
-        $products->available = $products->allocation;
+        
+        if (!$products) {
+            return response()->json(['error' => 'Product not found'], 404);
+        }
+        
+        $previousAmount = $products->available;
+        
+        // If quantity is provided, add that amount to available stock
+        if ($request->has('quantity') && $request->quantity > 0) {
+            $quantityAdded = (int)$request->quantity;
+            $newAvailable = $products->available + $quantityAdded;
+            
+            // Allow exceeding allocation - update allocation if new stock exceeds it
+            if ($newAvailable > $products->allocation) {
+                $products->allocation = $newAvailable;
+            }
+            
+            $products->available = $newAvailable;
+        } else {
+            // Default behavior: refill to allocation
+            $quantityAdded = $products->allocation - $products->available;
+            $products->available = $products->allocation;
+        }
+        
         $products->save();
-        return $products;
+        
+        // Log the refill action
+        RefillLog::create([
+            'locker_id' => $products->id,
+            'type' => 'refill',
+            'previous_amount' => $previousAmount,
+            'quantity_added' => $quantityAdded,
+            'new_amount' => $products->available,
+            'user_id' => auth()->id(),
+            'notes' => 'Stock refilled by admin'
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Stock added successfully',
+            'product' => $products
+        ]);
     }
 
     public function stocks()
     {
         $products = Locker::orderBy('id', 'asc')->get(['id', 'name', 'allocation', 'available']);
+        
+        // Get total stocks added per locker
+        $totalAddedPerLocker = RefillLog::getTotalAddedPerLocker();
+        
+        // Add total_added to each product
+        foreach ($products as $product) {
+            $product->total_added = $totalAddedPerLocker[$product->id] ?? 0;
+        }
 
         return view('products', compact('products'));
+    }
+
+    public function refillLogs()
+    {
+        $logs = RefillLog::with(['locker', 'user'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('refill-logs', compact('logs'));
     }
 
     public function scan(Request $request)

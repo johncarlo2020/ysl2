@@ -47,7 +47,7 @@
 
             <div class="scanner-button container mt-2" >
                 <button id="scan-btn" class="button-scan">
-                    <p>Scan the QR Code <br> to proceed</p>
+                    <p>Scan QR Code <br> to proceed</p>
                 </button>
 
             </div>

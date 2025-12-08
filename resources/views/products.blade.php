@@ -7,7 +7,53 @@
         }
     </style>
 
-    <!-- Add Product Modal -->
+    <!-- Add Stock Confirmation Modal -->
+    <div class="modal fade" id="addStockModal" tabindex="-1" aria-labelledby="addStockModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addStockModalLabel">Add Stock</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to add stock for <strong id="productName"></strong>?</p>
+                    
+                    <div class="alert alert-info mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>Current Available Stock:</span>
+                            <strong id="currentStock">0</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mt-1">
+                            <span>Total Allocation:</span>
+                            <strong id="totalAllocation">0</strong>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="stockQuantity" class="form-label">Quantity to Add</label>
+                        <input type="number" class="form-control" id="stockQuantity" min="1" value="1" 
+                               oninput="updateNewStock()" required>
+                        <small class="text-muted">Maximum: <span id="maxQuantity">0</span></small>
+                    </div>
+                    
+                    <div class="alert alert-success">
+                        <div class="d-flex justify-content-between">
+                            <span>New Available Stock:</span>
+                            <strong id="newStock">1</strong>
+                        </div>
+                    </div>
+                    
+                    <input type="hidden" id="productId">
+                    <input type="hidden" id="currentStockValue">
+                    <input type="hidden" id="allocationValue">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="closeModal()">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="confirmAddStock()">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="mt-4 row">
         <div class="mb-4 col-lg-12 mb-lg-0">
@@ -28,9 +74,9 @@
                             <th>ID</th>
 
                             <th>Name</th>
-                            <th>Stocks Total</th>
                             <th>Stocks Available</th>
                             <th>Stocks Issued</th>
+                            <th>Total Added</th>
                             <th>Refill</th>
 
                         </thead>
@@ -40,12 +86,12 @@
                                     <td>{{ $product->id }}</td>
 
                                     <td>Locker {{ $product->name }}</td>
-                                    <td>{{ $product->allocation }}</td>
                                     <td>{{ $product->available }}</td>
                                     <td>{{ $product->total_collected }} / {{ $product->allocation }}</td>
+                                    <td><span class="badge bg-info">{{ $product->total_added }}</span></td>
                                     <td>
                                         <button type="button" class="btn btn-warning"
-                                            onclick="refill({{ $product->id }})">Refill</button>
+                                            onclick="openAddStockModal({{ $product->id }}, 'Locker {{ $product->name }}', {{ $product->available }}, {{ $product->allocation }})">Add Stocks</button>
                                     </td>
                                 </tr>
                             @endforeach
@@ -99,6 +145,78 @@
                 [0, 'asc']
             ]
         });
+
+        function openAddStockModal(productId, productName, currentStock, allocation) {
+            $('#productId').val(productId);
+            $('#productName').text(productName);
+            $('#currentStock').text(currentStock);
+            $('#totalAllocation').text(allocation);
+            $('#currentStockValue').val(currentStock);
+            $('#allocationValue').val(allocation);
+            
+            // No maximum limit - allow any quantity
+            $('#maxQuantity').text('Unlimited');
+            $('#stockQuantity').val(1).removeAttr('max').prop('disabled', false);
+            $('#newStock').text(parseInt(currentStock) + 1);
+            $('#addStockModal .btn-primary').prop('disabled', false).text('Confirm');
+            
+            $('#addStockModal').modal('show');
+        }
+
+        function closeModal() {
+            $('#addStockModal').modal('hide');
+        }
+
+        function updateNewStock() {
+            var currentStock = parseInt($('#currentStockValue').val()) || 0;
+            var quantity = parseInt($('#stockQuantity').val()) || 0;
+            
+            if (quantity < 1) {
+                $('#stockQuantity').val(1);
+                quantity = 1;
+            }
+            
+            var newStock = currentStock + quantity;
+            $('#newStock').text(newStock);
+        }
+
+        function confirmAddStock() {
+            var productId = $('#productId').val();
+            var quantity = $('#stockQuantity').val();
+            
+            if (!quantity || quantity < 1) {
+                alert('Please enter a valid quantity (minimum 1)');
+                return;
+            }
+
+            var csrfToken = $('meta[name="csrf-token"]').attr('content');
+
+            $.ajax({
+                url: '{{ route('refill') }}',
+                type: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                },
+                data: {
+                    id: productId,
+                    quantity: parseInt(quantity)
+                },
+                success: function(response) {
+                    location.reload();
+                },
+                error: function(xhr, status, error) {
+                    var errorMessage = 'Error adding stock. Please try again.';
+                    
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    } else if (xhr.responseJSON && xhr.responseJSON.error) {
+                        errorMessage = xhr.responseJSON.error;
+                    }
+                    
+                    alert(errorMessage);
+                }
+            });
+        }
 
         function refill(product) {
             var csrfToken = $('meta[name="csrf-token"]').attr('content');

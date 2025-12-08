@@ -103,12 +103,12 @@
             <div class="content">
                 <p>Visit</p>
                 <div class="branding congrats-branding" >
-                    <a href="https://www.yslbeauty.com.my/en_MY/holiday-gurney-podium-pre-registration.html?srsltid=AfmBOoqZv9CgBGnZfuPJQ6c4-cfd6Dfg9UZCF6tr0Pz9JOBW13b3xf16">
+                    <a href="https://www.yslbeauty.com.my/en_MY/holiday-shop/ ">
                         <img class="logo" src="{{ asset('images/logo-large1.webp') }}" alt="">
 
                     </a>
                 </div>
-                <a class="white" href="https://www.yslbeauty.com.my/en_MY/holiday-gurney-podium-pre-registration.html?srsltid=AfmBOoqZv9CgBGnZfuPJQ6c4-cfd6Dfg9UZCF6tr0Pz9JOBW13b3xf16
+                <a class="white" href="https://www.yslbeauty.com.my/en_MY/holiday-shop/ 
  ">for more information</a>
             </div>
 
