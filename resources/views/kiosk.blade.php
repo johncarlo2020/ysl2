@@ -238,12 +238,27 @@
                 }, delay);
             }
 
-            // ── Pusher — receive card UIDs from NFC relay via Laravel ──────────
-            var pusher  = new Pusher('{{ env('PUSHER_APP_KEY') }}', { cluster: '{{ env('PUSHER_APP_CLUSTER') }}' });
-            var channel = pusher.subscribe('rfid');
-            channel.bind('card.tapped', function (data) {
-                if (data.uid) processRfid(data.uid);
-            });
+            // ── WebSocket — NFC relay broadcasts card UIDs to this page ──────────
+            (function connectWS() {
+                var wsProto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+                var ws = new WebSocket(wsProto + '//' + location.host + '/nfc-ws');
+
+                ws.onopen = function () { console.log('NFC relay connected'); };
+
+                ws.onmessage = function (event) {
+                    try {
+                        var data = JSON.parse(event.data);
+                        if (data.uid) processRfid(data.uid);
+                    } catch (e) { /* ignore */ }
+                };
+
+                ws.onclose = function () {
+                    console.log('NFC relay disconnected — retrying in 3 s');
+                    setTimeout(connectWS, 3000);
+                };
+
+                ws.onerror = function () { ws.close(); };
+            })();
             // ─────────────────────────────────────────────────────────────────────
         })();
     </script>

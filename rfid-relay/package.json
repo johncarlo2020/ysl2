@@ -4,7 +4,9 @@
     "description": "ACR122U PC/SC to WebSocket relay",
     "main": "server.js",
     "scripts": {
-        "start": "node server.js"
+        "start": "node server.js",
+        "hub": "node hub.js",
+        "relay": "node relay.js"
     },
     "dependencies": {
         "nfc-pcsc": "^0.8.1"

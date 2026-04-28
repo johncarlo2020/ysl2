@@ -73,7 +73,7 @@
 </div>
 
 <!-- Assign RFID Modal -->
-<div class="modal fade" id="assignModal" tabindex="-1" aria-labelledby="assignModalLabel" aria-hidden="true">
+<div class="modal fade" id="assignModal" tabindex="-1" aria-labelledby="assignModalLabel">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
@@ -119,20 +119,43 @@
 <script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.print.min.js"></script>
 <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
 <script>
-    // ── Pusher — receive card UIDs from NFC relay via Laravel ───────────────
-    var pusher  = new Pusher('{{ env('PUSHER_APP_KEY') }}', { cluster: '{{ env('PUSHER_APP_CLUSTER') }}' });
-    var channel = pusher.subscribe('rfid');
+    // ── WebSocket — NFC relay broadcasts card UIDs to this page ─────────────
+    (function connectWS() {
+        var wsProto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+        var ws = new WebSocket(wsProto + '//' + location.host + '/nfc-ws');
 
-    channel.bind('card.tapped', function (data) {
-        var uid = data.uid;
-        console.log('Card tapped:', uid);
-        if (modalOpen && currentUserId) {
-            $('#rfid-uid-input').val(uid);
-            saveRfid(uid);
-        } else {
-            showToast('Card tapped: ' + uid + ' — open a user row to assign.');
-        }
-    });
+        ws.onopen = function () { console.log('NFC relay connected'); };
+
+        ws.onmessage = function (event) {
+            try {
+                var data = JSON.parse(event.data);
+                var uid  = data.uid;
+                if (!uid) return;
+                var modalIsOpen = $('#assignModal').hasClass('show') || $('#assignModal').is(':visible');
+                console.log('Card tapped:', uid, '| modalIsOpen:', modalIsOpen, '| currentUserId:', currentUserId);
+
+                if (modalIsOpen && currentUserId) {
+                    $('#rfid-uid-input').val(uid);
+                    saveRfid(uid);
+                } else if (modalOpen) {
+                    // Modal is open but user row not yet selected — fill the input
+                    $('#rfid-uid-input').val(uid);
+                    rfidBuffer = uid;
+                    showToast('Card tapped: ' + uid + ' — click Save to assign.');
+                } else {
+                    showToast('Card tapped: ' + uid + ' — open a user row to assign.');
+                }
+            } catch (e) {
+                console.log(e) /* ignore */ }
+        };
+
+        ws.onclose = function () {
+            console.log('NFC relay disconnected — retrying in 3 s');
+            setTimeout(connectWS, 3000);
+        };
+
+        ws.onerror = function () { ws.close(); };
+    })();
 
     function showToast(msg) {
         var $t = $('<div class="alert alert-warning alert-dismissible fade show position-fixed" style="bottom:20px;right:20px;z-index:9999">' +
@@ -208,10 +231,27 @@
         rfidBuffer = '';
     });
 
+    $('#assignModal').on('show.bs.modal', function (event) {
+        // Also capture from the triggering button (belt-and-suspenders)
+        var btn = event.relatedTarget;
+        if (btn) {
+            currentUserId = $(btn).data('user-id');
+            $('#modal-user-code').text($(btn).data('user-code'));
+        }
+        modalOpen = true;
+    });
+
     $('#assignModal').on('shown.bs.modal', function () {
         modalOpen = true;
         rfidBuffer = '';
         $('#rfid-uid-input').focus();
+    });
+
+    $('#assignModal').on('hide.bs.modal', function () {
+        // Move focus out before Bootstrap sets aria-hidden="true"
+        if (this.contains(document.activeElement)) {
+            document.activeElement.blur();
+        }
     });
 
     $('#assignModal').on('hidden.bs.modal', function () {

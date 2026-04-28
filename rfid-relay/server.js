@@ -1,9 +1,26 @@
 const { NFC } = require('nfc-pcsc');
 const https = require('https');
 const http = require('http');
+const WebSocket = require('ws');
 
 const LARAVEL_URL = process.env.LARAVEL_URL || 'https://nfctest.wowbynow.com.my/rfid/receive';
 const RFID_TOKEN  = process.env.RFID_TOKEN  || 'ysl-rfid-secret-2026';
+const WS_PORT     = process.env.WS_PORT     || 3000;
+
+// ── Local WebSocket server ─────────────────────────────────────────────────
+const wss = new WebSocket.Server({ host: '127.0.0.1', port: WS_PORT });
+wss.on('listening', () => console.log('WebSocket server listening on 127.0.0.1:' + WS_PORT));
+wss.on('error',     (err) => console.error('WebSocket server error:', err));
+
+function broadcastUID(uid) {
+    const msg = JSON.stringify({ uid });
+    wss.clients.forEach(function (client) {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(msg);
+        }
+    });
+}
+// ──────────────────────────────────────────────────────────────────────────
 
 console.log('--- NFC Relay ---');
 console.log('POSTing card UIDs to:', LARAVEL_URL);
@@ -16,6 +33,7 @@ nfc.on('reader', function (reader) {
     reader.on('card', function (card) {
         const uid = card.uid.toUpperCase();
         console.log('Card tapped:', uid);
+        broadcastUID(uid);
         postToLaravel(uid);
     });
 

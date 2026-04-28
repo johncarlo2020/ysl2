@@ -478,6 +478,19 @@ class StationController extends Controller
             return response()->json(['error' => 'Missing uid'], 422);
         }
 
+        // Push UID to browser clients via the local WebSocket hub
+        try {
+            $ctx = stream_context_create(['http' => [
+                'method'  => 'POST',
+                'header'  => "Content-Type: application/json\r\nX-RFID-Token: " . config('app.rfid_token'),
+                'content' => json_encode(['uid' => $uid]),
+                'timeout' => 2,
+            ]]);
+            @file_get_contents('http://127.0.0.1:3001/push', false, $ctx);
+        } catch (\Throwable $e) {
+            // Non-fatal — hub may not be running
+        }
+
         broadcast(new RfidCardTapped($uid));
 
         return response()->json(['ok' => true, 'uid' => $uid]);
