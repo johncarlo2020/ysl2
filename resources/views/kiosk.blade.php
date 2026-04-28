@@ -148,6 +148,7 @@
     <p class="footer-hint">{{ $station->name }} &nbsp;|&nbsp; Keep this tab open at all times</p>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
     <script>
         (function () {
             var input       = document.getElementById('rfid-capture');
@@ -237,26 +238,12 @@
                 }, delay);
             }
 
-            // ── WebSocket — NFC relay broadcasts card UIDs to this page ──────────
-            (function connectWS() {
-                var ws = new WebSocket('ws://localhost:' + (window.NFC_WS_PORT || 3000));
-
-                ws.onopen = function () { console.log('NFC relay connected'); };
-
-                ws.onmessage = function (event) {
-                    try {
-                        var data = JSON.parse(event.data);
-                        if (data.uid) processRfid(data.uid);
-                    } catch (e) { /* ignore */ }
-                };
-
-                ws.onclose = function () {
-                    console.log('NFC relay disconnected — retrying in 3 s');
-                    setTimeout(connectWS, 3000);
-                };
-
-                ws.onerror = function () { ws.close(); };
-            })();
+            // ── Pusher — receive card UIDs from NFC relay via Laravel ──────────
+            var pusher  = new Pusher('{{ env('PUSHER_APP_KEY') }}', { cluster: '{{ env('PUSHER_APP_CLUSTER') }}' });
+            var channel = pusher.subscribe('rfid');
+            channel.bind('card.tapped', function (data) {
+                if (data.uid) processRfid(data.uid);
+            });
             // ─────────────────────────────────────────────────────────────────────
         })();
     </script>

@@ -117,36 +117,22 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
 <script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.html5.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.print.min.js"></script>
+<script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
 <script>
-    // ── WebSocket — NFC relay broadcasts card UIDs to this page ─────────────
-    (function connectWS() {
-        var ws = new WebSocket('ws://localhost:' + (window.NFC_WS_PORT || 3000));
+    // ── Pusher — receive card UIDs from NFC relay via Laravel ───────────────
+    var pusher  = new Pusher('{{ env('PUSHER_APP_KEY') }}', { cluster: '{{ env('PUSHER_APP_CLUSTER') }}' });
+    var channel = pusher.subscribe('rfid');
 
-        ws.onopen = function () { console.log('NFC relay connected'); };
-
-        ws.onmessage = function (event) {
-            try {
-                var data = JSON.parse(event.data);
-                var uid  = data.uid;
-                if (!uid) return;
-                console.log('Card tapped:', uid);
-
-                if (modalOpen && currentUserId) {
-                    $('#rfid-uid-input').val(uid);
-                    saveRfid(uid);
-                } else {
-                    showToast('Card tapped: ' + uid + ' — open a user row to assign.');
-                }
-            } catch (e) { /* ignore */ }
-        };
-
-        ws.onclose = function () {
-            console.log('NFC relay disconnected — retrying in 3 s');
-            setTimeout(connectWS, 3000);
-        };
-
-        ws.onerror = function () { ws.close(); };
-    })();
+    channel.bind('card.tapped', function (data) {
+        var uid = data.uid;
+        console.log('Card tapped:', uid);
+        if (modalOpen && currentUserId) {
+            $('#rfid-uid-input').val(uid);
+            saveRfid(uid);
+        } else {
+            showToast('Card tapped: ' + uid + ' — open a user row to assign.');
+        }
+    });
 
     function showToast(msg) {
         var $t = $('<div class="alert alert-warning alert-dismissible fade show position-fixed" style="bottom:20px;right:20px;z-index:9999">' +

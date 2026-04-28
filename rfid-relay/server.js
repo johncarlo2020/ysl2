@@ -2,7 +2,7 @@ const { NFC } = require('nfc-pcsc');
 const https = require('https');
 const http = require('http');
 
-const LARAVEL_URL = process.env.LARAVEL_URL || 'http://localhost/ysl2/public/rfid/receive';
+const LARAVEL_URL = process.env.LARAVEL_URL || 'https://nfctest.wowbynow.com.my/rfid/receive';
 const RFID_TOKEN  = process.env.RFID_TOKEN  || 'ysl-rfid-secret-2026';
 
 console.log('--- NFC Relay ---');
