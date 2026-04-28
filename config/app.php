@@ -70,6 +70,8 @@ return [
 
     'timezone' => 'Asia/Kuala_Lumpur',
 
+    'rfid_token' => env('RFID_TOKEN', 'change-me-secret'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Locale Configuration

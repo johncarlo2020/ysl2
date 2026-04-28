@@ -7,8 +7,8 @@ use App\Models\Station;
 use App\Models\User;
 use App\Models\Locker;
 use App\Models\RefillLog;
-
 use App\Models\StationUser;
+use App\Events\RfidCardTapped;
 use DB;
 use Auth;
 use Carbon\Carbon;
@@ -458,5 +458,99 @@ class StationController extends Controller
         }
 
         return $check;
+    }
+
+    public function rfidAdmin()
+    {
+        $users = User::orderBy('id', 'desc')->get(['id', 'code', 'rfid_uid']);
+        return view('rfid', compact('users'));
+    }
+
+    public function receiveRfid(Request $request)
+    {
+        // Shared secret so only the local server.js can trigger this
+        if ($request->header('X-RFID-Token') !== config('app.rfid_token')) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $uid = strtoupper(trim($request->input('uid', '')));
+        if (empty($uid)) {
+            return response()->json(['error' => 'Missing uid'], 422);
+        }
+
+        broadcast(new RfidCardTapped($uid));
+
+        return response()->json(['ok' => true, 'uid' => $uid]);
+    }
+
+    public function kiosk(Station $station)
+    {
+        return view('kiosk', compact('station'));
+    }
+
+    public function assignRfid(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'rfid_uid' => 'required|string|max:64|unique:users,rfid_uid,' . $request->user_id,
+        ]);
+
+        $user = User::findOrFail($request->user_id);
+        $user->rfid_uid = trim($request->rfid_uid);
+        $user->save();
+
+        return response()->json(['message' => 'RFID assigned successfully']);
+    }
+
+    public function rfidTap(Request $request)
+    {
+        $request->validate([
+            'rfid_uid' => 'required|string|max:64',
+            'station_id' => 'required|integer|exists:stations,id',
+        ]);
+
+        $user = User::where('rfid_uid', trim($request->rfid_uid))->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'RFID card not recognised', 'status' => 'error'], 404);
+        }
+
+        $stationId = (int) $request->station_id;
+
+        // Prevent duplicate check-in
+        $alreadyCheckedIn = StationUser::where('user_id', $user->id)
+            ->where('station_id', $stationId)
+            ->exists();
+
+        if ($alreadyCheckedIn) {
+            return response()->json(['message' => 'Already checked in', 'status' => 'duplicate'], 200);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $lastStation = StationUser::where('user_id', $user->id)->orderBy('id', 'desc')->first();
+
+            if (empty($lastStation)) {
+                $referenceTime = $user->last_login_at ?? $user->created_at;
+            } else {
+                $referenceTime = $lastStation->created_at;
+            }
+
+            $secondsSpent = Carbon::now()->diffInSeconds($referenceTime);
+
+            $stationUser = new StationUser();
+            $stationUser->user_id = $user->id;
+            $stationUser->station_id = $stationId;
+            $stationUser->time_spent = $secondsSpent;
+            $stationUser->save();
+
+            DB::commit();
+
+            return response()->json(['message' => 'Station checked in successfully', 'status' => 'success'], 200);
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json(['error' => 'Server error'], 500);
+        }
     }
 }

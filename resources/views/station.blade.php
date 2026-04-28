@@ -45,16 +45,18 @@
 
             @if ($user == false)
 
-            <div class="scanner-button container mt-2" >
-                <button id="scan-btn" class="button-scan">
-                    <p>Scan QR Code <br> to proceed</p>
-                </button>
-
+            <div class="scanner-button container mt-2">
+                <p class="mb-2 text-white" style="font-size:1.1rem;">Tap your RFID card on the reader to check in</p>
+                <div id="rfid-status" class="mb-2" style="min-height:24px;"></div>
+                {{-- Hidden input captures keystrokes from RFID reader (keyboard wedge) --}}
+                <input type="text" id="rfid-input" autocomplete="off"
+                    style="position:absolute;opacity:0;width:1px;height:1px;border:none;outline:none;"
+                    aria-label="RFID input" />
+                <div id="tap-indicator" class="mt-3">
+                    <i class="fa-solid fa-id-card" style="font-size: 3rem; color: #fff;"></i>
+                    <p class="text-white mt-2" style="font-size:0.85rem;">Card reader is ready</p>
+                </div>
             </div>
-
-            <!-- <div class="container mt-2" style="width: 65%;">
-                <a class="button-discover" href="{{ route('dashboard') }}"> CLICK TO START JOURNEY</a>
-            </div> -->
             @else
             <div class="scanner-button">
                 <p class="mb-2" style="color: black;">Checked In</p>
@@ -63,119 +65,100 @@
             @endif
         </div>
         <div id="scannerContainer" class="scanner-container d-none">
-            <!-- <button id="close" class="mx-auto mt-4 camera-btn">x</button> -->
-            <div class="content">
-                <h1 class="station-born">ADORN IN GOLD</h1>
-            </div>
-            <div style="width: 80vw mx-auto" id="reader"></div>
-            <div class="p-3 mt-3">
-                <p class="px-4 text-center bottom-text">
-                    Find the QR code & Scan to check in the station
-                </p>
-            </div>
-
-            <div class="button" id="btn-back">Back</div>
         </div>
     </div>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
     <script>
-        const mainContent = document.getElementById('mainContent');
-        const scannerContainer = document.getElementById('scannerContainer');
-        document.getElementById('btn-back').addEventListener('click', function(event) {
-            event.preventDefault();
-            mainContent.classList.remove('d-none');
-            scannerContainer.classList.add('d-none');
-        });
-        console.log(typeof Html5Qrcode);
-        document.getElementById('scan-btn').addEventListener('click', function(event) {
-            event.preventDefault();
+        @if (!$user)
+        (function () {
+            var rfidBuffer = '';
+            var rfidTimer = null;
+            var processing = false;
 
-            mainContent.classList.add('d-none');
-            scannerContainer.classList.remove('d-none');
-            const isLandscape = window.innerWidth > window.innerHeight;
-            //get permission to use camera dont start qr scanner until permission is granted
+            var rfidInput = document.getElementById('rfid-input');
+            var rfidStatus = document.getElementById('rfid-status');
 
-            const html5QrCode = new Html5Qrcode("reader");
+            // Keep the hidden input focused so the RFID reader (keyboard wedge) types into it
+            function keepFocus() {
+                if (!processing) {
+                    rfidInput.focus();
+                }
+            }
+            document.addEventListener('click', keepFocus);
+            keepFocus();
 
-            html5QrCode.start({
-                        facingMode: "environment",
-                    }, {
-                        fps: 10,
-                        qrbox: {
-                            width: 200,
-                            height: 250
-                        },
-                        aspectRatio: isLandscape ? 3 / 4 : 4 / 3
-
-                    },
-                    qrCodeMessage => {
-                        console.log(`${qrCodeMessage}`);
-                        sendMessage(`${qrCodeMessage}`);
-                        html5QrCode.stop();
-
-                    },
-                    errorMessage => {
-                        console.log(`QR Code no longer in front of camera.`);
-                    })
-                .catch(err => {
-                    console.log(`Unable to start scanning, error: ${err}`);
-                });
-
-        });
-
-        function sendMessage(message) {
-            // Fetch the CSRF token from the meta tag
-            var csrfToken = $('meta[name="csrf-token"]').attr('content');
-            console.log(message);
-
-            $.ajax({
-                url: '{{ route('process_qr_code') }}', // Using Laravel's route() helper function
-                type: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': csrfToken, // Include the CSRF token in the headers
-                },
-                data: {
-                    qrCodeMessage: message,
-                    station: {{ $station->id }}
-                },
-                success: function(response) {
-                    console.log('QR Code message sent successfully:', response);
-                    // Handle success response if needed
-
-                    const trimmedMessage = message.trim();
-                    // Get the last character of the QR code message
-                    const lastCharacter = trimmedMessage.charAt(trimmedMessage.length - 1);
-                    $('.check').addClass('fa-circle-check text-success');
-                    if (lastCharacter == 4) {
-                        var name = 'GIFT HAS BEEN SUCCESSFULLY REDEEMED';
-                        $('.station-name-modal').html(name);
-                        $('.message').addClass('d-none');
-                    } else {
-                        var name = $('.station-name').html();
-                        $('.station-name-modal').html(name);
+            rfidInput.addEventListener('input', function () {
+                rfidBuffer = rfidInput.value;
+                clearTimeout(rfidTimer);
+                // RFID readers send all chars very fast then Enter — process after short idle
+                rfidTimer = setTimeout(function () {
+                    if (rfidBuffer.trim().length > 0) {
+                        processRfid(rfidBuffer.trim());
+                        rfidBuffer = '';
+                        rfidInput.value = '';
                     }
+                }, 100);
+            });
 
-
-                    mainContent.classList.remove('d-none');
-                    scannerContainer.classList.add('d-none');
-
-                    $('#scanCompleteModal').modal('show');
-                },
-                error: function(xhr, status, error) {
-                    console.error('Error sending QR Code message:', error);
-                    $('.station-text').html('Failed');
-                    $('.message').html('Invalid QR code. Please try again.');
-                    $('.check').addClass('fa-circle-xmark text-danger');
-
-                    mainContent.classList.remove('d-none');
-                    scannerContainer.classList.add('d-none');
-                    $('#scanCompleteModal').modal('show');
-
-
+            rfidInput.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    clearTimeout(rfidTimer);
+                    var uid = rfidInput.value.trim();
+                    rfidInput.value = '';
+                    rfidBuffer = '';
+                    if (uid.length > 0) {
+                        processRfid(uid);
+                    }
                 }
             });
-        }
+
+            function processRfid(uid) {
+                if (processing) return;
+                processing = true;
+                setStatus('info', 'Processing...');
+
+                var csrfToken = $('meta[name="csrf-token"]').attr('content');
+
+                $.ajax({
+                    url: '{{ route('rfid.tap') }}',
+                    type: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrfToken },
+                    data: {
+                        rfid_uid: uid,
+                        station_id: {{ $station->id }}
+                    },
+                    success: function (response) {
+                        var stationName = '{{ $station->name }}';
+                        $('.station-name-modal').html(stationName);
+
+                        @if ($station->id == 4)
+                        $('.station-name-modal').html('GIFT HAS BEEN SUCCESSFULLY REDEEMED');
+                        $('.message').addClass('d-none');
+                        @endif
+
+                        $('.check').addClass('fa-circle-check text-success');
+                        $('#scanCompleteModal').modal('show');
+                    },
+                    error: function (xhr) {
+                        var msg = 'Card not recognised. Please try again.';
+                        if (xhr.status === 404) msg = 'RFID card not assigned to any user.';
+                        setStatus('danger', msg);
+                        $('.check').addClass('fa-circle-xmark text-danger');
+                        $('.message').html(msg);
+                        $('#scanCompleteModal').modal('show');
+                        processing = false;
+                        keepFocus();
+                    }
+                });
+            }
+
+            function setStatus(type, msg) {
+                var colors = { info: '#fff', danger: '#f44336', success: '#4caf50' };
+                rfidStatus.style.color = colors[type] || '#fff';
+                rfidStatus.textContent = msg;
+            }
+        })();
+        @endif
     </script>
 </x-app-layout>
