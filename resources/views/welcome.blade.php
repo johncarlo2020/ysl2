@@ -1,46 +1,47 @@
 <x-app-layout>
-    <style>
-        .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .logo {
-            width: 100% !important;
-            height: 20vh !important;
-            -o-object-fit: contain;
-            object-fit: contain;
-        }
-
-        .button-error {
-            background-color: #D1A14A !important;
-            color: #fff !important;
-            border: none;
-            padding: 10px 50px;
-            text-align: center;
-            text-decoration: none;
-            font-size: 14px;
-            cursor: pointer;
-            border-radius: 5px;
-            letter-spacing: 1px;
-            display: block;
-        }
-    </style>
-    <div id="error-page" class="error-page main main-bg safari-padding">
-        <div class="mb-3 branding-container">
+    <div class="modal-landing modal fade " id="scanCompleteModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="text-center content">
+                        <div class="text-content">
+                            <p class="station-name-modal">
+                                Your Member Id
+                            </p>
+                            <p class="message">{{auth()->user()->code}}</p>
+                        </div>
+                        <div class="">
+                            <button class="button" type="button" data-bs-dismiss="modal">Done</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="stationPage" class="station-page main main-bg safari-padding">
+        <div class="mb-3 branding-container" onclick="modal()">
             @include('components.branding')
         </div>
-        <div class="container mb-5">
-            <p>
-                Please click the button below to join the journey
-            </p>
-        </div>
-        <div class="container">
-            <a class="button-error" href="{{ env('APP_CPRV') }}"> Join
-                Now</a>
+        <div id="mainContent" class="text-center text-content">
+            <div class="content">
+                <h2 class="station-born ">{{ env('APP_TITLE') }}<br>
+                </h2>
+            </div>
+            <div class="station-img">
+                <img src="{{ asset('images/new/landing.webp') }}" alt="" />
+            </div>
+            <div class="container mt-5" style="width: 65%;">
+                <a class="button-discover" href="{{ route('register') }}">JOIN NOW</a>
+            </div>
         </div>
     </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        function modal() {
+            $('#scanCompleteModal').modal('show');
+
+        }
+    </script>
 </x-app-layout>

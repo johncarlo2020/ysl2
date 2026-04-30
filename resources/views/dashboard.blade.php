@@ -41,7 +41,7 @@
     </div>
     <div class="dashboard main main-bg safari-padding">
         <div class="branding-container">@include('components.branding')</div>
-        <h1 class="station-born">ADORN IN GOLD</h1>
+        <h1 class="station-born">GET READY TO UNDRESS YOUR LIP</h1>
 
         <div class="content">
             @foreach ($stations as $station)
@@ -98,9 +98,6 @@
 
             // Check on initial load
             checkStationsActive();
-
-
-
             // Optionally: Add event listeners if the status of stations can change dynamically
             // (For example, if they can be updated via AJAX, or the status changes after some user action)
             station1.addEventListener('classChange', checkStationsActive);

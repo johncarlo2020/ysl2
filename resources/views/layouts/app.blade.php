@@ -27,6 +27,8 @@
         .main-bg {
             background-image: url("{{ asset('images/new/Background.webp') }}");
         }
+
+        
     </style>
     <main>
         {{ $slot }}

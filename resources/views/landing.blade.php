@@ -31,12 +31,10 @@
                 <img src="{{ asset('images/new/landing.webp') }}" alt="" />
             </div>
             <div class="content">
-                <p class="landing-tagline px-2">Dare to celebrate the holiday season unapologetically. From iconic fragrances to starriest makeup icons.<br> <br>
-
-                Adorn yourself. Express your edge.</p>
+                <p class="landing-tagline px-2">Discover YSL LOVENUDE Lip Blusher, a soft blurring lip colour with 7H blur finish and care like a balm for an undressed sensual pout</p>
             </div>
             <div class="container mt-5" style="width: 65%;">
-                <a class="button-discover" href="{{ route('dashboard') }}"> CLICK TO START JOURNEY</a>
+                <a class="button-discover" href="{{ route('dashboard') }}">DISCOVER NOW</a>
             </div>
         </div>
     </div>

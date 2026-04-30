@@ -36,8 +36,9 @@
                 </h2>
             </div>
             <div class="mt-3 station-img">
-                <img src="{{ asset('images/station 0' . $station->id . '.webp') }}" alt="" />
                 <p class="tag-line text-white">{!! $station->description !!}</p>
+
+                <img src="{{ asset('images/station 0' . $station->id . '.webp') }}" alt="" />
 
 
             </div>
@@ -46,15 +47,14 @@
             @if ($user == false)
 
             <div class="scanner-button container mt-2">
-                <p class="mb-2 text-white" style="font-size:1.1rem;">Tap your RFID card on the reader to check in</p>
                 <div id="rfid-status" class="mb-2" style="min-height:24px;"></div>
                 {{-- Hidden input captures keystrokes from RFID reader (keyboard wedge) --}}
                 <input type="text" id="rfid-input" autocomplete="off"
                     style="position:absolute;opacity:0;width:1px;height:1px;border:none;outline:none;"
                     aria-label="RFID input" />
                 <div id="tap-indicator" class="mt-3">
-                    <i class="fa-solid fa-id-card" style="font-size: 3rem; color: #fff;"></i>
-                    <p class="text-white mt-2" style="font-size:0.85rem;">Card reader is ready</p>
+                    <img src="{{ asset('images/new/key.png') }}" alt="NFC Key" style="width: 60px;" />
+                    <p class="text-white mt-2" style="font-size:0.85rem;">Please tap the NFC to check in</p>
                 </div>
             </div>
             @else

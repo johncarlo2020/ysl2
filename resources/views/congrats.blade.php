@@ -97,7 +97,7 @@
     </style>
     <div class="congrats main main-bg safari-padding">
         <div class="branding-container">@include('components.branding')</div>
-        <h1 class="station-born">{{ env('APP_TITLE') }}</h1>
+        <h1 class="station-born">GET READY TO UNDRESS YOUR LIP</h1>
 
         <div class="content">
             <div class="content">
