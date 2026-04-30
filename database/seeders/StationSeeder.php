@@ -21,23 +21,23 @@ class StationSeeder extends Seeder
     public function run()
     {
         Station::create([
-            'name' => "HOLIDAY COLLECTOR DISCOVERY",
-            'description' => 'Unwrap YSL Beauty’s most iconic creations, now dressed in brushed gold.',
+            'name' => "MEET THE NEW ICONIC",
+            'description' => 'Discover YSL LOVENUDE Lip Blusher in more pigment with sheer-buildable, second-skin nude lip fits designed to match your undertone.',
         ]);
 
         Station::create([
-            'name' => 'FRAGRANCE DISCOVERY',
-            'description' => 'Entice your senses with iconic fragrances from YSL Beauty.',
+            'name' => 'THE SHADE ROOM',
+            'description' => 'Strike a pose, share your LOVENUDE look on social media & hashtag #YSLBeautyMY.',
         ]);
 
         Station::create([
-            'name' => "CAPTURE YOUR GOLDEN MOMENT",
-            'description' => "Snap a photo, post on social media & hashtag #YSLBeautyMY",
+            'name' => "LOVENUDE HOTLINE",
+            'description' => "Pick up the phone. Listen to Dua Lipas's audio record and learn more about YSL LOVENUDE.",
         ]);
 
         Station::create([
-            'name' => "GIFT REDEMPTION ",
-            'description' => "Redeem your YSL Discovery Kit at the gift redemption counter.",
+            'name' => "BREAK THE GLASS",
+            'description' => "Redeem your complimentary Nude Obsession discovery kit at the gift redemption counter.",
         ]);
 
         $role = Role::create(['name' => 'client']);
