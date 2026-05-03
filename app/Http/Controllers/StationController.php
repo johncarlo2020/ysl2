@@ -9,6 +9,7 @@ use App\Models\Locker;
 use App\Models\RefillLog;
 use App\Models\StationUser;
 use App\Events\RfidCardTapped;
+use App\Events\StationCheckedIn;
 use DB;
 use Auth;
 use Carbon\Carbon;
@@ -558,7 +559,17 @@ class StationController extends Controller
             $stationUser->time_spent = $secondsSpent;
             $stationUser->save();
 
+            // Station 4 is the final station — clear the RFID UID after check-in
+            if ($stationId === 4) {
+                $user->rfid_uid = null;
+                $user->save();
+            }
+
             DB::commit();
+
+            // Notify the user's station page to open the check-in modal
+            $stationName = Station::find($stationId)?->name ?? '';
+            broadcast(new StationCheckedIn($user->id, $stationId, $stationName));
 
             return response()->json(['message' => 'Station checked in successfully', 'status' => 'success'], 200);
         } catch (\Exception $e) {

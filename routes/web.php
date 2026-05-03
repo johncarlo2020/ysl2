@@ -40,6 +40,10 @@ Route::post('/checkExisting', 'App\Http\Controllers\StationController@checkExist
 // Called by the local server.js NFC relay — no session auth, protected by X-RFID-Token header
 Route::post('/rfid/receive', 'App\Http\Controllers\StationController@receiveRfid')->name('rfid.receive');
 
+// Station kiosk pages — open one per physical station device, no login required
+Route::get('/admin/kiosk/{station}', 'App\Http\Controllers\StationController@kiosk')->name('kiosk');
+Route::post('/admin/kiosk/tap', 'App\Http\Controllers\StationController@rfidTap')->name('rfid.tap');
+
 Route::group(['middleware' => ['admin']], function () {
     Route::get('/admin', 'App\Http\Controllers\StationController@admin')->name('admin');
      Route::get('/admin/refill-logs', 'App\Http\Controllers\StationController@refillLogs')->name('refill.logs');
@@ -48,10 +52,6 @@ Route::group(['middleware' => ['admin']], function () {
     Route::get('/admin/stocks', 'App\Http\Controllers\StationController@stocks')->name('stocks');
     Route::get('/admin/rfid', 'App\Http\Controllers\StationController@rfidAdmin')->name('rfid.admin');
     Route::post('/admin/rfid/assign', 'App\Http\Controllers\StationController@assignRfid')->name('rfid.assign');
-
-    // Station kiosk pages — open one per physical station device
-    Route::get('/admin/kiosk/{station}', 'App\Http\Controllers\StationController@kiosk')->name('kiosk');
-    Route::post('/admin/kiosk/tap', 'App\Http\Controllers\StationController@rfidTap')->name('rfid.tap');
 
     Route::post('/admin/refill', 'App\Http\Controllers\StationController@refill')->name('refill');
 

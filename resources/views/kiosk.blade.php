@@ -127,6 +127,56 @@
             color: #444;
             letter-spacing: 0.05em;
         }
+
+        /* Check-in success modal */
+        .checkin-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.75);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .checkin-modal-overlay.active {
+            display: flex;
+        }
+
+        .checkin-modal {
+            background: #1a1a1a;
+            border: 1px solid #e5c97e;
+            border-radius: 16px;
+            padding: 48px 56px;
+            text-align: center;
+            max-width: 420px;
+            width: 90%;
+            animation: modalIn 0.3s ease;
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.88); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+
+        .checkin-modal .modal-icon {
+            font-size: 4rem;
+            color: #4caf50;
+            margin-bottom: 20px;
+        }
+
+        .checkin-modal .modal-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #e5c97e;
+            margin-bottom: 8px;
+            letter-spacing: 0.05em;
+        }
+
+        .checkin-modal .modal-subtitle {
+            font-size: 1rem;
+            color: #ccc;
+        }
     </style>
 </head>
 <body>
@@ -145,6 +195,23 @@
     {{-- Hidden input — RFID keyboard-wedge reader types here automatically --}}
     <input type="text" id="rfid-capture" autocomplete="off" aria-label="RFID reader input" />
 
+    {{-- Check-in success modal --}}
+    <div class="checkin-modal-overlay" id="checkin-modal-overlay">
+        <div class="checkin-modal">
+            <div class="modal-icon"><i class="fa-solid fa-circle-check"></i></div>
+            <p class="modal-title" id="modal-title">
+                @if ($station->id == 4)
+                    GIFT HAS BEEN SUCCESSFULLY REDEEMED
+                @else
+                    {{ strtoupper($station->name) }}
+                @endif
+            </p>
+            @if ($station->id != 4)
+            <p class="modal-subtitle">Check-in Successful</p>
+            @endif
+        </div>
+    </div>
+
     <p class="footer-hint">{{ $station->name }} &nbsp;|&nbsp; Keep this tab open at all times</p>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
@@ -161,6 +228,8 @@
             var timer       = null;
             var processing  = false;
             var resetTimer  = null;
+            var modalTimer  = null;
+            var modalOverlay = document.getElementById('checkin-modal-overlay');
 
             // Keep focus on hidden input at all times
             function keepFocus() { if (!processing) input.focus(); }
@@ -212,6 +281,7 @@
                             setStatus('duplicate', 'fa-triangle-exclamation', 'Already checked in');
                         } else {
                             setStatus('success', 'fa-circle-check', 'Check-in successful!');
+                            showCheckinModal();
                         }
                         autoReset(3000);
                     },
@@ -236,6 +306,14 @@
                     processing = false;
                     keepFocus();
                 }, delay);
+            }
+
+            function showCheckinModal() {
+                clearTimeout(modalTimer);
+                modalOverlay.classList.add('active');
+                modalTimer = setTimeout(function () {
+                    modalOverlay.classList.remove('active');
+                }, 4000);
             }
 
             // ── WebSocket — NFC relay broadcasts card UIDs to this page ──────────

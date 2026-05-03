@@ -68,6 +68,39 @@
         </div>
     </div>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.15.3/dist/echo.iife.js"></script>
+
+    <script>
+        // Private channel listener — opens modal when the server confirms a check-in for this user
+        (function () {
+            var pusher = new Pusher('{{ env('PUSHER_APP_KEY') }}', {
+                cluster: '{{ env('PUSHER_APP_CLUSTER') }}',
+                authEndpoint: '/broadcasting/auth',
+                auth: {
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                }
+            });
+
+            var channel = pusher.subscribe('private-user.{{ auth()->id() }}');
+
+            channel.bind('checked.in', function (data) {
+                var stationName = data.station_name || '{{ $station->name }}';
+
+                if (data.station_id == 4) {
+                    $('.station-name-modal').html('GIFT HAS BEEN SUCCESSFULLY REDEEMED');
+                    $('.message').addClass('d-none');
+                } else {
+                    $('.station-name-modal').html(stationName);
+                }
+
+                $('.check').removeClass('fa-circle-xmark text-danger').addClass('fa-circle-check text-success');
+                $('#scanCompleteModal').modal('show');
+            });
+        })();
+    </script>
 
     <script>
         @if (!$user)
