@@ -19,16 +19,19 @@ const WebSocket = require('ws');
 const HUB_URL     = process.env.HUB_URL     || 'wss://my.lovenudebeautyhotel.com/nfc-ws';
 const LARAVEL_URL = process.env.LARAVEL_URL || 'https://my.lovenudebeautyhotel.com/rfid/receive';
 const RFID_TOKEN  = process.env.RFID_TOKEN  || 'ysl-rfid-secret-2026';
+const STATION_ID  = process.env.STATION_ID  || '';   // e.g. STATION_ID=1 node relay.js
 
 console.log('--- NFC Relay (Mac) ---');
 console.log('Hub    :', HUB_URL);
 console.log('Laravel:', LARAVEL_URL);
+console.log('Station:', STATION_ID || '(unspecified)');
 
 // ── WebSocket connection to VPS hub ────────────────────────────────────────
 let ws = null;
 
 function connectHub() {
-    const url = HUB_URL + '?token=' + encodeURIComponent(RFID_TOKEN);
+    const url = HUB_URL + '?token=' + encodeURIComponent(RFID_TOKEN) +
+                (STATION_ID ? '&station=' + encodeURIComponent(STATION_ID) : '');
     console.log('Connecting to hub…');
     ws = new WebSocket(url);
 
@@ -73,7 +76,8 @@ nfc.on('error', function (err) { console.error('NFC error:', err); });
 // ──────────────────────────────────────────────────────────────────────────
 
 function postToLaravel(uid) {
-    const body = JSON.stringify({ uid });
+    const payload = STATION_ID ? { uid, station_id: STATION_ID } : { uid };
+    const body = JSON.stringify(payload);
     const url  = new URL(LARAVEL_URL);
     const lib  = url.protocol === 'https:' ? https : http;
 

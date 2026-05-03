@@ -4,9 +4,14 @@
  * Listens on 127.0.0.1:3000 (Apache proxies wss://host/nfc-ws → here).
  * Also listens on 127.0.0.1:3001 for HTTP POST /push from Laravel.
  *
- * Two types of WebSocket connections:
+ * Three types of WebSocket connections:
  *   ?token=<RFID_TOKEN>  → the relay (sends card UIDs)
- *   (no token)           → browser clients (receive card UIDs)
+ *   ?type=kiosk          → kiosk check-in pages (receive card UIDs for check-in)
+ *   ?type=admin          → admin RFID assignment page (receives UIDs + can suppress kiosk broadcasts)
+ *
+ * When an admin page opens the assign modal it sends {"assignMode":true} over WS.
+ * While assignMode is active, UIDs are only forwarded to admin clients — kiosk
+ * clients are skipped so a card tap for assignment does not trigger a check-in.
  *
  * Start:  node hub.js
  * Env:    RFID_TOKEN   shared secret (default: ysl-rfid-secret-2026)
@@ -21,17 +26,58 @@ const RFID_TOKEN = process.env.RFID_TOKEN  || 'ysl-rfid-secret-2026';
 const PORT       = parseInt(process.env.WS_PORT   || '3000', 10);
 const HTTP_PORT  = parseInt(process.env.HTTP_PORT || '3001', 10);
 
-const wss      = new WebSocket.Server({ host: '127.0.0.1', port: PORT });
-const browsers = new Set();
+const wss          = new WebSocket.Server({ host: '127.0.0.1', port: PORT });
+const kioskClients = new Map();   // stationId (string) → Set<ws>
+const adminClients = new Set();   // admin RFID assignment page
 
-function broadcastUID(uid) {
+// When any admin page opens the assign modal this becomes true and kiosks
+// are skipped until the modal is closed (or the timeout fires).
+let assignMode        = false;
+let assignModeTimeout = null;
+const ASSIGN_MODE_TTL = 30000; // auto-reset after 30 s in case page is closed unexpectedly
+
+function setAssignMode(active) {
+    assignMode = active;
+    clearTimeout(assignModeTimeout);
+    if (active) {
+        assignModeTimeout = setTimeout(function () {
+            assignMode = false;
+            console.log('Assign mode auto-reset after timeout');
+        }, ASSIGN_MODE_TTL);
+    }
+    console.log('Assign mode:', assignMode);
+}
+
+function broadcastUID(uid, stationId) {
     const msg = JSON.stringify({ uid });
-    console.log('Broadcasting UID to', browsers.size, 'browser(s):', uid);
-    browsers.forEach(function (client) {
-        if (client.readyState === WebSocket.OPEN) {
-            client.send(msg);
-        }
+    // Always forward to admin clients (they need the UID to fill the input)
+    adminClients.forEach(function (client) {
+        if (client.readyState === WebSocket.OPEN) client.send(msg);
     });
+    // Skip kiosks entirely while admin assign modal is open
+    if (assignMode) return;
+    if (stationId) {
+        // Route to the specific station's kiosk only
+        const targets = kioskClients.get(String(stationId));
+        if (targets) {
+            console.log('Routing UID to station', stationId, '(' + targets.size + ' client(s)):', uid);
+            targets.forEach(function (client) {
+                if (client.readyState === WebSocket.OPEN) client.send(msg);
+            });
+        } else {
+            console.log('No kiosk connected for station', stationId, '— UID not forwarded');
+        }
+    } else {
+        // No station info — broadcast to all kiosks (backward compat)
+        let total = 0;
+        kioskClients.forEach(function (s) { total += s.size; });
+        console.log('Broadcasting UID to all kiosks (no station info), total:', total, uid);
+        kioskClients.forEach(function (clients) {
+            clients.forEach(function (client) {
+                if (client.readyState === WebSocket.OPEN) client.send(msg);
+            });
+        });
+    }
 }
 
 // ── WebSocket server ───────────────────────────────────────────────────────
@@ -47,14 +93,15 @@ wss.on('connection', function (ws, req) {
 
     if (token === RFID_TOKEN) {
         // ── Relay connection ──────────────────────────────────────────────
-        console.log('Relay connected from', req.socket.remoteAddress);
+        const relayStation = url.searchParams.get('station') || null;
+        console.log('Relay connected from', req.socket.remoteAddress, '| station:', relayStation || 'unspecified');
 
         ws.on('message', function (raw) {
             const msg = raw.toString();
             console.log('Relay →', msg);
             try {
                 const data = JSON.parse(msg);
-                if (data.uid) broadcastUID(data.uid);
+                if (data.uid) broadcastUID(data.uid, relayStation);
             } catch (e) { /* ignore */ }
         });
 
@@ -63,17 +110,53 @@ wss.on('connection', function (ws, req) {
 
     } else {
         // ── Browser client ────────────────────────────────────────────────
-        browsers.add(ws);
-        console.log('Browser connected (' + browsers.size + ' total)');
+        const clientType = url.searchParams.get('type') || 'kiosk';
+        const isAdmin    = clientType === 'admin';
+
+        if (isAdmin) {
+            adminClients.add(ws);
+            console.log('Admin browser connected (' + adminClients.size + ' total)');
+        } else {
+            const stationId = url.searchParams.get('station') || 'default';
+            if (!kioskClients.has(stationId)) kioskClients.set(stationId, new Set());
+            kioskClients.get(stationId).add(ws);
+            let total = 0; kioskClients.forEach(function (s) { total += s.size; });
+            console.log('Kiosk browser connected | station:', stationId, '| total kiosks:', total);
+        }
+
+        ws.on('message', function (raw) {
+            if (!isAdmin) return; // only admin clients send control messages
+            try {
+                const data = JSON.parse(raw.toString());
+                if (typeof data.assignMode === 'boolean') {
+                    setAssignMode(data.assignMode);
+                }
+            } catch (e) { /* ignore */ }
+        });
 
         ws.on('close', function () {
-            browsers.delete(ws);
-            console.log('Browser disconnected (' + browsers.size + ' remaining)');
+            if (isAdmin) {
+                adminClients.delete(ws);
+                // If the last admin disconnects while in assign mode, reset it
+                if (adminClients.size === 0 && assignMode) setAssignMode(false);
+                console.log('Admin browser disconnected (' + adminClients.size + ' remaining)');
+            } else {
+                const stationId = url.searchParams.get('station') || 'default';
+                const set = kioskClients.get(stationId);
+                if (set) {
+                    set.delete(ws);
+                    if (set.size === 0) kioskClients.delete(stationId);
+                }
+                let total = 0; kioskClients.forEach(function (s) { total += s.size; });
+                console.log('Kiosk browser disconnected | station:', stationId, '| total kiosks:', total);
+            }
         });
 
         ws.on('error', function (err) {
             console.error('Browser WS error:', err.message);
-            browsers.delete(ws);
+            adminClients.delete(ws);
+            // Remove from kiosk map
+            kioskClients.forEach(function (set) { set.delete(ws); });
         });
     }
 });
@@ -104,7 +187,8 @@ const httpServer = http.createServer(function (req, res) {
                 return res.end(JSON.stringify({ error: 'Missing uid' }));
             }
 
-            broadcastUID(data.uid);
+            const stationId = data.station_id ? String(data.station_id) : null;
+            broadcastUID(data.uid, stationId);
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ ok: true }));
 

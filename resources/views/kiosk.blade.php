@@ -319,7 +319,7 @@
             // ── WebSocket — NFC relay broadcasts card UIDs to this page ──────────
             (function connectWS() {
                 var wsProto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-                var ws = new WebSocket(wsProto + '//' + location.host + '/nfc-ws');
+                var ws = new WebSocket(wsProto + '//' + location.host + '/nfc-ws?type=kiosk&station={{ $station->id }}');
 
                 ws.onopen = function () { console.log('NFC relay connected'); };
 

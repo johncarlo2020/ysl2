@@ -120,9 +120,11 @@
 <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
 <script>
     // ── WebSocket — NFC relay broadcasts card UIDs to this page ─────────────
+    var adminWs = null;
     (function connectWS() {
         var wsProto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-        var ws = new WebSocket(wsProto + '//' + location.host + '/nfc-ws');
+        var ws = new WebSocket(wsProto + '//' + location.host + '/nfc-ws?type=admin');
+        adminWs = ws;
 
         ws.onopen = function () { console.log('NFC relay connected'); };
 
@@ -150,6 +152,7 @@
         };
 
         ws.onclose = function () {
+            adminWs = null;
             console.log('NFC relay disconnected — retrying in 3 s');
             setTimeout(connectWS, 3000);
         };
@@ -239,6 +242,10 @@
             $('#modal-user-code').text($(btn).data('user-code'));
         }
         modalOpen = true;
+        // Tell the hub to stop forwarding card taps to kiosk pages
+        if (adminWs && adminWs.readyState === WebSocket.OPEN) {
+            adminWs.send(JSON.stringify({ assignMode: true }));
+        }
     });
 
     $('#assignModal').on('shown.bs.modal', function () {
@@ -258,6 +265,10 @@
         modalOpen = false;
         rfidBuffer = '';
         clearTimeout(rfidTimer);
+        // Tell the hub to resume forwarding card taps to kiosk pages
+        if (adminWs && adminWs.readyState === WebSocket.OPEN) {
+            adminWs.send(JSON.stringify({ assignMode: false }));
+        }
     });
 
     // Manual save button
