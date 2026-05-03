@@ -1,23 +1,5 @@
 <x-app-layout>
-    <div class="modal-landing modal fade " id="scanCompleteModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-body">
-                    <div class="text-center content">
-                        <div class="text-content">
-                            <p class="station-name-modal">
-                                Your Member Id
-                            </p>
-                            <p class="message">{{auth()->user()->code}}</p>
-                        </div>
-                        <div class="">
-                            <button class="button" type="button" data-bs-dismiss="modal">Done</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    
     <div id="stationPage" class="station-page main main-bg safari-padding">
         <div class="mb-3 branding-container" onclick="modal()">
             @include('components.branding')

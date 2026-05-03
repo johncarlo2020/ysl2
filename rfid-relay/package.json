@@ -9,6 +9,7 @@
         "relay": "node relay.js"
     },
     "dependencies": {
-        "nfc-pcsc": "^0.8.1"
+        "nfc-pcsc": "^0.8.1",
+        "ws": "^8.20.0"
     }
 }
