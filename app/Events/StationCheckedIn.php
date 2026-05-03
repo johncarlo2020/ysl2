@@ -34,4 +34,13 @@ class StationCheckedIn implements ShouldBroadcastNow
     {
         return 'checked.in';
     }
+
+    public function broadcastWith(): array
+    {
+        return [
+            'user_id'      => $this->userId,
+            'station_id'   => $this->stationId,
+            'station_name' => $this->stationName,
+        ];
+    }
 }

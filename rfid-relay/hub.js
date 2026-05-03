@@ -7,11 +7,13 @@
  * Three types of WebSocket connections:
  *   ?token=<RFID_TOKEN>  → the relay (sends card UIDs)
  *   ?type=kiosk          → kiosk check-in pages (receive card UIDs for check-in)
- *   ?type=admin          → admin RFID assignment page (receives UIDs + can suppress kiosk broadcasts)
+ *   ?type=admin          → admin RFID assignment page (receives UIDs only)
  *
- * When an admin page opens the assign modal it sends {"assignMode":true} over WS.
- * While assignMode is active, UIDs are only forwarded to admin clients — kiosk
- * clients are skipped so a card tap for assignment does not trigger a check-in.
+ * Kiosk isolation rule:
+ *   While ANY admin browser client is connected, card UIDs are forwarded ONLY
+ *   to admin clients. Kiosk pages are completely skipped. This guarantees that
+ *   a card tap done in the admin assignment page never triggers a kiosk check-in,
+ *   regardless of modal state or timing.
  *
  * Start:  node hub.js
  * Env:    RFID_TOKEN   shared secret (default: ysl-rfid-secret-2026)
@@ -34,7 +36,7 @@ const adminClients = new Set();   // admin RFID assignment page
 // are skipped until the modal is closed (or the timeout fires).
 let assignMode        = false;
 let assignModeTimeout = null;
-const ASSIGN_MODE_TTL = 30000; // auto-reset after 30 s in case page is closed unexpectedly
+const ASSIGN_MODE_TTL = 60000; // auto-reset after 60 s in case page is closed unexpectedly
 
 function setAssignMode(active) {
     assignMode = active;
@@ -68,15 +70,9 @@ function broadcastUID(uid, stationId) {
             console.log('No kiosk connected for station', stationId, '— UID not forwarded');
         }
     } else {
-        // No station info — broadcast to all kiosks (backward compat)
-        let total = 0;
-        kioskClients.forEach(function (s) { total += s.size; });
-        console.log('Broadcasting UID to all kiosks (no station info), total:', total, uid);
-        kioskClients.forEach(function (clients) {
-            clients.forEach(function (client) {
-                if (client.readyState === WebSocket.OPEN) client.send(msg);
-            });
-        });
+        // No station ID on the relay — this is the admin desk reader.
+        // Admin clients already received the UID above; do NOT forward to any kiosk.
+        console.log('UID from unspecified relay (admin reader) — not forwarded to kiosks:', uid);
     }
 }
 
@@ -155,7 +151,6 @@ wss.on('connection', function (ws, req) {
         ws.on('error', function (err) {
             console.error('Browser WS error:', err.message);
             adminClients.delete(ws);
-            // Remove from kiosk map
             kioskClients.forEach(function (set) { set.delete(ws); });
         });
     }

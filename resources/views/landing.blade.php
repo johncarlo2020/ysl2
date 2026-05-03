@@ -34,7 +34,12 @@
                 <p class="landing-tagline px-2">Discover YSL LOVENUDE Lip Blusher, a soft blurring lip colour with 7H blur finish and care like a balm for an undressed sensual pout</p>
             </div>
             <div class="container mt-5" style="width: 65%;">
-                <a class="button-discover" href="{{ route('dashboard') }}">DISCOVER NOW</a>
+                @if (auth()->user()->rfid_uid)
+                    <a class="button-discover" href="{{ route('dashboard') }}">DISCOVER NOW</a>
+                @else
+                    <span class="button-discover" style="opacity:0.4;cursor:not-allowed;pointer-events:none;">DISCOVER NOW</span>
+                    <p class="text-white mt-3" style="font-size:0.8rem;opacity:0.7;">Please visit the registration desk to get your RFID wristband assigned before proceeding.</p>
+                @endif
             </div>
         </div>
     </div>

@@ -74,19 +74,28 @@
     <script>
         // Private channel listener — opens modal when the server confirms a check-in for this user
         (function () {
+            var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
             var pusher = new Pusher('{{ env('PUSHER_APP_KEY') }}', {
                 cluster: '{{ env('PUSHER_APP_CLUSTER') }}',
-                authEndpoint: '/broadcasting/auth',
-                auth: {
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    }
+                channelAuthorization: {
+                    endpoint: '/broadcasting/auth',
+                    headers: { 'X-CSRF-TOKEN': csrfToken }
                 }
+            });
+
+            pusher.connection.bind('error', function (err) {
+                console.error('Pusher connection error:', err);
             });
 
             var channel = pusher.subscribe('private-user.{{ auth()->id() }}');
 
+            channel.bind('pusher:subscription_error', function (err) {
+                console.error('Channel subscription failed:', err);
+            });
+
             channel.bind('checked.in', function (data) {
+                console.log('check-in event received:', data);
                 var stationName = data.station_name || '{{ $station->name }}';
 
                 if (data.station_id == 4) {

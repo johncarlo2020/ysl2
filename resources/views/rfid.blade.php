@@ -126,7 +126,14 @@
         var ws = new WebSocket(wsProto + '//' + location.host + '/nfc-ws?type=admin');
         adminWs = ws;
 
-        ws.onopen = function () { console.log('NFC relay connected'); };
+        ws.onopen = function () {
+            console.log('NFC relay connected');
+            // If the assign modal was already open when the WS reconnected
+            // (e.g. hub restarted), re-send assignMode so kiosks stay blocked.
+            if (modalOpen) {
+                ws.send(JSON.stringify({ assignMode: true }));
+            }
+        };
 
         ws.onmessage = function (event) {
             try {
