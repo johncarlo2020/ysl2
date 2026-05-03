@@ -3,7 +3,7 @@ const https = require('https');
 const http = require('http');
 const WebSocket = require('ws');
 
-const LARAVEL_URL = process.env.LARAVEL_URL || 'https://nfctest.wowbynow.com.my/rfid/receive';
+const LARAVEL_URL = process.env.LARAVEL_URL || 'https://my.lovenudebeautyhotel.com/rfid/receive';
 const RFID_TOKEN  = process.env.RFID_TOKEN  || 'ysl-rfid-secret-2026';
 const WS_PORT     = process.env.WS_PORT     || 3000;
 
