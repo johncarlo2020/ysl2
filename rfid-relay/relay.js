@@ -6,8 +6,8 @@
  *   2. HTTP POSTs them to Laravel               (optional, for server-side logging)
  *
  * Start:  node relay.js
- * Env:    HUB_URL      WebSocket hub URL   (default: wss://nfctest.wowbynow.com.my/nfc-ws)
- *         LARAVEL_URL  Laravel endpoint     (default: https://nfctest.wowbynow.com.my/rfid/receive)
+ *         HUB_URL      WebSocket hub URL   (default: wss://my.lovenudebeautyhotel.com/nfc-ws)
+ *         LARAVEL_URL  Laravel endpoint     (default: https://my.lovenudebeautyhotel.com/rfid/receive)
  *         RFID_TOKEN   shared secret        (default: ysl-rfid-secret-2026)
  */
 
@@ -16,8 +16,8 @@ const https    = require('https');
 const http     = require('http');
 const WebSocket = require('ws');
 
-const HUB_URL     = process.env.HUB_URL     || 'wss://nfctest.wowbynow.com.my/nfc-ws';
-const LARAVEL_URL = process.env.LARAVEL_URL || 'https://nfctest.wowbynow.com.my/rfid/receive';
+const HUB_URL     = process.env.HUB_URL     || 'wss://my.lovenudebeautyhotel.com/nfc-ws';
+const LARAVEL_URL = process.env.LARAVEL_URL || 'https://my.lovenudebeautyhotel.com/rfid/receive';
 const RFID_TOKEN  = process.env.RFID_TOKEN  || 'ysl-rfid-secret-2026';
 
 console.log('--- NFC Relay (Mac) ---');
