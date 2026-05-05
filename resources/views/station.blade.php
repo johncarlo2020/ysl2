@@ -49,7 +49,7 @@
             <div class="scanner-button container mt-2">
                 <div id="rfid-status" class="mb-2" style="min-height:24px;"></div>
                 {{-- Hidden input captures keystrokes from RFID reader (keyboard wedge) --}}
-                <input type="text" id="rfid-input" autocomplete="off"
+                <input type="text" id="rfid-input" autocomplete="off" inputmode="none"
                     style="position:absolute;opacity:0;width:1px;height:1px;border:none;outline:none;"
                     aria-label="RFID input" />
                 <div id="tap-indicator" class="mt-3">

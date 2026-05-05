@@ -679,16 +679,14 @@ a:active {
         object-fit: cover;
     }
     .scanner-button {
-        height: 20vh;
-        margin-top: auto;
-        text-align: center;
         text-align: center;
         display: flex;
         width: 100%;
         flex-direction: column;
         align-items: center;
-        justify-content: end;
+        justify-content: center;
         margin-top: 3vh;
+        padding-bottom: 2vh;
 
         .scan-btn {
             background-color: transparent;

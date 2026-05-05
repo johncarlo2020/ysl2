@@ -52,6 +52,8 @@ Route::group(['middleware' => ['admin']], function () {
     Route::get('/admin/stocks', 'App\Http\Controllers\StationController@stocks')->name('stocks');
     Route::get('/admin/rfid', 'App\Http\Controllers\StationController@rfidAdmin')->name('rfid.admin');
     Route::post('/admin/rfid/assign', 'App\Http\Controllers\StationController@assignRfid')->name('rfid.assign');
+    Route::post('/admin/rfid/unlink', 'App\Http\Controllers\StationController@unlinkRfid')->name('rfid.unlink');
+    Route::post('/admin/rfid/check', 'App\Http\Controllers\StationController@checkRfid')->name('rfid.check');
 
     Route::post('/admin/refill', 'App\Http\Controllers\StationController@refill')->name('refill');
 

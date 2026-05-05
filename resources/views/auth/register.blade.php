@@ -98,7 +98,31 @@
             margin-bottom: 15px;
             text-align: left;
         }
+
+        #page-loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.75);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #page-loading-overlay .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #d1d1d1;
+            border-top-color: #000;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
+    <div id="page-loading-overlay"><div class="spinner"></div></div>
     <div id="stationPage" class="station-page main main-bg safari-padding">
         <div class="mb-3 branding-container">
             @include('components.branding')
@@ -111,7 +135,7 @@
                     <form method="POST" action="{{ route('register') }}" id="registerForm">
                         @csrf
                         <input id="number" type="phone" class="input-text form-control w-100 @error('number') is-invalid @enderror"
-                            name="number" value="{{ old('number') }}" required autocomplete="number" autofocus />
+                            name="number" value="{{ old('number') }}" required autocomplete="number" autofocus disabled />
 
                         <input type="hidden" id="dialCode" name="dial_code" value="">
                         <input type="hidden" id="countryIso" name="country_iso" value="">
@@ -126,7 +150,7 @@
 
                         <input class="d-none" type="hidden" name="password" value="password" />
 
-                        <button class="button-submit" id="submitButton" type="button">Start Your Journey Now</button>
+                        <button class="button-submit" id="submitButton" type="button" disabled>Start Your Journey Now</button>
                     </form>
                 </div>
             </div>
@@ -137,6 +161,12 @@
 <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.1/build/js/intlTelInput.min.js"></script>
 
     <script>
+        window.addEventListener("load", function() {
+            document.getElementById("page-loading-overlay").style.display = "none";
+            document.getElementById("number").disabled = false;
+            document.getElementById("submitButton").disabled = false;
+        });
+
         document.addEventListener("DOMContentLoaded", function() {
 
                const form = document.querySelector("#form");

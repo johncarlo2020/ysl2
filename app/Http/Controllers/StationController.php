@@ -278,13 +278,13 @@ class StationController extends Controller
         //     ->groupBy('hour');
 
             $rawData = User::select(
-                DB::raw('DATE(DATE_ADD(created_at, INTERVAL 8 HOUR)) as date'),
-                DB::raw('LOWER(DATE_FORMAT(DATE_ADD(created_at, INTERVAL 8 HOUR), "%l%p")) as hour'),
+                DB::raw('DATE(DATE_ADD(created_at, INTERVAL 0 HOUR)) as date'),
+                DB::raw('LOWER(DATE_FORMAT(DATE_ADD(created_at, INTERVAL 0 HOUR), "%l%p")) as hour'),
                 DB::raw('COUNT(*) as registrations')
             )
                 ->whereNotNull('created_at')
-                ->where(DB::raw('DATE(DATE_ADD(created_at, INTERVAL 8 HOUR))'), '>=', $startDate->toDateString())
-                ->whereBetween(DB::raw('HOUR(DATE_ADD(created_at, INTERVAL 8 HOUR))'), [10, 22]) // 10AM to 10PM
+                ->where(DB::raw('DATE(DATE_ADD(created_at, INTERVAL 0 HOUR))'), '>=', $startDate->toDateString())
+                ->whereBetween(DB::raw('HOUR(DATE_ADD(created_at, INTERVAL 0 HOUR))'), [10, 22]) // 10AM to 10PM
                 ->groupBy('date', 'hour')
                 ->havingRaw('hour IS NOT NULL AND hour <> \'\'')
                 ->get()
@@ -463,7 +463,15 @@ class StationController extends Controller
 
     public function rfidAdmin()
     {
-        $users = User::orderBy('id', 'desc')->get(['id', 'code', 'rfid_uid']);
+        $totalStations = \App\Models\Station::count();
+
+        $users = User::orderBy('id', 'desc')
+            ->get(['id', 'code', 'rfid_uid'])
+            ->filter(function ($user) use ($totalStations) {
+                return StationUser::where('user_id', $user->id)->count() < $totalStations;
+            })
+            ->values();
+
         return view('rfid', compact('users'));
     }
 
@@ -522,6 +530,38 @@ class StationController extends Controller
         return response()->json(['message' => 'RFID assigned successfully']);
     }
 
+    public function unlinkRfid(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+        ]);
+
+        $user = User::findOrFail($request->user_id);
+        $user->rfid_uid = null;
+        $user->save();
+
+        return response()->json(['message' => 'RFID unlinked successfully']);
+    }
+
+    public function checkRfid(Request $request)
+    {
+        $request->validate([
+            'rfid_uid' => 'required|string|max:64',
+        ]);
+
+        $user = User::where('rfid_uid', trim($request->rfid_uid))->first();
+
+        if ($user) {
+            return response()->json([
+                'linked'    => true,
+                'user_code' => $user->code,
+                'user_id'   => $user->id,
+            ]);
+        }
+
+        return response()->json(['linked' => false]);
+    }
+
     public function rfidTap(Request $request)
     {
         $request->validate([
@@ -544,6 +584,18 @@ class StationController extends Controller
 
         if ($alreadyCheckedIn) {
             return response()->json(['message' => 'Already checked in', 'status' => 'duplicate'], 200);
+        }
+
+        // Station 4 requires completion of stations 1, 2, and 3 first
+        if ($stationId === 4) {
+            $completedPrerequisites = StationUser::where('user_id', $user->id)
+                ->whereIn('station_id', [1, 2, 3])
+                ->distinct('station_id')
+                ->count('station_id');
+
+            if ($completedPrerequisites < 3) {
+                return response()->json(['message' => 'Must complete stations 1, 2 and 3 first', 'status' => 'prerequisites_not_met'], 422);
+            }
         }
 
         try {

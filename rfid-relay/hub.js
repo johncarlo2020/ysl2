@@ -52,27 +52,33 @@ function setAssignMode(active) {
 
 function broadcastUID(uid, stationId) {
     const msg = JSON.stringify({ uid });
-    // Always forward to admin clients (they need the UID to fill the input)
-    adminClients.forEach(function (client) {
-        if (client.readyState === WebSocket.OPEN) client.send(msg);
-    });
+
+    if (!stationId) {
+        // No station ID — this is the admin desk reader.
+        // Forward ONLY to admin clients; never touches kiosks.
+        console.log('UID from admin desk reader — forwarding to admin clients only:', uid);
+        adminClients.forEach(function (client) {
+            if (client.readyState === WebSocket.OPEN) client.send(msg);
+        });
+        return;
+    }
+
+    // stationId is set — this tap came from a kiosk station relay.
+    // Admin clients must NEVER receive kiosk taps (would pollute the assign modal).
+    console.log('UID from kiosk station', stationId, '— NOT forwarded to admin:', uid);
+
     // Skip kiosks entirely while admin assign modal is open
     if (assignMode) return;
-    if (stationId) {
-        // Route to the specific station's kiosk only
-        const targets = kioskClients.get(String(stationId));
-        if (targets) {
-            console.log('Routing UID to station', stationId, '(' + targets.size + ' client(s)):', uid);
-            targets.forEach(function (client) {
-                if (client.readyState === WebSocket.OPEN) client.send(msg);
-            });
-        } else {
-            console.log('No kiosk connected for station', stationId, '— UID not forwarded');
-        }
+
+    // Route to the specific station's kiosk only
+    const targets = kioskClients.get(String(stationId));
+    if (targets) {
+        console.log('Routing UID to station', stationId, '(' + targets.size + ' client(s)):', uid);
+        targets.forEach(function (client) {
+            if (client.readyState === WebSocket.OPEN) client.send(msg);
+        });
     } else {
-        // No station ID on the relay — this is the admin desk reader.
-        // Admin clients already received the UID above; do NOT forward to any kiosk.
-        console.log('UID from unspecified relay (admin reader) — not forwarded to kiosks:', uid);
+        console.log('No kiosk connected for station', stationId, '— UID not forwarded');
     }
 }
 

@@ -288,8 +288,16 @@
                     error: function (xhr) {
                         var msg = 'Card not recognised';
                         if (xhr.status === 404) msg = 'Card not assigned to any user';
+                        if (xhr.status === 422) {
+                            try {
+                                var resp = JSON.parse(xhr.responseText);
+                                if (resp.status === 'prerequisites_not_met') {
+                                    msg = 'Complete stations 1, 2 & 3 first';
+                                }
+                            } catch (e) {}
+                        }
                         setStatus('error', 'fa-circle-xmark', msg);
-                        autoReset(3000);
+                        autoReset(4000);
                     }
                 });
             }

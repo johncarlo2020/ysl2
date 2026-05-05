@@ -25,9 +25,14 @@
     {{-- User RFID Assignment Table --}}
     <div class="mb-4 col-lg-12 mb-lg-0">
         <div class="card">
-            <div class="p-3 pb-0 card-header d-flex justify-content-between align-items-center">
-                <h6 class="mb-0">RFID Card Assignment</h6>
-                <small class="text-muted">Tap an RFID card on the reader or type the UID manually to assign it to a user.</small>
+            <div class="p-3 pb-0 card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                    <h6 class="mb-0">RFID Card Assignment</h6>
+                    <small class="text-muted">Tap an RFID card on the reader or type the UID manually to assign it to a user.</small>
+                </div>
+                <button class="btn btn-sm btn-outline-secondary" id="check-card-btn" data-bs-toggle="modal" data-bs-target="#checkCardModal">
+                    <i class="fa-solid fa-magnifying-glass me-1"></i> Check Card
+                </button>
             </div>
             <div class="table-responsive">
                 <table id="rfid-table" class="display nowrap" style="width:100%">
@@ -62,11 +67,44 @@
                                     <i class="fa-solid fa-id-card me-1"></i>
                                     {{ $user->rfid_uid ? 'Re-assign' : 'Assign' }}
                                 </button>
+                                @if ($user->rfid_uid)
+                                <button class="btn btn-sm btn-danger unlink-btn ms-1"
+                                    data-user-id="{{ $user->id }}"
+                                    data-user-code="{{ $user->code }}">
+                                    <i class="fa-solid fa-link-slash me-1"></i>Unlink
+                                </button>
+                                @endif
                             </td>
                         </tr>
                         @endforeach
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Check Card Modal -->
+<div class="modal fade" id="checkCardModal" tabindex="-1" aria-labelledby="checkCardModalLabel">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="checkCardModalLabel">Check RFID Card</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-sm text-muted mb-3">Tap the RFID card on the reader connected to this PC to check if it is already linked to a user.</p>
+                <div class="form-group mb-3">
+                    <label class="form-control-label">RFID UID</label>
+                    <input type="text" id="check-uid-input" class="form-control" placeholder="Tap card or type UID..." autocomplete="off" inputmode="none" />
+                </div>
+                <button type="button" class="btn btn-secondary btn-sm mb-2" id="check-uid-btn">
+                    <i class="fa-solid fa-magnifying-glass me-1"></i> Check
+                </button>
+                <div id="check-card-result" class="mt-2 d-none"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -140,6 +178,11 @@
                 var data = JSON.parse(event.data);
                 var uid  = data.uid;
                 if (!uid) return;
+                // If the check card modal is open, route the tap there and do nothing else
+                if ($('#checkCardModal').hasClass('show') || $('#checkCardModal').is(':visible')) {
+                    checkCard(uid);
+                    return;
+                }
                 var modalIsOpen = $('#assignModal').hasClass('show') || $('#assignModal').is(':visible');
                 console.log('Card tapped:', uid, '| modalIsOpen:', modalIsOpen, '| currentUserId:', currentUserId);
 
@@ -190,24 +233,32 @@
     var rfidBuffer = '';
     var rfidTimer  = null;
     var modalOpen  = false;
+    var checkModalOpen = false;
 
     document.addEventListener('keydown', function (e) {
-        if (!modalOpen) return;
+        var isCheckOpen  = $('#checkCardModal').hasClass('show') || $('#checkCardModal').is(':visible');
+        var isAssignOpen = $('#assignModal').hasClass('show') || $('#assignModal').is(':visible');
+        if (!isAssignOpen && !isCheckOpen) return;
 
         // Printable characters → accumulate in buffer
         if (e.key.length === 1) {
             rfidBuffer += e.key;
-            // Prevent the keystroke from landing in DataTables search or elsewhere
             e.stopPropagation();
 
-            // Also fill the visible input so staff can see what's being scanned
-            $('#rfid-uid-input').val(rfidBuffer);
+            if (isCheckOpen) {
+                $('#check-uid-input').val(rfidBuffer);
+            } else {
+                $('#rfid-uid-input').val(rfidBuffer);
+            }
 
             clearTimeout(rfidTimer);
             rfidTimer = setTimeout(function () {
-                // Auto-save if reader finished typing but didn't send Enter
                 if (rfidBuffer.trim().length > 0) {
-                    saveRfid(rfidBuffer.trim());
+                    if ($('#checkCardModal').hasClass('show') || $('#checkCardModal').is(':visible')) {
+                        checkCard(rfidBuffer.trim());
+                    } else {
+                        saveRfid(rfidBuffer.trim());
+                    }
                     rfidBuffer = '';
                 }
             }, 300);
@@ -218,18 +269,26 @@
             e.preventDefault();
             e.stopPropagation();
             clearTimeout(rfidTimer);
-            var uid = rfidBuffer.trim() || $('#rfid-uid-input').val().trim();
-            rfidBuffer = '';
-            if (uid.length > 0) {
-                saveRfid(uid);
+            if (isCheckOpen) {
+                var uid = rfidBuffer.trim() || $('#check-uid-input').val().trim();
+                rfidBuffer = '';
+                if (uid.length > 0) checkCard(uid);
+            } else {
+                var uid = rfidBuffer.trim() || $('#rfid-uid-input').val().trim();
+                rfidBuffer = '';
+                if (uid.length > 0) saveRfid(uid);
             }
         }
 
         if (e.key === 'Backspace') {
             rfidBuffer = rfidBuffer.slice(0, -1);
-            $('#rfid-uid-input').val(rfidBuffer);
+            if (isCheckOpen) {
+                $('#check-uid-input').val(rfidBuffer);
+            } else {
+                $('#rfid-uid-input').val(rfidBuffer);
+            }
         }
-    }, true); // capture phase — fires before any other handler
+    }, true);
     // ────────────────────────────────────────────────────────────────────────
 
     // Open modal
@@ -239,6 +298,29 @@
         $('#rfid-uid-input').val('');
         $('#assign-alert').addClass('d-none').html('');
         rfidBuffer = '';
+    });
+
+    // Unlink RFID
+    $(document).on('click', '.unlink-btn', function () {
+        var userId   = $(this).data('user-id');
+        var userCode = $(this).data('user-code');
+        if (!confirm('Remove RFID card from user ' + userCode + '?')) return;
+        var $btn = $(this);
+        $.ajax({
+            url: '{{ route('rfid.unlink') }}',
+            type: 'POST',
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            data: { user_id: userId },
+            success: function () {
+                $('.rfid-display-' + userId).html('<span class="text-muted fst-italic">Not assigned</span>');
+                $('[data-user-id="' + userId + '"].assign-btn').html('<i class="fa-solid fa-id-card me-1"></i> Assign');
+                $btn.remove();
+                showToast('RFID unlinked successfully.');
+            },
+            error: function () {
+                showToast('Failed to unlink RFID.');
+            }
+        });
     });
 
     $('#assignModal').on('show.bs.modal', function (event) {
@@ -278,7 +360,97 @@
         }
     });
 
-    // Manual save button
+    // ── Check Card modal ────────────────────────────────────────────────────
+    $('#checkCardModal').on('shown.bs.modal', function () {
+        checkModalOpen = true;
+        rfidBuffer = '';
+        $('#check-uid-input').val('');
+        $('#check-card-result').addClass('d-none').html('');
+        $('#check-uid-input').focus();
+    });
+
+    $('#checkCardModal').on('hide.bs.modal', function () {
+        if (this.contains(document.activeElement)) document.activeElement.blur();
+    });
+
+    $('#checkCardModal').on('hidden.bs.modal', function () {
+        checkModalOpen = false;
+        rfidBuffer = '';
+        clearTimeout(rfidTimer);
+    });
+
+    $('#check-uid-btn').on('click', function () {
+        var uid = rfidBuffer.trim() || $('#check-uid-input').val().trim();
+        rfidBuffer = '';
+        if (!uid) return;
+        checkCard(uid);
+    });
+
+    function checkCard(uid) {
+        $('#check-uid-input').val(uid);
+        $('#check-card-result').removeClass('d-none alert-success alert-danger alert-warning')
+            .addClass('alert').html('Checking...');
+        $.ajax({
+            url: '{{ route('rfid.check') }}',
+            type: 'POST',
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            data: { rfid_uid: uid },
+            success: function (res) {
+                if (res.linked) {
+                    $('#check-card-result')
+                        .removeClass('alert-warning')
+                        .addClass('alert-danger')
+                        .html(
+                            '<i class="fa-solid fa-circle-xmark me-1"></i> This card is already linked to user <strong>' + res.user_code + '</strong>.' +
+                            '<br><button class="btn btn-sm btn-danger mt-2" id="check-unlink-btn" data-user-id="' + res.user_id + '" data-user-code="' + res.user_code + '">' +
+                            '<i class="fa-solid fa-link-slash me-1"></i> Unlink from ' + res.user_code +
+                            '</button>'
+                        );
+                } else {
+                    $('#check-card-result')
+                        .removeClass('alert-danger')
+                        .addClass('alert-success')
+                        .html('<i class="fa-solid fa-circle-check me-1"></i> This card is <strong>not linked</strong> to any user.');
+                }
+                rfidBuffer = '';
+                $('#check-uid-input').val('').focus();
+            },
+            error: function () {
+                $('#check-card-result')
+                    .addClass('alert-warning')
+                    .html('Error checking card. Please try again.');
+            }
+        });
+    }
+    // Unlink from Check Card modal
+    $(document).on('click', '#check-unlink-btn', function () {
+        var userId   = $(this).data('user-id');
+        var userCode = $(this).data('user-code');
+        if (!confirm('Remove RFID card from user ' + userCode + '?')) return;
+        var $btn = $(this);
+        $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Unlinking...');
+        $.ajax({
+            url: '{{ route('rfid.unlink') }}',
+            type: 'POST',
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            data: { user_id: userId },
+            success: function () {
+                $('#check-card-result')
+                    .removeClass('alert-danger')
+                    .addClass('alert-success')
+                    .html('<i class="fa-solid fa-circle-check me-1"></i> Card has been <strong>unlinked</strong> from user <strong>' + userCode + '</strong>.');
+                // Update the main table row if visible
+                $('.rfid-display-' + userId).html('<span class="text-muted fst-italic">Not assigned</span>');
+                $('[data-user-id="' + userId + '"].assign-btn').html('<i class="fa-solid fa-id-card me-1"></i> Assign');
+                $('[data-user-id="' + userId + '"].unlink-btn').remove();
+            },
+            error: function () {
+                $btn.prop('disabled', false).html('<i class="fa-solid fa-link-slash me-1"></i> Unlink from ' + userCode);
+                $('#check-card-result').after('<div class="alert alert-warning mt-1">Failed to unlink. Please try again.</div>');
+            }
+        });
+    });
+    // ────────────────────────────────────────────────────────────────────────
     $('#save-rfid-btn').on('click', function () {
         var uid = rfidBuffer.trim() || $('#rfid-uid-input').val().trim();
         rfidBuffer = '';
