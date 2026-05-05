@@ -1,13 +1,14 @@
 /**
  * hub.js — runs on the VPS
  *
- * Listens on 127.0.0.1:3000 (Apache proxies wss://host/nfc-ws → here).
- * Also listens on 127.0.0.1:3001 for HTTP POST /push from Laravel.
+ * Listens on 127.0.0.1:3002 (Apache proxies wss://sg.lovenudebeautyhotel.com/nfc-ws → here).
+ * Also listens on 127.0.0.1:3003 for HTTP POST /push from Laravel.
  *
  * Three types of WebSocket connections:
- *   ?token=<RFID_TOKEN>  → the relay (sends card UIDs)
- *   ?type=kiosk          → kiosk check-in pages (receive card UIDs for check-in)
- *   ?type=admin          → admin RFID assignment page (receives UIDs only)
+ *   ?token=<RFID_TOKEN>&station=N  → kiosk relay for station N (sends card UIDs)
+ *   ?token=<RFID_TOKEN>&reg=N      → registration desk relay N (sends card UIDs)
+ *   ?type=kiosk&station=N          → kiosk check-in page for station N (receives UIDs)
+ *   ?type=admin&reg=N              → admin assignment page for reg desk N (receives UIDs only)
  *
  * Kiosk isolation rule:
  *   While ANY admin browser client is connected, card UIDs are forwarded ONLY
@@ -17,58 +18,77 @@
  *
  * Start:  node hub.js
  * Env:    RFID_TOKEN   shared secret (default: ysl-rfid-secret-2026)
- *         WS_PORT      WebSocket port (default: 3000)
- *         HTTP_PORT    Laravel push port (default: 3001)
+ *         WS_PORT      WebSocket port (default: 3002)
+ *         HTTP_PORT    Laravel push port (default: 3003)
  */
 
 const WebSocket = require('ws');
 const http      = require('http');
 
 const RFID_TOKEN = process.env.RFID_TOKEN  || 'ysl-rfid-secret-2026';
-const PORT       = parseInt(process.env.WS_PORT   || '3000', 10);
-const HTTP_PORT  = parseInt(process.env.HTTP_PORT || '3001', 10);
+const PORT       = parseInt(process.env.WS_PORT   || '3002', 10);
+const HTTP_PORT  = parseInt(process.env.HTTP_PORT || '3003', 10);
 
 const wss          = new WebSocket.Server({ host: '127.0.0.1', port: PORT });
 const kioskClients = new Map();   // stationId (string) → Set<ws>
-const adminClients = new Set();   // admin RFID assignment page
+const adminClients = new Map();   // regId (string) → Set<ws>  — registration/admin desks
 
-// When any admin page opens the assign modal this becomes true and kiosks
-// are skipped until the modal is closed (or the timeout fires).
-let assignMode        = false;
-let assignModeTimeout = null;
-const ASSIGN_MODE_TTL = 60000; // auto-reset after 60 s in case page is closed unexpectedly
+const ASSIGN_MODE_TTL = 60000; // auto-reset after 60 s if page is closed unexpectedly
+const assignModes     = new Map();  // regId (string) → timeout handle (present = active)
 
-function setAssignMode(active) {
-    assignMode = active;
-    clearTimeout(assignModeTimeout);
+function setAssignMode(active, regId) {
+    const key = String(regId || 'default');
+    clearTimeout(assignModes.get(key));
     if (active) {
-        assignModeTimeout = setTimeout(function () {
-            assignMode = false;
-            console.log('Assign mode auto-reset after timeout');
+        const t = setTimeout(function () {
+            assignModes.delete(key);
+            console.log('Assign mode auto-reset for reg:', key);
         }, ASSIGN_MODE_TTL);
+        assignModes.set(key, t);
+    } else {
+        assignModes.delete(key);
     }
-    console.log('Assign mode:', assignMode);
+    console.log('Assign mode:', active, '| reg:', key);
 }
 
-function broadcastUID(uid, stationId) {
+function isAnyAssignModeActive() {
+    return assignModes.size > 0;
+}
+
+function broadcastUID(uid, stationId, regId) {
     const msg = JSON.stringify({ uid });
 
+    if (regId) {
+        // Reg/admin relay tap — forward only to admin clients for this reg desk.
+        const key     = String(regId);
+        const clients = adminClients.get(key);
+        console.log('UID from reg relay', key, '— forwarding to admin clients for reg:', uid);
+        if (clients && clients.size > 0) {
+            clients.forEach(function (client) {
+                if (client.readyState === WebSocket.OPEN) client.send(msg);
+            });
+        } else {
+            console.log('No admin clients connected for reg', key);
+        }
+        return;
+    }
+
     if (!stationId) {
-        // No station ID — this is the admin desk reader.
-        // Forward ONLY to admin clients; never touches kiosks.
-        console.log('UID from admin desk reader — forwarding to admin clients only:', uid);
-        adminClients.forEach(function (client) {
-            if (client.readyState === WebSocket.OPEN) client.send(msg);
+        // Legacy: unidentified relay — forward to ALL admin clients.
+        console.log('UID from unidentified relay — forwarding to all admin clients:', uid);
+        adminClients.forEach(function (clients) {
+            clients.forEach(function (client) {
+                if (client.readyState === WebSocket.OPEN) client.send(msg);
+            });
         });
         return;
     }
 
-    // stationId is set — this tap came from a kiosk station relay.
-    // Admin clients must NEVER receive kiosk taps (would pollute the assign modal).
+    // stationId is set — kiosk relay tap. Admin clients must NEVER receive these.
     console.log('UID from kiosk station', stationId, '— NOT forwarded to admin:', uid);
 
-    // Skip kiosks entirely while admin assign modal is open
-    if (assignMode) return;
+    // Skip kiosks entirely while any assign modal is open
+    if (isAnyAssignModeActive()) return;
 
     // Route to the specific station's kiosk only
     const targets = kioskClients.get(String(stationId));
@@ -96,14 +116,15 @@ wss.on('connection', function (ws, req) {
     if (token === RFID_TOKEN) {
         // ── Relay connection ──────────────────────────────────────────────
         const relayStation = url.searchParams.get('station') || null;
-        console.log('Relay connected from', req.socket.remoteAddress, '| station:', relayStation || 'unspecified');
+        const relayReg     = url.searchParams.get('reg')     || null;
+        console.log('Relay connected from', req.socket.remoteAddress, '| station:', relayStation || '-', '| reg:', relayReg || '-');
 
         ws.on('message', function (raw) {
             const msg = raw.toString();
             console.log('Relay →', msg);
             try {
                 const data = JSON.parse(msg);
-                if (data.uid) broadcastUID(data.uid, relayStation);
+                if (data.uid) broadcastUID(data.uid, relayStation, relayReg);
             } catch (e) { /* ignore */ }
         });
 
@@ -116,8 +137,12 @@ wss.on('connection', function (ws, req) {
         const isAdmin    = clientType === 'admin';
 
         if (isAdmin) {
-            adminClients.add(ws);
-            console.log('Admin browser connected (' + adminClients.size + ' total)');
+            const regId = url.searchParams.get('reg') || 'default';
+            ws._regId = regId;
+            if (!adminClients.has(regId)) adminClients.set(regId, new Set());
+            adminClients.get(regId).add(ws);
+            let total = 0; adminClients.forEach(function (s) { total += s.size; });
+            console.log('Admin browser connected | reg:', regId, '| total admins:', total);
         } else {
             const stationId = url.searchParams.get('station') || 'default';
             if (!kioskClients.has(stationId)) kioskClients.set(stationId, new Set());
@@ -131,17 +156,25 @@ wss.on('connection', function (ws, req) {
             try {
                 const data = JSON.parse(raw.toString());
                 if (typeof data.assignMode === 'boolean') {
-                    setAssignMode(data.assignMode);
+                    setAssignMode(data.assignMode, ws._regId);
                 }
             } catch (e) { /* ignore */ }
         });
 
         ws.on('close', function () {
             if (isAdmin) {
-                adminClients.delete(ws);
-                // If the last admin disconnects while in assign mode, reset it
-                if (adminClients.size === 0 && assignMode) setAssignMode(false);
-                console.log('Admin browser disconnected (' + adminClients.size + ' remaining)');
+                const regId = ws._regId || 'default';
+                const set   = adminClients.get(regId);
+                if (set) {
+                    set.delete(ws);
+                    if (set.size === 0) {
+                        adminClients.delete(regId);
+                        // Last admin for this reg disconnected — reset its assign mode
+                        if (assignModes.has(regId)) setAssignMode(false, regId);
+                    }
+                }
+                let total = 0; adminClients.forEach(function (s) { total += s.size; });
+                console.log('Admin browser disconnected | reg:', regId, '| total admins:', total);
             } else {
                 const stationId = url.searchParams.get('station') || 'default';
                 const set = kioskClients.get(stationId);
@@ -156,8 +189,12 @@ wss.on('connection', function (ws, req) {
 
         ws.on('error', function (err) {
             console.error('Browser WS error:', err.message);
-            adminClients.delete(ws);
-            kioskClients.forEach(function (set) { set.delete(ws); });
+            if (ws._regId) {
+                const set = adminClients.get(ws._regId);
+                if (set) set.delete(ws);
+            } else {
+                kioskClients.forEach(function (set) { set.delete(ws); });
+            }
         });
     }
 });

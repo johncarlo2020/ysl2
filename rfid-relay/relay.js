@@ -6,9 +6,12 @@
  *   2. HTTP POSTs them to Laravel               (optional, for server-side logging)
  *
  * Start:  node relay.js
- *         HUB_URL      WebSocket hub URL   (default: wss://my.lovenudebeautyhotel.com/nfc-ws)
- *         LARAVEL_URL  Laravel endpoint     (default: https://my.lovenudebeautyhotel.com/rfid/receive)
+ *         HUB_URL      WebSocket hub URL   (default: wss://sg.lovenudebeautyhotel.com/nfc-ws)
+ *         LARAVEL_URL  Laravel endpoint     (default: https://sg.lovenudebeautyhotel.com/rfid/receive)
  *         RFID_TOKEN   shared secret        (default: ysl-rfid-secret-2026)
+ *         STATION_ID   kiosk station number — connects as kiosk relay    e.g. STATION_ID=1
+ *         REG_ID       registration desk number — connects as admin/reg relay  e.g. REG_ID=1
+ *                      Use either STATION_ID or REG_ID, not both.
  */
 
 const { NFC }  = require('nfc-pcsc');
@@ -16,22 +19,25 @@ const https    = require('https');
 const http     = require('http');
 const WebSocket = require('ws');
 
-const HUB_URL     = process.env.HUB_URL     || 'wss://my.lovenudebeautyhotel.com/nfc-ws';
-const LARAVEL_URL = process.env.LARAVEL_URL || 'https://my.lovenudebeautyhotel.com/rfid/receive';
+const HUB_URL     = process.env.HUB_URL     || 'wss://sg.lovenudebeautyhotel.com/nfc-ws';
+const LARAVEL_URL = process.env.LARAVEL_URL || 'https://sg.lovenudebeautyhotel.com/rfid/receive';
 const RFID_TOKEN  = process.env.RFID_TOKEN  || 'ysl-rfid-secret-2026';
 const STATION_ID  = process.env.STATION_ID  || '';   // e.g. STATION_ID=1 node relay.js
+const REG_ID      = process.env.REG_ID      || '';   // e.g. REG_ID=1 node relay.js  (admin/reg desk)
 
 console.log('--- NFC Relay (Mac) ---');
 console.log('Hub    :', HUB_URL);
 console.log('Laravel:', LARAVEL_URL);
 console.log('Station:', STATION_ID || '(unspecified)');
+console.log('Reg    :', REG_ID     || '(not a reg relay)');
 
 // ── WebSocket connection to VPS hub ────────────────────────────────────────
 let ws = null;
 
 function connectHub() {
     const url = HUB_URL + '?token=' + encodeURIComponent(RFID_TOKEN) +
-                (STATION_ID ? '&station=' + encodeURIComponent(STATION_ID) : '');
+                (STATION_ID ? '&station=' + encodeURIComponent(STATION_ID) : '') +
+                (REG_ID     ? '&reg='     + encodeURIComponent(REG_ID)     : '');
     console.log('Connecting to hub…');
     ws = new WebSocket(url);
 
