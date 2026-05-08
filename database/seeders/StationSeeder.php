@@ -36,7 +36,7 @@ class StationSeeder extends Seeder
         ]);
 
         Station::create([
-            'name' => "BREAK THE GLASS",
+            'name' => "Gift Redemption",
             'description' => "Redeem your complimentary Nude Obsession discovery kit at the gift redemption counter.",
         ]);
 

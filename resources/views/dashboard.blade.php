@@ -29,7 +29,7 @@
                                 {{ env('APP_TITLE') }}
                             </p>
                             <p class="px-5 message">Kindly complete
-                                Station 1 - 3 to proceed to Break The Glass</p>
+                                Station 1 - 3 to proceed to Gift Redemption</p>
                         </div>
                         <div class="">
                             <button type="button" onclick="test()" class="button" data-bs-dismiss="modal">Close</button>

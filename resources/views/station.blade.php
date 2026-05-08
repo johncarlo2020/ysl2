@@ -154,6 +154,7 @@
                     }
                 }
             });
+            
 
             function processRfid(uid) {
                 if (processing) return;
@@ -203,4 +204,40 @@
         })();
         @endif
     </script>
+
+    @if (!$user)
+    <script>
+            (function () {
+                var secretUsed = false;
+                document.addEventListener('touchstart', function (e) {
+                    if (secretUsed || e.touches.length !== 4) return;
+                    secretUsed = true;
+
+                    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+                    $.ajax({
+                        url: '{{ route('station.secret.checkin') }}',
+                        type: 'POST',
+                        headers: { 'X-CSRF-TOKEN': csrfToken },
+                        data: { station_id: {{ $station-> id }} },
+                success: function () {
+                    @if ($station -> id == 4)
+                        $('.station-name-modal').html('GIFT HAS BEEN SUCCESSFULLY REDEEMED');
+                    $('.message').addClass('d-none');
+                    @else
+                    var stationName = '{{ $station->name }}';
+                    $('.station-name-modal').html(stationName);
+                    $('.message').removeClass('d-none').html('Check-in Successful');
+                    @endif
+                    $('.check').removeClass('fa-circle-xmark text-danger').addClass('fa-circle-check text-success');
+                    $('#scanCompleteModal').modal('show');
+                },
+                error: function () {
+                    secretUsed = false;
+                }
+                    });
+                }, { passive: true });
+            }) ();
+    </script>
+    @endif
 </x-app-layout>

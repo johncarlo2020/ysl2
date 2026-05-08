@@ -83,6 +83,56 @@ class StationController extends Controller
         return view('test-roulette', compact('products'));
     }
 
+    public function secretCheckin(Request $request)
+    {
+        $request->validate([
+            'station_id' => 'required|integer|exists:stations,id',
+        ]);
+
+        $stationId = $request->input('station_id');
+
+        $user = auth()->user();
+
+        // Prevent duplicate check-in
+        $alreadyCheckedIn = StationUser::where('user_id', $user->id)
+            ->where('station_id', $stationId)
+            ->exists();
+
+        if ($alreadyCheckedIn) {
+            return response()->json(['message' => 'Already checked in', 'status' => 'duplicate'], 200);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $lastStation = StationUser::where('user_id', $user->id)->orderBy('id', 'desc')->first();
+
+            if (empty($lastStation)) {
+                $referenceTime = $user->last_login_at ?? $user->created_at;
+            } else {
+                $referenceTime = $lastStation->created_at;
+            }
+
+            $secondsSpent = Carbon::now()->diffInSeconds($referenceTime);
+
+            $stationUser = new StationUser();
+            $stationUser->user_id = $user->id;
+            $stationUser->station_id = $stationId;
+            $stationUser->time_spent = $secondsSpent;
+            $stationUser->save();
+
+            DB::commit();
+
+            $stationName = Station::find($stationId)?->name ?? '';
+            broadcast(new StationCheckedIn($user->id, $stationId, $stationName));
+
+            return response()->json(['message' => 'Station checked in successfully', 'status' => 'success'], 200);
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json(['error' => 'Server error'], 500);
+        }
+    }
+
     public function stock(Request $request)
     {
         $products = Locker::find($request->id);
@@ -473,6 +523,22 @@ class StationController extends Controller
             ->values();
 
         return view('rfid', compact('users'));
+    }
+
+    public function rfidReg($reg)
+    {
+        $totalStations = \App\Models\Station::count();
+
+        $users = User::orderBy('id', 'desc')
+            ->get(['id', 'code', 'rfid_uid'])
+            ->filter(function ($user) use ($totalStations) {
+                return StationUser::where('user_id', $user->id)->count() < $totalStations;
+            })
+            ->values();
+
+        $regId = $reg;
+
+        return view('rfid', compact('users', 'regId'));
     }
 
     public function receiveRfid(Request $request)

@@ -1,7 +1,33 @@
 @extends('layouts.admin')
 
 @section('content')
+@php $regId = $regId ?? null; @endphp
 <div class="mt-4 row">
+    {{-- Reg Desk Quick Links --}}
+    <div class="mb-4 col-lg-12">
+        <div class="card">
+            <div class="p-3 pb-0 card-header">
+                <h6 class="mb-0">Registration Desk Pages</h6>
+                <small class="text-muted">Open the matching page on each registration desk device. The RFID reader at that desk must be started with the matching REG_ID.</small>
+            </div>
+            <div class="card-body d-flex flex-wrap gap-3 pt-3">
+                <a href="{{ route('rfid.reg', 1) }}" target="_blank"
+                    class="btn {{ $regId == '1' ? 'btn-dark' : 'btn-outline-dark' }} d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-desktop"></i>
+                    Reg Desk 1
+                    @if($regId == '1') <span class="badge bg-success ms-1">You are here</span> @endif
+                    <i class="fa-solid fa-arrow-up-right-from-square ms-1" style="font-size:0.7rem;"></i>
+                </a>
+                <a href="{{ route('rfid.reg', 2) }}" target="_blank"
+                    class="btn {{ $regId == '2' ? 'btn-dark' : 'btn-outline-dark' }} d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-desktop"></i>
+                    Reg Desk 2
+                    @if($regId == '2') <span class="badge bg-success ms-1">You are here</span> @endif
+                    <i class="fa-solid fa-arrow-up-right-from-square ms-1" style="font-size:0.7rem;"></i>
+                </a>
+            </div>
+        </div>
+    </div>
     {{-- Station Kiosk Links --}}
     <div class="mb-4 col-lg-12">
         <div class="card">
@@ -27,7 +53,12 @@
         <div class="card">
             <div class="p-3 pb-0 card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <div>
-                    <h6 class="mb-0">RFID Card Assignment</h6>
+                    <h6 class="mb-0">
+                        RFID Card Assignment
+                        @if($regId)
+                            <span class="badge bg-primary ms-2">Reg Desk {{ $regId }}</span>
+                        @endif
+                    </h6>
                     <small class="text-muted">Tap an RFID card on the reader or type the UID manually to assign it to a user.</small>
                 </div>
                 <button class="btn btn-sm btn-outline-secondary" id="check-card-btn" data-bs-toggle="modal" data-bs-target="#checkCardModal">
@@ -161,14 +192,16 @@
     var adminWs = null;
     (function connectWS() {
         var wsProto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-        var ws = new WebSocket(wsProto + '//' + location.host + '/nfc-ws?type=admin');
+        var regId   = @json($regId);
+        var wsUrl   = wsProto + '//' + location.host + '/nfc-ws?type=admin' + (regId ? '&reg=' + encodeURIComponent(regId) : '');
+        var ws = new WebSocket(wsUrl);
         adminWs = ws;
 
         ws.onopen = function () {
             console.log('NFC relay connected');
-            // If the assign modal was already open when the WS reconnected
+            // If the assign or check-card modal was already open when the WS reconnected
             // (e.g. hub restarted), re-send assignMode so kiosks stay blocked.
-            if (modalOpen) {
+            if (modalOpen || checkModalOpen) {
                 ws.send(JSON.stringify({ assignMode: true }));
             }
         };
@@ -361,6 +394,13 @@
     });
 
     // ── Check Card modal ────────────────────────────────────────────────────
+    $('#checkCardModal').on('show.bs.modal', function () {
+        // Tell the hub to block kiosk relay taps (same as assign modal)
+        if (adminWs && adminWs.readyState === WebSocket.OPEN) {
+            adminWs.send(JSON.stringify({ assignMode: true }));
+        }
+    });
+
     $('#checkCardModal').on('shown.bs.modal', function () {
         checkModalOpen = true;
         rfidBuffer = '';
@@ -377,6 +417,10 @@
         checkModalOpen = false;
         rfidBuffer = '';
         clearTimeout(rfidTimer);
+        // Resume kiosk relay forwarding only if assign modal is also closed
+        if (!modalOpen && adminWs && adminWs.readyState === WebSocket.OPEN) {
+            adminWs.send(JSON.stringify({ assignMode: false }));
+        }
     });
 
     $('#check-uid-btn').on('click', function () {
