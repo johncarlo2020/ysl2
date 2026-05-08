@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
@@ -8,7 +9,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
         crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
         body {
             font-family: 'Open Sans', sans-serif;
@@ -52,9 +57,20 @@
         }
 
         @keyframes pulse {
-            0%   { transform: scale(1);    color: #e5c97e; }
-            40%  { transform: scale(1.25); color: #fff; }
-            100% { transform: scale(1);    color: #e5c97e; }
+            0% {
+                transform: scale(1);
+                color: #e5c97e;
+            }
+
+            40% {
+                transform: scale(1.25);
+                color: #fff;
+            }
+
+            100% {
+                transform: scale(1);
+                color: #e5c97e;
+            }
         }
 
         .instruction {
@@ -155,8 +171,15 @@
         }
 
         @keyframes modalIn {
-            from { opacity: 0; transform: scale(0.88); }
-            to   { opacity: 1; transform: scale(1); }
+            from {
+                opacity: 0;
+                transform: scale(0.88);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
 
         .checkin-modal .modal-icon {
@@ -179,6 +202,7 @@
         }
     </style>
 </head>
+
 <body>
 
     <p class="station-label">Station {{ $station->id }}</p>
@@ -207,7 +231,7 @@
                 @endif
             </p>
             @if ($station->id != 4)
-            <p class="modal-subtitle">Check-in Successful</p>
+                <p class="modal-subtitle">Check-in Successful</p>
             @endif
         </div>
     </div>
@@ -217,31 +241,33 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
     <script>
-        (function () {
-            var input       = document.getElementById('rfid-capture');
-            var icon        = document.getElementById('card-icon');
-            var badge       = document.getElementById('status-badge');
-            var statusText  = document.getElementById('status-text');
-            var statusIcon  = document.getElementById('status-icon');
+        (function() {
+            var input = document.getElementById('rfid-capture');
+            var icon = document.getElementById('card-icon');
+            var badge = document.getElementById('status-badge');
+            var statusText = document.getElementById('status-text');
+            var statusIcon = document.getElementById('status-icon');
 
-            var buffer      = '';
-            var timer       = null;
-            var processing  = false;
-            var resetTimer  = null;
-            var modalTimer  = null;
+            var buffer = '';
+            var timer = null;
+            var processing = false;
+            var resetTimer = null;
+            var modalTimer = null;
             var modalOverlay = document.getElementById('checkin-modal-overlay');
 
             // Keep focus on hidden input at all times
-            function keepFocus() { if (!processing) input.focus(); }
+            function keepFocus() {
+                if (!processing) input.focus();
+            }
             document.addEventListener('click', keepFocus);
             document.addEventListener('keydown', keepFocus);
             keepFocus();
 
             // Buffer keystrokes — RFID reader fires all chars in <50 ms then sends Enter
-            input.addEventListener('input', function () {
+            input.addEventListener('input', function() {
                 buffer = input.value;
                 clearTimeout(timer);
-                timer = setTimeout(function () {
+                timer = setTimeout(function() {
                     var uid = buffer.trim();
                     buffer = '';
                     input.value = '';
@@ -249,7 +275,7 @@
                 }, 150);
             });
 
-            input.addEventListener('keydown', function (e) {
+            input.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') {
                     clearTimeout(timer);
                     var uid = input.value.trim();
@@ -266,17 +292,21 @@
 
                 setStatus('processing', 'fa-spinner fa-spin', 'Processing...');
                 icon.classList.add('pulse');
-                setTimeout(function () { icon.classList.remove('pulse'); }, 400);
+                setTimeout(function() {
+                    icon.classList.remove('pulse');
+                }, 400);
 
                 $.ajax({
                     url: '{{ route('rfid.tap') }}',
                     type: 'POST',
-                    headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
                     data: {
                         rfid_uid: uid,
                         station_id: {{ $station->id }}
                     },
-                    success: function (response) {
+                    success: function(response) {
                         if (response.status === 'duplicate') {
                             setStatus('duplicate', 'fa-triangle-exclamation', 'Already checked in');
                         } else {
@@ -285,7 +315,7 @@
                         }
                         autoReset(3000);
                     },
-                    error: function (xhr) {
+                    error: function(xhr) {
                         var msg = 'Card not recognised';
                         if (xhr.status === 404) msg = 'Card not assigned to any user';
                         if (xhr.status === 422) {
@@ -309,7 +339,7 @@
             }
 
             function autoReset(delay) {
-                resetTimer = setTimeout(function () {
+                resetTimer = setTimeout(function() {
                     badge.className = 'status-badge';
                     processing = false;
                     keepFocus();
@@ -319,34 +349,30 @@
             function showCheckinModal() {
                 clearTimeout(modalTimer);
                 modalOverlay.classList.add('active');
-                modalTimer = setTimeout(function () {
+                modalTimer = setTimeout(function() {
                     modalOverlay.classList.remove('active');
                 }, 4000);
             }
 
-            // ── WebSocket — NFC relay broadcasts card UIDs to this page ──────────
-            (function connectWS() {
-                var wsProto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-                var ws = new WebSocket(wsProto + '//' + location.host + '/nfc-ws?type=kiosk&station={{ $station->id }}');
-
-                ws.onopen = function () { console.log('NFC relay connected'); };
-
-                ws.onmessage = function (event) {
-                    try {
-                        var data = JSON.parse(event.data);
-                        if (data.uid) processRfid(data.uid);
-                    } catch (e) { /* ignore */ }
-                };
-
-                ws.onclose = function () {
-                    console.log('NFC relay disconnected — retrying in 3 s');
-                    setTimeout(connectWS, 3000);
-                };
-
-                ws.onerror = function () { ws.close(); };
+            // ── Pusher — NFC relay broadcasts card UIDs to this page ─────────────
+            (function() {
+                var pusher = new Pusher('{{ env('PUSHER_APP_KEY') }}', {
+                    cluster: '{{ env('PUSHER_APP_CLUSTER') }}',
+                });
+                var channel = pusher.subscribe('nfc-station-{{ $station->id }}');
+                channel.bind('card.tapped', function(data) {
+                    if (data.uid) processRfid(data.uid);
+                });
+                pusher.connection.bind('connected', function() {
+                    console.log('NFC Pusher connected');
+                });
+                pusher.connection.bind('disconnected', function() {
+                    console.log('NFC Pusher disconnected — Pusher SDK will auto-reconnect');
+                });
             })();
             // ─────────────────────────────────────────────────────────────────────
         })();
     </script>
 </body>
+
 </html>
