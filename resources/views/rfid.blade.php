@@ -58,6 +58,9 @@
                         @if($regId)
                             <span class="badge bg-primary ms-2">Reg Desk {{ $regId }}</span>
                         @endif
+                        <span id="nfc-status-badge" class="badge bg-secondary ms-2" style="font-size:0.7rem;">
+                            <i class="fa-solid fa-circle-notch fa-spin me-1"></i>Connecting...
+                        </span>
                     </h6>
                     <small class="text-muted">Tap an RFID card on the reader or type the UID manually to assign it to a user.</small>
                 </div>
@@ -199,21 +202,29 @@
 
     pusherClient.connection.bind('connected', function () {
         console.log('Pusher connected | channel:', pusherChannel);
+        updateNfcStatus('connected');
     });
     pusherClient.connection.bind('disconnected', function () {
         console.log('Pusher disconnected — will auto-reconnect');
+        updateNfcStatus('disconnected');
     });
     pusherClient.connection.bind('failed', function () {
         console.error('Pusher failed — WebSocket not supported or blocked');
+        updateNfcStatus('failed');
     });
     pusherClient.connection.bind('unavailable', function () {
         console.warn('Pusher unavailable — retrying...');
+        updateNfcStatus('unavailable');
     });
     pusherClient.connection.bind('error', function (err) {
         console.error('Pusher connection error:', err);
+        updateNfcStatus('error');
     });
     pusherClient.connection.bind('state_change', function (states) {
         console.log('Pusher state:', states.previous, '→', states.current);
+        if (states.current === 'connecting') {
+            updateNfcStatus('connecting');
+        }
     });
 
     pusherClient.subscribe(pusherChannel).bind('card.tapped', function (data) {
@@ -247,6 +258,41 @@
             msg + '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>');
         $('body').append($t);
         setTimeout(function () { $t.alert('close'); }, 4000);
+    }
+
+    // Update NFC connection status badge
+    function updateNfcStatus(state) {
+        var $badge = $('#nfc-status-badge');
+        var html = '';
+        
+        switch(state) {
+            case 'connected':
+                $badge.removeClass('bg-secondary bg-warning bg-danger').addClass('bg-success');
+                html = '<i class="fa-solid fa-wifi me-1"></i>NFC Connected';
+                break;
+            case 'connecting':
+                $badge.removeClass('bg-success bg-warning bg-danger').addClass('bg-secondary');
+                html = '<i class="fa-solid fa-circle-notch fa-spin me-1"></i>Connecting...';
+                break;
+            case 'disconnected':
+                $badge.removeClass('bg-success bg-secondary bg-danger').addClass('bg-warning');
+                html = '<i class="fa-solid fa-triangle-exclamation me-1"></i>Disconnected';
+                break;
+            case 'unavailable':
+                $badge.removeClass('bg-success bg-secondary bg-danger').addClass('bg-warning');
+                html = '<i class="fa-solid fa-triangle-exclamation me-1"></i>Retrying...';
+                break;
+            case 'failed':
+            case 'error':
+                $badge.removeClass('bg-success bg-secondary bg-warning').addClass('bg-danger');
+                html = '<i class="fa-solid fa-circle-xmark me-1"></i>NFC Failed';
+                break;
+            default:
+                $badge.removeClass('bg-success bg-warning bg-danger').addClass('bg-secondary');
+                html = '<i class="fa-solid fa-question me-1"></i>Unknown';
+        }
+        
+        $badge.html(html);
     }
     // ─────────────────────────────────────────────────────────────────────────
 

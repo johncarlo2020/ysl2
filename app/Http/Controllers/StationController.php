@@ -9,6 +9,7 @@ use App\Models\Locker;
 use App\Models\RefillLog;
 use App\Models\StationUser;
 use App\Events\RfidCardTapped;
+use App\Events\RfidCardTappedAtStation;
 use App\Events\StationCheckedIn;
 use DB;
 use Auth;
@@ -530,7 +531,13 @@ class StationController extends Controller
             // Non-fatal — hub may not be running
         }
 
+        // Broadcast to general 'rfid' channel for admin pages
         broadcast(new RfidCardTapped($uid));
+
+        // If station_id is provided, also broadcast to station-specific channel for kiosk pages
+        if (!empty($stationId) && is_numeric($stationId)) {
+            broadcast(new RfidCardTappedAtStation($uid, (int)$stationId));
+        }
 
         return response()->json(['ok' => true, 'uid' => $uid]);
     }
