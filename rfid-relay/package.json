@@ -10,6 +10,7 @@
     },
     "dependencies": {
         "nfc-pcsc": "^0.8.1",
+        "pusher": "^5.3.3",
         "ws": "^8.20.0"
     }
 }

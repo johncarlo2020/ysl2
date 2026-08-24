@@ -76,8 +76,8 @@
         (function () {
             var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-            var pusher = new Pusher('{{ env('PUSHER_APP_KEY') }}', {
-                cluster: '{{ env('PUSHER_APP_CLUSTER') }}',
+            var pusher = new Pusher('{{ $pusherKey }}', {
+                cluster: '{{ $pusherCluster }}',
                 channelAuthorization: {
                     endpoint: '/broadcasting/auth',
                     headers: { 'X-CSRF-TOKEN': csrfToken }
@@ -110,6 +110,52 @@
             });
         })();
     </script>
+
+    @if (!$user)
+    <script>
+        (function () {
+            var secretUsed = false;
+            var maxTouches = 0;
+            var resetTimer = null;
+
+            document.addEventListener('touchstart', function (e) {
+                if (secretUsed) return;
+
+                if (e.touches.length > maxTouches) maxTouches = e.touches.length;
+
+                clearTimeout(resetTimer);
+                resetTimer = setTimeout(function () { maxTouches = 0; }, 800);
+
+                if (maxTouches < 4) return;
+                secretUsed = true;
+
+                var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+                $.ajax({
+                    url: '{{ route('station.secret.checkin') }}',
+                    type: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrfToken },
+                    data: { station_id: {{ $station->id }} },
+                    success: function () {
+                        @if ($station->id == 4)
+                        $('.station-name-modal').html('GIFT HAS BEEN SUCCESSFULLY REDEEMED');
+                        $('.message').addClass('d-none');
+                        @else
+                        var stationName = '{{ $station->name }}';
+                        $('.station-name-modal').html(stationName);
+                        $('.message').removeClass('d-none').html('Check-in Successful');
+                        @endif
+                        $('.check').removeClass('fa-circle-xmark text-danger').addClass('fa-circle-check text-success');
+                        $('#scanCompleteModal').modal('show');
+                    },
+                    error: function () {
+                        secretUsed = false;
+                    }
+                });
+            }, { passive: true });
+        })();
+    </script>
+    @endif
 
     <script>
         @if (!$user)

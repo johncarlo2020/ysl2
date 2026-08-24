@@ -1,57 +1,81 @@
 /**
  * relay.js — runs on the Mac (where the ACR122U is plugged in)
  *
- * Reads NFC card UIDs and:
- *   1. Sends them to the VPS hub via WebSocket  (wss://host/nfc-ws?token=...)
- *   2. HTTP POSTs them to Laravel               (optional, for server-side logging)
+ * Reads NFC card UIDs and pushes them directly to Pusher.
  *
  * Start:  node relay.js
- *         HUB_URL      WebSocket hub URL   (default: wss://my.lovenudebeautyhotel.com/nfc-ws)
- *         LARAVEL_URL  Laravel endpoint     (default: https://my.lovenudebeautyhotel.com/rfid/receive)
- *         RFID_TOKEN   shared secret        (default: ysl-rfid-secret-2026)
+ * Env:
+ *   PUSHER_APP_ID      Pusher app ID        (default: 2147496)
+ *   PUSHER_APP_KEY     Pusher app key       (default: 8e90c33567599ca7143e)
+ *   PUSHER_APP_SECRET  Pusher app secret    (default: fb29453503976eb53bcd)
+ *   PUSHER_APP_CLUSTER Pusher cluster       (default: us2)
+ *   STATION_ID         kiosk station number — pushes to rfid-station-{N} channel  e.g. STATION_ID=1
+ *   REG_ID             registration desk   — pushes to rfid-reg-{N} channel       e.g. REG_ID=1
+ *                      Use either STATION_ID or REG_ID, not both.
  */
 
-const { NFC }  = require('nfc-pcsc');
-const https    = require('https');
-const http     = require('http');
-const WebSocket = require('ws');
+const { NFC } = require('nfc-pcsc');
+const Pusher  = require('pusher');
 
-const HUB_URL     = process.env.HUB_URL     || 'wss://my.lovenudebeautyhotel.com/nfc-ws';
-const LARAVEL_URL = process.env.LARAVEL_URL || 'https://my.lovenudebeautyhotel.com/rfid/receive';
-const RFID_TOKEN  = process.env.RFID_TOKEN  || 'ysl-rfid-secret-2026';
-const STATION_ID  = process.env.STATION_ID  || '';   // e.g. STATION_ID=1 node relay.js
+const PUSHER_APP_ID      = process.env.PUSHER_APP_ID      || '2147496';
+const PUSHER_APP_KEY     = process.env.PUSHER_APP_KEY     || '8e90c33567599ca7143e';
+const PUSHER_APP_SECRET  = process.env.PUSHER_APP_SECRET  || 'fb29453503976eb53bcd';
+const PUSHER_APP_CLUSTER = process.env.PUSHER_APP_CLUSTER || 'us2';
+const STATION_ID         = process.env.STATION_ID         || '';
+const REG_ID             = process.env.REG_ID             || '';
 
-console.log('--- NFC Relay (Mac) ---');
-console.log('Hub    :', HUB_URL);
-console.log('Laravel:', LARAVEL_URL);
-console.log('Station:', STATION_ID || '(unspecified)');
-
-// ── WebSocket connection to VPS hub ────────────────────────────────────────
-let ws = null;
-
-function connectHub() {
-    const url = HUB_URL + '?token=' + encodeURIComponent(RFID_TOKEN) +
-                (STATION_ID ? '&station=' + encodeURIComponent(STATION_ID) : '');
-    console.log('Connecting to hub…');
-    ws = new WebSocket(url);
-
-    ws.on('open',  function ()    { console.log('Hub connected'); });
-    ws.on('error', function (err) { console.error('Hub error:', err.message); });
-    ws.on('close', function ()    {
-        console.log('Hub disconnected — retrying in 5 s');
-        ws = null;
-        setTimeout(connectHub, 5000);
-    });
+// Determine the Pusher channel to publish on
+function getChannel() {
+    if (STATION_ID) return 'rfid-station-' + STATION_ID;
+    if (REG_ID)     return 'rfid-reg-'     + REG_ID;
+    return 'rfid';
 }
 
-connectHub();
+const CHANNEL = getChannel();
 
-function sendToHub(uid) {
-    if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ uid }));
-    } else {
-        console.warn('Hub not connected — UID not forwarded:', uid);
+const pusher = new Pusher({
+    appId:   PUSHER_APP_ID,
+    key:     PUSHER_APP_KEY,
+    secret:  PUSHER_APP_SECRET,
+    cluster: PUSHER_APP_CLUSTER,
+    useTLS:  true,
+});
+
+console.log('--- NFC Relay (Pusher) ---');
+console.log('Channel  :', CHANNEL);
+console.log('Station  :', STATION_ID || '(unspecified)');
+console.log('Reg      :', REG_ID     || '(not a reg relay)');
+
+// ── Dedupe — ignore the same UID within DEDUPE_MS milliseconds ─────────────
+const DEDUPE_MS  = 2000;
+let lastUid      = null;
+let lastUidTime  = 0;
+
+function isDuplicate(uid) {
+    const now = Date.now();
+    if (uid === lastUid && (now - lastUidTime) < DEDUPE_MS) {
+        return true;
     }
+    lastUid     = uid;
+    lastUidTime = now;
+    return false;
+}
+// ──────────────────────────────────────────────────────────────────────────
+
+// ── Pusher trigger ─────────────────────────────────────────────────────────
+function sendToPusher(uid) {
+    if (isDuplicate(uid)) {
+        console.log('Dedupe — skipping duplicate UID:', uid);
+        return;
+    }
+
+    const data = { uid };
+    if (STATION_ID) data.station_id = STATION_ID;
+    if (REG_ID)     data.reg_id     = REG_ID;
+
+    pusher.trigger(CHANNEL, 'card.tapped', data)
+        .then(function ()    { console.log('Pusher OK  :', uid); })
+        .catch(function (err) { console.error('Pusher error:', err.message); });
 }
 // ──────────────────────────────────────────────────────────────────────────
 
@@ -64,8 +88,7 @@ nfc.on('reader', function (reader) {
     reader.on('card', function (card) {
         const uid = card.uid.toUpperCase();
         console.log('Card tapped:', uid);
-        sendToHub(uid);
-        postToLaravel(uid);
+        sendToPusher(uid);
     });
 
     reader.on('error', function (err) { console.error('Reader error:', err); });
@@ -74,32 +97,3 @@ nfc.on('reader', function (reader) {
 
 nfc.on('error', function (err) { console.error('NFC error:', err); });
 // ──────────────────────────────────────────────────────────────────────────
-
-function postToLaravel(uid) {
-    const payload = STATION_ID ? { uid, station_id: STATION_ID } : { uid };
-    const body = JSON.stringify(payload);
-    const url  = new URL(LARAVEL_URL);
-    const lib  = url.protocol === 'https:' ? https : http;
-
-    const options = {
-        hostname : url.hostname,
-        port     : url.port || (url.protocol === 'https:' ? 443 : 80),
-        path     : url.pathname,
-        method   : 'POST',
-        headers  : {
-            'Content-Type'  : 'application/json',
-            'Content-Length': Buffer.byteLength(body),
-            'X-RFID-Token'  : RFID_TOKEN,
-        },
-    };
-
-    const req = lib.request(options, function (res) {
-        let data = '';
-        res.on('data', function (chunk) { data += chunk; });
-        res.on('end',  function ()      { console.log('Laravel [' + res.statusCode + ']:', data); });
-    });
-
-    req.on('error', function (err) { console.error('HTTP error:', err.message); });
-    req.write(body);
-    req.end();
-}

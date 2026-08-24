@@ -1,7 +1,33 @@
 @extends('layouts.admin')
 
 @section('content')
+@php $regId = $regId ?? null; @endphp
 <div class="mt-4 row">
+    {{-- Reg Desk Quick Links --}}
+    <div class="mb-4 col-lg-12">
+        <div class="card">
+            <div class="p-3 pb-0 card-header">
+                <h6 class="mb-0">Registration Desk Pages</h6>
+                <small class="text-muted">Open the matching page on each registration desk device. The RFID reader at that desk must be started with the matching REG_ID.</small>
+            </div>
+            <div class="card-body d-flex flex-wrap gap-3 pt-3">
+                <a href="{{ route('rfid.reg', 1) }}" target="_blank"
+                    class="btn {{ $regId == '1' ? 'btn-dark' : 'btn-outline-dark' }} d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-desktop"></i>
+                    Reg Desk 1
+                    @if($regId == '1') <span class="badge bg-success ms-1">You are here</span> @endif
+                    <i class="fa-solid fa-arrow-up-right-from-square ms-1" style="font-size:0.7rem;"></i>
+                </a>
+                <a href="{{ route('rfid.reg', 2) }}" target="_blank"
+                    class="btn {{ $regId == '2' ? 'btn-dark' : 'btn-outline-dark' }} d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-desktop"></i>
+                    Reg Desk 2
+                    @if($regId == '2') <span class="badge bg-success ms-1">You are here</span> @endif
+                    <i class="fa-solid fa-arrow-up-right-from-square ms-1" style="font-size:0.7rem;"></i>
+                </a>
+            </div>
+        </div>
+    </div>
     {{-- Station Kiosk Links --}}
     <div class="mb-4 col-lg-12">
         <div class="card">
@@ -27,7 +53,12 @@
         <div class="card">
             <div class="p-3 pb-0 card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <div>
-                    <h6 class="mb-0">RFID Card Assignment</h6>
+                    <h6 class="mb-0">
+                        RFID Card Assignment
+                        @if($regId)
+                            <span class="badge bg-primary ms-2">Reg Desk {{ $regId }}</span>
+                        @endif
+                    </h6>
                     <small class="text-muted">Tap an RFID card on the reader or type the UID manually to assign it to a user.</small>
                 </div>
                 <button class="btn btn-sm btn-outline-secondary" id="check-card-btn" data-bs-toggle="modal" data-bs-target="#checkCardModal">
@@ -157,58 +188,59 @@
 <script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.print.min.js"></script>
 <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
 <script>
-    // ── WebSocket — NFC relay broadcasts card UIDs to this page ─────────────
-    var adminWs = null;
-    (function connectWS() {
-        var wsProto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-        var ws = new WebSocket(wsProto + '//' + location.host + '/nfc-ws?type=admin');
-        adminWs = ws;
+    // ── Pusher — NFC relay broadcasts card UIDs to this page ─────────────────
+    var regId = @json($regId);
+    var pusherChannel = regId ? 'rfid-reg-' + regId : 'rfid';
 
-        ws.onopen = function () {
-            console.log('NFC relay connected');
-            // If the assign modal was already open when the WS reconnected
-            // (e.g. hub restarted), re-send assignMode so kiosks stay blocked.
-            if (modalOpen) {
-                ws.send(JSON.stringify({ assignMode: true }));
-            }
-        };
+    var pusherClient = new Pusher('{{ $pusherKey }}', {
+        cluster: '{{ $pusherCluster }}',
+        forceTLS: true,
+    });
 
-        ws.onmessage = function (event) {
-            try {
-                var data = JSON.parse(event.data);
-                var uid  = data.uid;
-                if (!uid) return;
-                // If the check card modal is open, route the tap there and do nothing else
-                if ($('#checkCardModal').hasClass('show') || $('#checkCardModal').is(':visible')) {
-                    checkCard(uid);
-                    return;
-                }
-                var modalIsOpen = $('#assignModal').hasClass('show') || $('#assignModal').is(':visible');
-                console.log('Card tapped:', uid, '| modalIsOpen:', modalIsOpen, '| currentUserId:', currentUserId);
+    pusherClient.connection.bind('connected', function () {
+        console.log('Pusher connected | channel:', pusherChannel);
+    });
+    pusherClient.connection.bind('disconnected', function () {
+        console.log('Pusher disconnected — will auto-reconnect');
+    });
+    pusherClient.connection.bind('failed', function () {
+        console.error('Pusher failed — WebSocket not supported or blocked');
+    });
+    pusherClient.connection.bind('unavailable', function () {
+        console.warn('Pusher unavailable — retrying...');
+    });
+    pusherClient.connection.bind('error', function (err) {
+        console.error('Pusher connection error:', err);
+    });
+    pusherClient.connection.bind('state_change', function (states) {
+        console.log('Pusher state:', states.previous, '→', states.current);
+    });
 
-                if (modalIsOpen && currentUserId) {
-                    $('#rfid-uid-input').val(uid);
-                    saveRfid(uid);
-                } else if (modalOpen) {
-                    // Modal is open but user row not yet selected — fill the input
-                    $('#rfid-uid-input').val(uid);
-                    rfidBuffer = uid;
-                    showToast('Card tapped: ' + uid + ' — click Save to assign.');
-                } else {
-                    showToast('Card tapped: ' + uid + ' — open a user row to assign.');
-                }
-            } catch (e) {
-                console.log(e) /* ignore */ }
-        };
+    pusherClient.subscribe(pusherChannel).bind('card.tapped', function (data) {
+        var uid = data.uid ? data.uid.toUpperCase() : null;
+        if (!uid) return;
 
-        ws.onclose = function () {
-            adminWs = null;
-            console.log('NFC relay disconnected — retrying in 3 s');
-            setTimeout(connectWS, 3000);
-        };
+        // If the check card modal is open, route the tap there and do nothing else
+        if ($('#checkCardModal').hasClass('show') || $('#checkCardModal').is(':visible')) {
+            checkCard(uid);
+            return;
+        }
+        var modalIsOpen = $('#assignModal').hasClass('show') || $('#assignModal').is(':visible');
+        console.log('Card tapped:', uid, '| modalIsOpen:', modalIsOpen, '| currentUserId:', currentUserId);
 
-        ws.onerror = function () { ws.close(); };
-    })();
+        if (modalIsOpen && currentUserId) {
+            $('#rfid-uid-input').val(uid);
+            saveRfid(uid);
+        } else if (modalOpen) {
+            // Modal is open but user row not yet selected — fill the input
+            $('#rfid-uid-input').val(uid);
+            rfidBuffer = uid;
+            showToast('Card tapped: ' + uid + ' — click Save to assign.');
+        } else {
+            showToast('Card tapped: ' + uid + ' — open a user row to assign.');
+        }
+    });
+    // ─────────────────────────────────────────────────────────────────────────
 
     function showToast(msg) {
         var $t = $('<div class="alert alert-warning alert-dismissible fade show position-fixed" style="bottom:20px;right:20px;z-index:9999">' +
@@ -331,10 +363,6 @@
             $('#modal-user-code').text($(btn).data('user-code'));
         }
         modalOpen = true;
-        // Tell the hub to stop forwarding card taps to kiosk pages
-        if (adminWs && adminWs.readyState === WebSocket.OPEN) {
-            adminWs.send(JSON.stringify({ assignMode: true }));
-        }
     });
 
     $('#assignModal').on('shown.bs.modal', function () {
@@ -354,13 +382,12 @@
         modalOpen = false;
         rfidBuffer = '';
         clearTimeout(rfidTimer);
-        // Tell the hub to resume forwarding card taps to kiosk pages
-        if (adminWs && adminWs.readyState === WebSocket.OPEN) {
-            adminWs.send(JSON.stringify({ assignMode: false }));
-        }
     });
 
     // ── Check Card modal ────────────────────────────────────────────────────
+    $('#checkCardModal').on('show.bs.modal', function () {
+    });
+
     $('#checkCardModal').on('shown.bs.modal', function () {
         checkModalOpen = true;
         rfidBuffer = '';

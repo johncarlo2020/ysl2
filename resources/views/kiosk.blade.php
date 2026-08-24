@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
@@ -8,7 +9,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
         crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
         body {
             font-family: 'Open Sans', sans-serif;
@@ -52,9 +57,20 @@
         }
 
         @keyframes pulse {
-            0%   { transform: scale(1);    color: #e5c97e; }
-            40%  { transform: scale(1.25); color: #fff; }
-            100% { transform: scale(1);    color: #e5c97e; }
+            0% {
+                transform: scale(1);
+                color: #e5c97e;
+            }
+
+            40% {
+                transform: scale(1.25);
+                color: #fff;
+            }
+
+            100% {
+                transform: scale(1);
+                color: #e5c97e;
+            }
         }
 
         .instruction {
@@ -155,8 +171,15 @@
         }
 
         @keyframes modalIn {
-            from { opacity: 0; transform: scale(0.88); }
-            to   { opacity: 1; transform: scale(1); }
+            from {
+                opacity: 0;
+                transform: scale(0.88);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
 
         .checkin-modal .modal-icon {
@@ -179,6 +202,7 @@
         }
     </style>
 </head>
+
 <body>
 
     <p class="station-label">Station {{ $station->id }}</p>
@@ -201,9 +225,9 @@
             <div class="modal-icon"><i class="fa-solid fa-circle-check"></i></div>
             <p class="modal-title" id="modal-title">
                 @if ($station->id == 4)
-                    GIFT HAS BEEN SUCCESSFULLY REDEEMED
+                GIFT HAS BEEN SUCCESSFULLY REDEEMED
                 @else
-                    {{ strtoupper($station->name) }}
+                {{ strtoupper($station->name) }}
                 @endif
             </p>
             @if ($station->id != 4)
@@ -218,17 +242,17 @@
     <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
     <script>
         (function () {
-            var input       = document.getElementById('rfid-capture');
-            var icon        = document.getElementById('card-icon');
-            var badge       = document.getElementById('status-badge');
-            var statusText  = document.getElementById('status-text');
-            var statusIcon  = document.getElementById('status-icon');
+            var input = document.getElementById('rfid-capture');
+            var icon = document.getElementById('card-icon');
+            var badge = document.getElementById('status-badge');
+            var statusText = document.getElementById('status-text');
+            var statusIcon = document.getElementById('status-icon');
 
-            var buffer      = '';
-            var timer       = null;
-            var processing  = false;
-            var resetTimer  = null;
-            var modalTimer  = null;
+            var buffer = '';
+            var timer = null;
+            var processing = false;
+            var resetTimer = null;
+            var modalTimer = null;
             var modalOverlay = document.getElementById('checkin-modal-overlay');
 
             // Keep focus on hidden input at all times
@@ -276,77 +300,73 @@
                         rfid_uid: uid,
                         station_id: {{ $station->id }}
                     },
-                    success: function (response) {
-                        if (response.status === 'duplicate') {
-                            setStatus('duplicate', 'fa-triangle-exclamation', 'Already checked in');
-                        } else {
-                            setStatus('success', 'fa-circle-check', 'Check-in successful!');
-                            showCheckinModal();
-                        }
-                        autoReset(3000);
-                    },
-                    error: function (xhr) {
-                        var msg = 'Card not recognised';
-                        if (xhr.status === 404) msg = 'Card not assigned to any user';
-                        if (xhr.status === 422) {
-                            try {
-                                var resp = JSON.parse(xhr.responseText);
-                                if (resp.status === 'prerequisites_not_met') {
-                                    msg = 'Complete stations 1, 2 & 3 first';
-                                }
-                            } catch (e) {}
-                        }
-                        setStatus('error', 'fa-circle-xmark', msg);
-                        autoReset(4000);
+        success: function (response) {
+            if (response.status === 'duplicate') {
+                setStatus('duplicate', 'fa-triangle-exclamation', 'Already checked in');
+            } else {
+                setStatus('success', 'fa-circle-check', 'Check-in successful!');
+                showCheckinModal();
+            }
+            autoReset(3000);
+        },
+        error: function (xhr) {
+            var msg = 'Card not recognised';
+            if (xhr.status === 404) msg = 'Card not assigned to any user';
+            if (xhr.status === 422) {
+                try {
+                    var resp = JSON.parse(xhr.responseText);
+                    if (resp.status === 'prerequisites_not_met') {
+                        msg = 'Complete stations 1, 2 & 3 first';
                     }
+                } catch (e) { }
+            }
+            setStatus('error', 'fa-circle-xmark', msg);
+            autoReset(4000);
+        }
                 });
             }
 
-            function setStatus(type, iconClass, text) {
-                badge.className = 'status-badge show ' + type;
-                statusIcon.className = 'fa-solid ' + iconClass;
-                statusText.textContent = text;
-            }
+        function setStatus(type, iconClass, text) {
+            badge.className = 'status-badge show ' + type;
+            statusIcon.className = 'fa-solid ' + iconClass;
+            statusText.textContent = text;
+        }
 
-            function autoReset(delay) {
-                resetTimer = setTimeout(function () {
-                    badge.className = 'status-badge';
-                    processing = false;
-                    keepFocus();
-                }, delay);
-            }
+        function autoReset(delay) {
+            resetTimer = setTimeout(function () {
+                badge.className = 'status-badge';
+                processing = false;
+                keepFocus();
+            }, delay);
+        }
 
-            function showCheckinModal() {
-                clearTimeout(modalTimer);
-                modalOverlay.classList.add('active');
-                modalTimer = setTimeout(function () {
-                    modalOverlay.classList.remove('active');
-                }, 4000);
-            }
+        function showCheckinModal() {
+            clearTimeout(modalTimer);
+            modalOverlay.classList.add('active');
+            modalTimer = setTimeout(function () {
+                modalOverlay.classList.remove('active');
+            }, 4000);
+        }
 
-            // ── WebSocket — NFC relay broadcasts card UIDs to this page ──────────
-            (function connectWS() {
-                var wsProto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-                var ws = new WebSocket(wsProto + '//' + location.host + '/nfc-ws?type=kiosk&station={{ $station->id }}');
+        // ── Pusher — NFC relay broadcasts card UIDs to this page ───────────
+        var pusherKiosk = new Pusher('{{ $pusherKey }}', {
+            cluster: '{{ $pusherCluster }}',
+            forceTLS: true,
+        });
 
-                ws.onopen = function () { console.log('NFC relay connected'); };
+        pusherKiosk.connection.bind('state_change', function (states) {
+            console.log('Pusher state:', states.previous, '→', states.current);
+        });
+        pusherKiosk.connection.bind('error', function (err) {
+            console.error('Pusher error:', err);
+        });
 
-                ws.onmessage = function (event) {
-                    try {
-                        var data = JSON.parse(event.data);
-                        if (data.uid) processRfid(data.uid);
-                    } catch (e) { /* ignore */ }
-                };
-
-                ws.onclose = function () {
-                    console.log('NFC relay disconnected — retrying in 3 s');
-                    setTimeout(connectWS, 3000);
-                };
-
-                ws.onerror = function () { ws.close(); };
-            })();
-            // ─────────────────────────────────────────────────────────────────────
-        })();
+        pusherKiosk.subscribe('rfid-station-{{ $station->id }}').bind('card.tapped', function (data) {
+            if (data.uid) processRfid(data.uid.toUpperCase());
+        });
+            // ─────────────────────────────────────────────────────────────────
+        }) ();
     </script>
 </body>
+
 </html>

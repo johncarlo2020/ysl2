@@ -54,6 +54,7 @@ Route::group(['middleware' => ['admin']], function () {
     Route::post('/admin/rfid/assign', 'App\Http\Controllers\StationController@assignRfid')->name('rfid.assign');
     Route::post('/admin/rfid/unlink', 'App\Http\Controllers\StationController@unlinkRfid')->name('rfid.unlink');
     Route::post('/admin/rfid/check', 'App\Http\Controllers\StationController@checkRfid')->name('rfid.check');
+    Route::get('/admin/rfid/reg/{reg}', 'App\Http\Controllers\StationController@rfidReg')->name('rfid.reg');
 
     Route::post('/admin/refill', 'App\Http\Controllers\StationController@refill')->name('refill');
 
@@ -69,6 +70,7 @@ Route::group(['middleware' => ['client']], function () {
     Route::get('/dashboard', 'App\Http\Controllers\StationController@welcome')->name('dashboard');
     Route::get('/landing', 'App\Http\Controllers\StationController@landing')->name('landing');
     Route::post('/process_qr_code', 'App\Http\Controllers\StationController@scan')->name('process_qr_code');
+    Route::post('/station/secret-checkin', 'App\Http\Controllers\StationController@secretCheckin')->name('station.secret.checkin');
 });
 
 require __DIR__ . '/auth.php';
