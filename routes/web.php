@@ -39,6 +39,7 @@ Route::post('/checkExisting', 'App\Http\Controllers\StationController@checkExist
 
 // Called by the local server.js NFC relay — no session auth, protected by X-RFID-Token header
 Route::post('/rfid/receive', 'App\Http\Controllers\StationController@receiveRfid')->name('rfid.receive');
+Route::post('/rfid/status', 'App\Http\Controllers\StationController@receiveReaderStatus')->name('rfid.status');
 
 // Station kiosk pages — open one per physical station device, no login required
 Route::get('/admin/kiosk/{station}', 'App\Http\Controllers\StationController@kiosk')->name('kiosk');

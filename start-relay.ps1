@@ -11,13 +11,13 @@ param(
 )
 
 Write-Host "==================================" -ForegroundColor Cyan
-Write-Host "NFC Relay Launcher" -ForegroundColor Cyan
+Write-Host "NFC Relay Launcher (server.js)" -ForegroundColor Cyan
 Write-Host "==================================" -ForegroundColor Cyan
 Write-Host ""
 
 # Navigate to relay directory
-if (-not (Test-Path ".\rfid-relay\relay.js")) {
-    Write-Host "ERROR: relay.js not found!" -ForegroundColor Red
+if (-not (Test-Path ".\rfid-relay\server.js")) {
+    Write-Host "ERROR: server.js not found!" -ForegroundColor Red
     Write-Host "Please run this from the project root directory." -ForegroundColor Yellow
     exit 1
 }
@@ -35,44 +35,44 @@ if (-not (Test-Path ".\node_modules")) {
 switch ($Mode) {
     'admin' {
         Write-Host "Starting relay for ADMIN DESK..." -ForegroundColor Green
-        Write-Host "Channel: rfid (general)" -ForegroundColor Cyan
+        Write-Host "Posts to: http://localhost/rfid/receive" -ForegroundColor Cyan
         Write-Host ""
-        node relay.js
+        node server.js
     }
     '1' {
         Write-Host "Starting relay for STATION 1..." -ForegroundColor Green
-        Write-Host "Channel: rfid-station-1" -ForegroundColor Cyan
+        Write-Host "Posts to: http://localhost/rfid/receive" -ForegroundColor Cyan
         Write-Host ""
         $env:STATION_ID = '1'
-        node relay.js
+        node server.js
     }
     '2' {
         Write-Host "Starting relay for STATION 2..." -ForegroundColor Green
-        Write-Host "Channel: rfid-station-2" -ForegroundColor Cyan
+        Write-Host "Posts to: http://localhost/rfid/receive" -ForegroundColor Cyan
         Write-Host ""
         $env:STATION_ID = '2'
-        node relay.js
+        node server.js
     }
     '3' {
         Write-Host "Starting relay for STATION 3..." -ForegroundColor Green
-        Write-Host "Channel: rfid-station-3" -ForegroundColor Cyan
+        Write-Host "Posts to: http://localhost/rfid/receive" -ForegroundColor Cyan
         Write-Host ""
         $env:STATION_ID = '3'
-        node relay.js
+        node server.js
     }
     '4' {
         Write-Host "Starting relay for STATION 4..." -ForegroundColor Green
-        Write-Host "Channel: rfid-station-4" -ForegroundColor Cyan
+        Write-Host "Posts to: http://localhost/rfid/receive" -ForegroundColor Cyan
         Write-Host ""
         $env:STATION_ID = '4'
-        node relay.js
+        node server.js
     }
     'reg' {
         Write-Host "Starting relay for REGISTRATION DESK $RegId..." -ForegroundColor Green
-        Write-Host "Channel: rfid-reg-$RegId" -ForegroundColor Cyan
+        Write-Host "Posts to: http://localhost/rfid/receive" -ForegroundColor Cyan
         Write-Host ""
         $env:REG_ID = $RegId
-        node relay.js
+        node server.js
     }
 }
 

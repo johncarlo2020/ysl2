@@ -81,9 +81,14 @@ function sendToPusher(uid) {
 
 // ── NFC reader ─────────────────────────────────────────────────────────────
 const nfc = new NFC();
+let readerConnected = false;
+let readerName = null;
 
 nfc.on('reader', function (reader) {
     console.log('Reader connected:', reader.name);
+    readerConnected = true;
+    readerName = reader.name;
+    broadcastReaderStatus();
 
     reader.on('card', function (card) {
         const uid = card.uid.toUpperCase();
@@ -92,8 +97,34 @@ nfc.on('reader', function (reader) {
     });
 
     reader.on('error', function (err) { console.error('Reader error:', err); });
-    reader.on('end',   function ()    { console.log('Reader removed:', reader.name); });
+    reader.on('end',   function ()    { 
+        console.log('Reader removed:', reader.name);
+        readerConnected = false;
+        readerName = null;
+        broadcastReaderStatus();
+    });
 });
 
 nfc.on('error', function (err) { console.error('NFC error:', err); });
+
+// ── Broadcast reader status every 5 seconds ───────────────────────────────
+function broadcastReaderStatus() {
+    const statusData = {
+        connected: readerConnected,
+        reader: readerName,
+        timestamp: Date.now()
+    };
+    if (STATION_ID) statusData.station_id = STATION_ID;
+    if (REG_ID)     statusData.reg_id     = REG_ID;
+
+    pusher.trigger(CHANNEL, 'reader.status', statusData)
+        .then(() => console.log('Status broadcast:', readerConnected ? 'Connected' : 'Disconnected'))
+        .catch(err => console.error('Status broadcast error:', err.message));
+}
+
+// Send status immediately on start
+broadcastReaderStatus();
+
+// Then every 5 seconds
+setInterval(broadcastReaderStatus, 5000);
 // ──────────────────────────────────────────────────────────────────────────

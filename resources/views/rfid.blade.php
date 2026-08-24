@@ -251,6 +251,34 @@
             showToast('Card tapped: ' + uid + ' — open a user row to assign.');
         }
     });
+
+    // ── NFC Reader Hardware Status ────────────────────────────────────────────
+var readerConnected = false;
+var lastHeartbeat = 0;
+var heartbeatTimeout = null;
+
+pusherClient.subscribe(pusherChannel).bind('reader.status', function (data) {
+    console.log('Reader status:', data);
+    readerConnected = data.connected;
+    lastHeartbeat = Date.now();
+    updateReaderStatus(data.connected, data.reader);
+    
+    // Reset timeout - if we don't get another heartbeat in 10 seconds, mark as disconnected
+    clearTimeout(heartbeatTimeout);
+    heartbeatTimeout = setTimeout(function() {
+        console.warn('No heartbeat from relay.js - reader likely disconnected');
+        readerConnected = false;
+        updateReaderStatus(false, null);
+    }, 10000);
+});
+
+// Check for stale status on page load
+setTimeout(function() {
+    if (lastHeartbeat === 0) {
+        console.warn('No reader status received - relay.js may not be running');
+        updateReaderStatus(false, null);
+    }
+}, 3000);
     // ─────────────────────────────────────────────────────────────────────────
 
     function showToast(msg) {
@@ -268,7 +296,7 @@
         switch(state) {
             case 'connected':
                 $badge.removeClass('bg-secondary bg-warning bg-danger').addClass('bg-success');
-                html = '<i class="fa-solid fa-wifi me-1"></i>NFC Connected';
+                html = '<i class="fa-solid fa-wifi me-1"></i>Pusher Connected';
                 break;
             case 'connecting':
                 $badge.removeClass('bg-success bg-warning bg-danger').addClass('bg-secondary');
@@ -276,7 +304,7 @@
                 break;
             case 'disconnected':
                 $badge.removeClass('bg-success bg-secondary bg-danger').addClass('bg-warning');
-                html = '<i class="fa-solid fa-triangle-exclamation me-1"></i>Disconnected';
+                html = '<i class="fa-solid fa-triangle-exclamation me-1"></i>Pusher Disconnected';
                 break;
             case 'unavailable':
                 $badge.removeClass('bg-success bg-secondary bg-danger').addClass('bg-warning');
@@ -285,11 +313,39 @@
             case 'failed':
             case 'error':
                 $badge.removeClass('bg-success bg-secondary bg-warning').addClass('bg-danger');
-                html = '<i class="fa-solid fa-circle-xmark me-1"></i>NFC Failed';
+                html = '<i class="fa-solid fa-circle-xmark me-1"></i>Pusher Failed';
                 break;
             default:
                 $badge.removeClass('bg-success bg-warning bg-danger').addClass('bg-secondary');
                 html = '<i class="fa-solid fa-question me-1"></i>Unknown';
+        }
+        
+        $badge.html(html);
+    }
+
+    // Update NFC reader hardware status
+    function updateReaderStatus(connected, readerName) {
+        var $badge = $('#nfc-status-badge');
+        var html = '';
+        
+        if (connected && readerName) {
+            $badge.removeClass('bg-secondary bg-warning bg-danger').addClass('bg-success');
+            html = '<i class="fa-solid fa-wifi me-1"></i>Reader: ' + readerName;
+        } else if (connected) {
+            $badge.removeClass('bg-secondary bg-warning bg-danger').addClass('bg-success');
+            html = '<i class="fa-solid fa-check-circle me-1"></i>Reader Connected';
+        } else {
+            // Check Pusher connection state
+            var pusherState = pusherClient.connection.state;
+            if (pusherState !== 'connected') {
+                // Pusher not connected - show that instead
+                $badge.removeClass('bg-success bg-secondary').addClass('bg-danger');
+                html = '<i class="fa-solid fa-circle-xmark me-1"></i>Pusher Offline';
+            } else {
+                // Pusher connected but no reader
+                $badge.removeClass('bg-success bg-secondary').addClass('bg-warning');
+                html = '<i class="fa-solid fa-plug-circle-xmark me-1"></i>No Reader Detected';
+            }
         }
         
         $badge.html(html);

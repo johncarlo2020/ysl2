@@ -8,10 +8,10 @@ Write-Host ""
 
 # Check if in correct directory
 $currentDir = Get-Location
-if (-not (Test-Path ".\rfid-relay\relay.js")) {
+if (-not (Test-Path ".\rfid-relay\server.js")) {
     Write-Host "ERROR: Please run this script from the project root directory!" -ForegroundColor Red
     Write-Host "Current directory: $currentDir" -ForegroundColor Yellow
-    Write-Host "Expected to find: .\rfid-relay\relay.js" -ForegroundColor Yellow
+    Write-Host "Expected to find: .\rfid-relay\server.js" -ForegroundColor Yellow
     exit 1
 }
 
@@ -126,12 +126,12 @@ Write-Host "1. Ensure .env has Pusher credentials" -ForegroundColor White
 Write-Host "2. Install dependencies if needed:" -ForegroundColor White
 Write-Host "   cd rfid-relay && npm install" -ForegroundColor Gray
 Write-Host ""
-Write-Host "3. Test relay.js:" -ForegroundColor White
+Write-Host "3. Test server.js:" -ForegroundColor White
 Write-Host "   For admin desk:" -ForegroundColor Gray
-Write-Host "   cd rfid-relay && node relay.js" -ForegroundColor Gray
+Write-Host "   cd rfid-relay && node server.js" -ForegroundColor Gray
 Write-Host ""
 Write-Host "   For station 1:" -ForegroundColor Gray
-Write-Host "   `$env:STATION_ID='1'; cd rfid-relay; node relay.js" -ForegroundColor Gray
+Write-Host "   `$env:STATION_ID='1'; cd rfid-relay; node server.js" -ForegroundColor Gray
 Write-Host ""
 Write-Host "4. Open browser to test:" -ForegroundColor White
 Write-Host "   Admin: http://localhost/admin/rfid" -ForegroundColor Gray

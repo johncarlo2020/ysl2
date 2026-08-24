@@ -542,6 +542,49 @@ class StationController extends Controller
         return response()->json(['ok' => true, 'uid' => $uid]);
     }
 
+    public function receiveReaderStatus(Request $request)
+    {
+        // Shared secret so only the local server.js can trigger this
+        if ($request->header('X-RFID-Token') !== config('app.rfid_token')) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $connected = $request->input('connected', false);
+        $readerName = $request->input('reader', null);
+        $stationId = $request->input('station_id', '');
+        $regId = $request->input('reg_id', '');
+        $timestamp = $request->input('timestamp', time() * 1000);
+
+        // Determine which channel to broadcast to
+        $channels = [];
+        
+        if (!empty($stationId) && is_numeric($stationId)) {
+            $channels[] = 'rfid-station-' . $stationId;
+        } elseif (!empty($regId) && is_numeric($regId)) {
+            $channels[] = 'rfid-reg-' . $regId;
+        } else {
+            $channels[] = 'rfid';
+        }
+
+        // Broadcast reader status to appropriate channels
+        foreach ($channels as $channel) {
+            try {
+                $pusher = app('pusher');
+                $pusher->trigger($channel, 'reader.status', [
+                    'connected' => $connected,
+                    'reader' => $readerName,
+                    'timestamp' => $timestamp,
+                    'station_id' => $stationId,
+                    'reg_id' => $regId,
+                ]);
+            } catch (\Throwable $e) {
+                \Log::warning('Failed to broadcast reader status: ' . $e->getMessage());
+            }
+        }
+
+        return response()->json(['ok' => true, 'connected' => $connected]);
+    }
+
      public function kiosk(Station $station)
     {
         $pusherKey     = config('broadcasting.connections.pusher.key');
