@@ -178,6 +178,13 @@
                 var data = JSON.parse(event.data);
                 var uid  = data.uid;
                 if (!uid) return;
+                
+                // Normalize UID to uppercase
+                uid = uid.toUpperCase().trim();
+                
+                // Check minimum length
+                if (uid.length < 6) return;
+                
                 // If the check card modal is open, route the tap there and do nothing else
                 if ($('#checkCardModal').hasClass('show') || $('#checkCardModal').is(':visible')) {
                     checkCard(uid);
@@ -234,6 +241,8 @@
     var rfidTimer  = null;
     var modalOpen  = false;
     var checkModalOpen = false;
+    var lastScanTime = 0;
+    var COOLDOWN_MS = 1000; // 1 second cooldown for admin
 
     document.addEventListener('keydown', function (e) {
         var isCheckOpen  = $('#checkCardModal').hasClass('show') || $('#checkCardModal').is(':visible');
@@ -242,7 +251,7 @@
 
         // Printable characters → accumulate in buffer
         if (e.key.length === 1) {
-            rfidBuffer += e.key;
+            rfidBuffer += e.key.toUpperCase(); // Normalize to uppercase
             e.stopPropagation();
 
             if (isCheckOpen) {
@@ -253,15 +262,24 @@
 
             clearTimeout(rfidTimer);
             rfidTimer = setTimeout(function () {
-                if (rfidBuffer.trim().length > 0) {
+                var uid = rfidBuffer.trim();
+                if (uid.length >= 6) { // Minimum valid UID length
+                    // Check cooldown
+                    var now = Date.now();
+                    if (now - lastScanTime < COOLDOWN_MS) {
+                        console.log('Scan blocked by cooldown');
+                        return;
+                    }
+                    lastScanTime = now;
+
                     if ($('#checkCardModal').hasClass('show') || $('#checkCardModal').is(':visible')) {
-                        checkCard(rfidBuffer.trim());
+                        checkCard(uid);
                     } else {
-                        saveRfid(rfidBuffer.trim());
+                        saveRfid(uid);
                     }
                     rfidBuffer = '';
                 }
-            }, 300);
+            }, 250); // Reduced from 300ms for faster response
             return;
         }
 
@@ -272,11 +290,11 @@
             if (isCheckOpen) {
                 var uid = rfidBuffer.trim() || $('#check-uid-input').val().trim();
                 rfidBuffer = '';
-                if (uid.length > 0) checkCard(uid);
+                if (uid.length >= 6) checkCard(uid);
             } else {
                 var uid = rfidBuffer.trim() || $('#rfid-uid-input').val().trim();
                 rfidBuffer = '';
-                if (uid.length > 0) saveRfid(uid);
+                if (uid.length >= 6) saveRfid(uid);
             }
         }
 
@@ -418,7 +436,8 @@
             error: function () {
                 $('#check-card-result')
                     .addClass('alert-warning')
-                    .html('Error checking card. Please try again.');
+                    .html('<i class="fa-solid fa-triangle-exclamation me-1"></i> Error checking card. Please try again.');
+                rfidBuffer = '';
             }
         });
     }
@@ -479,8 +498,16 @@
             },
             error: function (xhr) {
                 var msg = 'Failed to assign RFID.';
-                if (xhr.responseJSON && xhr.responseJSON.errors && xhr.responseJSON.errors.rfid_uid) {
-                    msg = xhr.responseJSON.errors.rfid_uid[0];
+                if (xhr.status === 429) {
+                    msg = 'Too many attempts. Please wait before trying again.';
+                } else if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                    if (xhr.responseJSON.errors.rfid_uid) {
+                        msg = xhr.responseJSON.errors.rfid_uid[0];
+                    } else if (xhr.responseJSON.message) {
+                        msg = xhr.responseJSON.message;
+                    }
+                } else if (xhr.status >= 500) {
+                    msg = 'Server error. Please try again.';
                 }
                 showAlert('danger', msg);
                 rfidBuffer = '';
