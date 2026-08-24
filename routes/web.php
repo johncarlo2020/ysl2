@@ -42,9 +42,7 @@ Route::post('/rfid/receive', 'App\Http\Controllers\StationController@receiveRfid
 
 // Station kiosk pages — open one per physical station device, no login required
 Route::get('/admin/kiosk/{station}', 'App\Http\Controllers\StationController@kiosk')->name('kiosk');
-Route::post('/admin/kiosk/tap', 'App\Http\Controllers\StationController@rfidTap')
-    ->middleware('throttle.rfid:10,60')
-    ->name('rfid.tap');
+Route::post('/admin/kiosk/tap', 'App\Http\Controllers\StationController@rfidTap')->name('rfid.tap');
 
 Route::group(['middleware' => ['admin']], function () {
     Route::get('/admin', 'App\Http\Controllers\StationController@admin')->name('admin');
@@ -53,13 +51,9 @@ Route::group(['middleware' => ['admin']], function () {
     Route::get('/admin/scanner', 'App\Http\Controllers\StationController@scanner')->name('scanner');
     Route::get('/admin/stocks', 'App\Http\Controllers\StationController@stocks')->name('stocks');
     Route::get('/admin/rfid', 'App\Http\Controllers\StationController@rfidAdmin')->name('rfid.admin');
-    Route::post('/admin/rfid/assign', 'App\Http\Controllers\StationController@assignRfid')
-        ->middleware('throttle.rfid:5,60')
-        ->name('rfid.assign');
+    Route::post('/admin/rfid/assign', 'App\Http\Controllers\StationController@assignRfid')->name('rfid.assign');
     Route::post('/admin/rfid/unlink', 'App\Http\Controllers\StationController@unlinkRfid')->name('rfid.unlink');
-    Route::post('/admin/rfid/check', 'App\Http\Controllers\StationController@checkRfid')
-        ->middleware('throttle.rfid:10,60')
-        ->name('rfid.check');
+    Route::post('/admin/rfid/check', 'App\Http\Controllers\StationController@checkRfid')->name('rfid.check');
 
     Route::post('/admin/refill', 'App\Http\Controllers\StationController@refill')->name('refill');
 

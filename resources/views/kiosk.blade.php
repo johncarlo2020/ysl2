@@ -177,55 +177,9 @@
             font-size: 1rem;
             color: #ccc;
         }
-
-        /* Connection status indicator */
-        .connection-status {
-            position: fixed;
-            top: 16px;
-            right: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.75rem;
-            padding: 6px 14px;
-            border-radius: 20px;
-            background: rgba(0, 0, 0, 0.5);
-            border: 1px solid #333;
-            transition: all 0.3s ease;
-            z-index: 100;
-        }
-
-        .connection-status .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #666;
-            transition: background 0.3s ease;
-        }
-
-        .connection-status.connected .status-dot {
-            background: #4caf50;
-            box-shadow: 0 0 6px rgba(76, 175, 80, 0.6);
-        }
-
-        .connection-status.disconnected .status-dot {
-            background: #f44336;
-            animation: blink 1s infinite;
-        }
-
-        @keyframes blink {
-            0%, 50%, 100% { opacity: 1; }
-            25%, 75% { opacity: 0.3; }
-        }
     </style>
 </head>
 <body>
-
-    <!-- Connection Status Indicator -->
-    <div class="connection-status disconnected" id="connection-status">
-        <div class="status-dot"></div>
-        <span id="connection-text">Connecting...</span>
-    </div>
 
     <p class="station-label">Station {{ $station->id }}</p>
     <h1 class="station-name">{{ strtoupper($station->name) }}</h1>
@@ -269,8 +223,6 @@
             var badge       = document.getElementById('status-badge');
             var statusText  = document.getElementById('status-text');
             var statusIcon  = document.getElementById('status-icon');
-            var connStatus  = document.getElementById('connection-status');
-            var connText    = document.getElementById('connection-text');
 
             var buffer      = '';
             var timer       = null;
@@ -278,9 +230,6 @@
             var resetTimer  = null;
             var modalTimer  = null;
             var modalOverlay = document.getElementById('checkin-modal-overlay');
-            var lastScanTime = 0;
-            var COOLDOWN_MS  = 2000; // 2 second cooldown between scans
-            var ws = null;
 
             // Keep focus on hidden input at all times
             function keepFocus() { if (!processing) input.focus(); }
@@ -288,55 +237,31 @@
             document.addEventListener('keydown', keepFocus);
             keepFocus();
 
-            // Update connection status indicator
-            function setConnectionStatus(connected) {
-                if (connected) {
-                    connStatus.className = 'connection-status connected';
-                    connText.textContent = 'Connected';
-                } else {
-                    connStatus.className = 'connection-status disconnected';
-                    connText.textContent = 'Reconnecting...';
-                }
-            }
-
             // Buffer keystrokes — RFID reader fires all chars in <50 ms then sends Enter
-            // Improved timing: 100ms for modern readers, auto-submit on Enter
             input.addEventListener('input', function () {
                 buffer = input.value;
                 clearTimeout(timer);
                 timer = setTimeout(function () {
-                    var uid = buffer.trim().toUpperCase();
+                    var uid = buffer.trim();
                     buffer = '';
                     input.value = '';
-                    if (uid.length >= 6) processRfid(uid); // Minimum valid UID length
-                }, 100); // Reduced from 150ms for faster response
+                    if (uid.length > 0) processRfid(uid);
+                }, 150);
             });
 
             input.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter') {
                     clearTimeout(timer);
-                    var uid = input.value.trim().toUpperCase();
+                    var uid = input.value.trim();
                     input.value = '';
                     buffer = '';
-                    if (uid.length >= 6) processRfid(uid);
+                    if (uid.length > 0) processRfid(uid);
                 }
             });
 
             function processRfid(uid) {
-                // Check cooldown period
-                var now = Date.now();
-                if (now - lastScanTime < COOLDOWN_MS) {
-                    console.log('Scan blocked by cooldown period');
-                    return;
-                }
-
-                if (processing) {
-                    console.log('Already processing a scan');
-                    return;
-                }
-
+                if (processing) return;
                 processing = true;
-                lastScanTime = now;
                 clearTimeout(resetTimer);
 
                 setStatus('processing', 'fa-spinner fa-spin', 'Processing...');
@@ -362,24 +287,14 @@
                     },
                     error: function (xhr) {
                         var msg = 'Card not recognised';
-                        if (xhr.status === 404) {
-                            msg = 'Card not assigned to any user';
-                        } else if (xhr.status === 422) {
+                        if (xhr.status === 404) msg = 'Card not assigned to any user';
+                        if (xhr.status === 422) {
                             try {
                                 var resp = JSON.parse(xhr.responseText);
                                 if (resp.status === 'prerequisites_not_met') {
                                     msg = 'Complete stations 1, 2 & 3 first';
-                                } else if (resp.message) {
-                                    msg = resp.message;
                                 }
                             } catch (e) {}
-                        } else if (xhr.status === 429) {
-                            msg = 'Too many attempts — please wait';
-                            autoReset(5000); // Longer reset for rate limit
-                            setStatus('error', 'fa-clock', msg);
-                            return;
-                        } else if (xhr.status >= 500) {
-                            msg = 'Server error — please try again';
                         }
                         setStatus('error', 'fa-circle-xmark', msg);
                         autoReset(4000);
@@ -402,37 +317,23 @@
             }
 
             function showCheckinModal() {
-                ws = new WebSocket(wsProto + '//' + location.host + '/nfc-ws?type=kiosk&station={{ $station->id }}');
+                clearTimeout(modalTimer);
+                modalOverlay.classList.add('active');
+                modalTimer = setTimeout(function () {
+                    modalOverlay.classList.remove('active');
+                }, 4000);
+            }
 
-                ws.onopen = function () {
-                    console.log('NFC relay connected');
-                    setConnectionStatus(true);
-                };
+            // ── WebSocket — NFC relay broadcasts card UIDs to this page ──────────
+            (function connectWS() {
+                var wsProto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+                var ws = new WebSocket(wsProto + '//' + location.host + '/nfc-ws?type=kiosk&station={{ $station->id }}');
+
+                ws.onopen = function () { console.log('NFC relay connected'); };
 
                 ws.onmessage = function (event) {
                     try {
                         var data = JSON.parse(event.data);
-                        if (data.uid) {
-                            var uid = data.uid.toUpperCase();
-                            if (uid.length >= 6) processRfid(uid);
-                        }
-                    } catch (e) {
-                        console.error('WebSocket message error:', e);
-                    }
-                };
-
-                ws.onclose = function () {
-                    console.log('NFC relay disconnected — retrying in 3 s');
-                    setConnectionStatus(false);
-                    ws = null;
-                    setTimeout(connectWS, 3000);
-                };
-
-                ws.onerror = function (err) {
-                    console.error('WebSocket error:', err);
-                    setConnectionStatus(false);
-                    ws.close();
-               ta);
                         if (data.uid) processRfid(data.uid);
                     } catch (e) { /* ignore */ }
                 };

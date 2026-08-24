@@ -8,10 +8,8 @@ use App\Models\User;
 use App\Models\Locker;
 use App\Models\RefillLog;
 use App\Models\StationUser;
-use App\Models\RfidLog;
 use App\Events\RfidCardTapped;
 use App\Events\StationCheckedIn;
-use App\Rules\ValidRfidUid;
 use DB;
 use Auth;
 use Carbon\Carbon;
@@ -522,30 +520,14 @@ class StationController extends Controller
     {
         $request->validate([
             'user_id' => 'required|exists:users,id',
-            'rfid_uid' => ['required', 'string', 'max:64', new ValidRfidUid(), 'unique:users,rfid_uid,' . $request->user_id],
+            'rfid_uid' => 'required|string|max:64|unique:users,rfid_uid,' . $request->user_id,
         ]);
 
-        $rfidUid = strtoupper(trim($request->rfid_uid));
-        $userId = $request->user_id;
+        $user = User::findOrFail($request->user_id);
+        $user->rfid_uid = trim($request->rfid_uid);
+        $user->save();
 
-        try {
-            DB::beginTransaction();
-
-            $user = User::lockForUpdate()->findOrFail($userId);
-            $user->rfid_uid = $rfidUid;
-            $user->save();
-
-            // Log successful assignment
-            RfidLog::logActivity($rfidUid, 'assign', 'success', $userId);
-
-            DB::commit();
-
-            return response()->json(['message' => 'RFID assigned successfully']);
-        } catch (\Exception $e) {
-            DB::rollback();
-            RfidLog::logActivity($rfidUid, 'assign', 'error', $userId, null, ['error' => $e->getMessage()]);
-            return response()->json(['error' => 'Failed to assign RFID'], 500);
-        }
+        return response()->json(['message' => 'RFID assigned successfully']);
     }
 
     public function unlinkRfid(Request $request)
@@ -554,44 +536,20 @@ class StationController extends Controller
             'user_id' => 'required|exists:users,id',
         ]);
 
-        try {
-            DB::beginTransaction();
+        $user = User::findOrFail($request->user_id);
+        $user->rfid_uid = null;
+        $user->save();
 
-            $user = User::lockForUpdate()->findOrFail($request->user_id);
-            $oldRfidUid = $user->rfid_uid;
-            $user->rfid_uid = null;
-            $user->save();
-
-            // Log unlink activity
-            if ($oldRfidUid) {
-                RfidLog::logActivity($oldRfidUid, 'unlink', 'success', $user->id);
-            }
-
-            DB::commit();
-
-            return response()->json(['message' => 'RFID unlinked successfully']);
-        } catch (\Exception $e) {
-            DB::rollback();
-            return response()->json(['error' => 'Failed to unlink RFID'], 500);
-        }
+        return response()->json(['message' => 'RFID unlinked successfully']);
     }
 
     public function checkRfid(Request $request)
     {
         $request->validate([
-            'rfid_uid' => ['required', 'string', 'max:64', new ValidRfidUid()],
+            'rfid_uid' => 'required|string|max:64',
         ]);
 
-        $rfidUid = strtoupper(trim($request->rfid_uid));
-        $user = User::where('rfid_uid', $rfidUid)->first();
-
-        // Log check activity
-        RfidLog::logActivity(
-            $rfidUid,
-            'check',
-            $user ? 'success' : 'not_found',
-            $user?->id
-        );
+        $user = User::where('rfid_uid', trim($request->rfid_uid))->first();
 
         if ($user) {
             return response()->json([
@@ -607,30 +565,24 @@ class StationController extends Controller
     public function rfidTap(Request $request)
     {
         $request->validate([
-            'rfid_uid' => ['required', 'string', 'max:64', new ValidRfidUid()],
+            'rfid_uid' => 'required|string|max:64',
             'station_id' => 'required|integer|exists:stations,id',
         ]);
 
-        $rfidUid = strtoupper(trim($request->rfid_uid));
-        $stationId = (int) $request->station_id;
-
-        // Find user with this RFID
-        $user = User::where('rfid_uid', $rfidUid)->first();
+        $user = User::where('rfid_uid', trim($request->rfid_uid))->first();
 
         if (!$user) {
-            // Log failed attempt
-            RfidLog::logActivity($rfidUid, 'tap', 'not_found', null, $stationId);
             return response()->json(['message' => 'RFID card not recognised', 'status' => 'error'], 404);
         }
 
-        // Check for duplicate check-in with lock to prevent race conditions
+        $stationId = (int) $request->station_id;
+
+        // Prevent duplicate check-in
         $alreadyCheckedIn = StationUser::where('user_id', $user->id)
             ->where('station_id', $stationId)
-            ->lockForUpdate()
             ->exists();
 
         if ($alreadyCheckedIn) {
-            RfidLog::logActivity($rfidUid, 'tap', 'duplicate', $user->id, $stationId);
             return response()->json(['message' => 'Already checked in', 'status' => 'duplicate'], 200);
         }
 
@@ -642,9 +594,6 @@ class StationController extends Controller
                 ->count('station_id');
 
             if ($completedPrerequisites < 3) {
-                RfidLog::logActivity($rfidUid, 'tap', 'prerequisites_not_met', $user->id, $stationId, [
-                    'completed_prerequisites' => $completedPrerequisites,
-                ]);
                 return response()->json(['message' => 'Must complete stations 1, 2 and 3 first', 'status' => 'prerequisites_not_met'], 422);
             }
         }
@@ -676,12 +625,6 @@ class StationController extends Controller
 
             DB::commit();
 
-            // Log successful check-in
-            RfidLog::logActivity($rfidUid, 'tap', 'success', $user->id, $stationId, [
-                'time_spent' => $secondsSpent,
-                'cleared_uid' => $stationId === 4,
-            ]);
-
             // Notify the user's station page to open the check-in modal
             $stationName = Station::find($stationId)?->name ?? '';
             broadcast(new StationCheckedIn($user->id, $stationId, $stationName));
@@ -689,7 +632,6 @@ class StationController extends Controller
             return response()->json(['message' => 'Station checked in successfully', 'status' => 'success'], 200);
         } catch (\Exception $e) {
             DB::rollback();
-            RfidLog::logActivity($rfidUid, 'tap', 'error', $user->id, $stationId, ['error' => $e->getMessage()]);
             return response()->json(['error' => 'Server error'], 500);
         }
     }
