@@ -4,12 +4,8 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Station;
-use App\Models\Regime;
 use Spatie\Permission\Models\Role;
-use App\Models\User;
-use App\Models\Locker;
 
-use Illuminate\Support\Facades\Hash;
 
 class StationSeeder extends Seeder
 {
@@ -42,17 +38,5 @@ class StationSeeder extends Seeder
 
         Role::findOrCreate('client', 'web');
 
-        Role::findOrCreate('admin', 'web');
-
-        $user = User::firstOrCreate([
-            'email' => 'admin@gmail.com',
-        ], [
-            'code' => '0000000000000',
-            'password' => Hash::make('WowsomeYsl'),
-        ]);
-
-
-
-        $user->assignRole('admin');
     }
 }
