@@ -75,10 +75,10 @@ div {
 
 .main-bg {
     overflow-y: auto;
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center;
     padding-bottom: calc(20vh + env(safe-area-inset-bottom));
+
+    //gradient background of linear #D99E9A and #F4C3BE 0-100%
+    background: linear-gradient(0deg, #D99E9A 0%, #F4C3BE 100%);
 
     //on small screens fix overlaping of toolbar
     @media screen and (max-width: 767px) {
