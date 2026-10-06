@@ -20,33 +20,34 @@ class StationSeeder extends Seeder
      */
     public function run()
     {
-        Station::create([
+        Station::firstOrCreate([
             'name' => "MEET THE NEW ICONIC",
             'description' => 'Discover YSL LOVENUDE Lip Blusher in more pigment with sheer-buildable, second-skin nude lip fits designed to match your undertone.',
         ]);
 
-        Station::create([
+        Station::firstOrCreate([
             'name' => 'THE SHADE ROOM',
             'description' => 'Strike a pose, share your LOVENUDE look on social media & hashtag #YSLBeautyMY.',
         ]);
 
-        Station::create([
+        Station::firstOrCreate([
             'name' => "LOVENUDE HOTLINE",
             'description' => "Pick up the phone. Listen to Dua Lipas's audio record and learn more about YSL LOVENUDE.",
         ]);
 
-        Station::create([
+        Station::firstOrCreate([
             'name' => "BREAK THE GLASS",
             'description' => "Redeem your complimentary Nude Obsession discovery kit at the gift redemption counter.",
         ]);
 
-        $role = Role::create(['name' => 'client']);
+        Role::findOrCreate('client', 'web');
 
-        $role = Role::create(['name' => 'admin']);
+        Role::findOrCreate('admin', 'web');
 
-        $user = User::create([
-            'code' => '0000000000000',
+        $user = User::firstOrCreate([
             'email' => 'admin@gmail.com',
+        ], [
+            'code' => '0000000000000',
             'password' => Hash::make('WowsomeYsl'),
         ]);
 
