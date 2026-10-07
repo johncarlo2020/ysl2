@@ -51,8 +51,8 @@
                     style="position:absolute;opacity:0;width:1px;height:1px;border:none;outline:none;"
                     aria-label="RFID input" />
                 <div id="tap-indicator" class="mt-3">
-                    <img src="{{ asset('images/new/key.png') }}" alt="NFC Key" style="width: 60px;" />
-                    <p class="mt-2 text-white" style="font-size:0.85rem;">Please tap the NFC to check in</p>
+                    <img src="{{ asset('images/new/key.webp') }}" alt="NFC Key" style="width: 60px;" />
+                    <p class="mt-2 text-dark" style="font-size:0.85rem;">PLEASE CHECK-IN WITH YOUR LOVENUDE HOTEL KEY UPON COMPLETION</p>
                 </div>
             </div>
             @else
