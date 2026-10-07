@@ -45,15 +45,6 @@ body {
     margin: 0;
     height: 100%;
     overflow: hidden;
-    padding-bottom: calc(10vh + env(safe-area-inset-bottom));
-}
-
-@media screen and (max-width: 767px) {
-    _::-webkit-full-page-media,
-    _:future,
-    :root body {
-        padding-bottom: 65px; //resize
-    }
 }
 
 div {
@@ -133,7 +124,7 @@ div {
     letter-spacing: 1px;
     display: block;
     border-radius: 4px;
-    text-transform:uppercase;
+    text-transform: uppercase;
 }
 
 .button {
@@ -180,7 +171,7 @@ div {
         position: relative;
     }
 
-    input[type="checkbox"]:checked + label::after {
+    input[type="checkbox"]:checked+label::after {
         content: "";
         position: absolute;
         left: 10px;
@@ -197,7 +188,7 @@ div {
         margin: 0;
     }
 
-    input[type="checkbox"]:disabled + label {
+    input[type="checkbox"]:disabled+label {
         background-color: #dbdada;
     }
 }
@@ -259,6 +250,7 @@ label {
 .button:hover {
     background-color: darken($primary, 10%);
 }
+
 a:link,
 a:visited,
 a:hover,
@@ -271,8 +263,9 @@ a:active {
     display: flex;
     justify-content: center;
     align-items: center;
+
     .logo {
-       height: 60px;
+        height: 60px;
         object-fit: contain;
         margin: 2.5vh 0;
     }
@@ -280,6 +273,7 @@ a:active {
 
 .welcome {
     position: relative;
+
     .branding-container {
         margin-top: 10%;
         position: absolute;
@@ -320,6 +314,7 @@ a:active {
 
 .congrats {
     position: relative;
+
     .branding-container {
         margin-top: 10%;
         position: absolute;
@@ -440,6 +435,7 @@ a:active {
         }
     }
 }
+
 //list style
 // .dashboard {
 //     overflow-y: auto;
@@ -546,9 +542,10 @@ a:active {
     }
 
     .tile {
-        .station-number{
-           font-family: "Singulier-Bold";
+        .station-number {
+            font-family: "Singulier-Bold";
         }
+
         .img-container {
             position: relative;
 
@@ -588,6 +585,7 @@ a:active {
 .station-page {
     width: 100%;
     height: 100vh;
+    height: 100dvh;
     padding-top: 0px;
     overflow-y: auto;
     padding-bottom: 50px;
@@ -595,11 +593,13 @@ a:active {
     // on small screens fix overlaping of toolbar
     @media screen and (max-width: 767px) {
         min-height: 100vh;
+        min-height: 100dvh;
         padding-bottom: calc(150px + env(safe-area-inset-bottom));
     }
 
     .content {
         text-align: center;
+
         .station-born {
             font-family: "Singulier-Bold";
             font-size: 5vw;
@@ -609,6 +609,7 @@ a:active {
             margin-bottom: 18px;
             color: #ffffff;
         }
+
         .station-number {
             font-size: 20px;
             font-weight: 400;
@@ -688,6 +689,7 @@ a:active {
         height: 100%;
         object-fit: cover;
     }
+
     .scanner-button {
         text-align: center;
         display: flex;
@@ -704,6 +706,7 @@ a:active {
             outline: none;
             margin-bottom: 10px;
         }
+
         p {
             font-size: 14px;
             color: $white;
@@ -721,7 +724,8 @@ a:active {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 100vh; /* Full viewport height */
+    height: 100vh;
+    /* Full viewport height */
     text-align: center;
 }
 
@@ -733,9 +737,11 @@ a:active {
     background-color: #c1c1c166;
     border-radius: 4px;
     padding: 20px 15px;
+
     .bottom-text {
         margin: 14% auto 26% auto !important;
     }
+
     .concent-container {
         justify-content: start;
         align-items: start;
@@ -753,11 +759,13 @@ a:active {
             border-top: dashed 1px #fff;
             padding-top: 30px;
             margin-top: 30px;
+
             label {
                 width: 50px;
             }
         }
     }
+
     .accordion-button {
         border-radius: 0px !important;
         border: 2px solid #9e9e9e;
@@ -787,12 +795,14 @@ a:active {
         background-color: transparent;
     }
 }
+
 .station-name-dashboard {
     font-family: "Singulier-Bold";
     font-size: 13px;
     align-items: center;
     text-align: center;
 }
+
 .landing-tagline {
     font-family: "Singulier";
     font-size: 13px;
@@ -823,6 +833,7 @@ a:active {
         margin-top: 20px;
         color: #000;
     }
+
     .station-name-modal {
         font-family: "Singulier-Bold";
         font-size: 11px;
@@ -844,7 +855,8 @@ a:active {
     display: flex;
     flex-direction: column;
     width: 100%;
-    max-width: 500px; /* Optional: Set max-width to control modal size */
+    max-width: 500px;
+    /* Optional: Set max-width to control modal size */
     pointer-events: auto;
     background-color: #fff;
     background-clip: padding-box;
@@ -856,6 +868,7 @@ a:active {
 
 .admin-login {
     background: #000;
+
     .wrapper {
         margin-top: 10%;
         flex-direction: column;
@@ -863,9 +876,11 @@ a:active {
         justify-content: center;
         align-items: center;
     }
+
     .branding .logo {
         width: 60px;
     }
+
     .form-container {
         width: 355px;
         background-color: #c1c1c166;
@@ -876,6 +891,7 @@ a:active {
         @media (max-width: 768px) {
             width: 100%;
         }
+
         label {
             letter-spacing: 0;
             font-size: 14px;
@@ -886,6 +902,7 @@ a:active {
             font-size: 25px;
             font-weight: 300;
         }
+
         h2 {
             font-size: 20px;
             font-weight: 300;
@@ -908,6 +925,7 @@ a:active {
             min-height: 48px;
             border: 2px solid #9e9e9e;
         }
+
         .remember {
             label {
                 font-size: 12px;
@@ -924,11 +942,13 @@ a:active {
         input {
             padding: 10px;
             font-size: 14px;
+
             &::placeholder {
                 color: #ababab;
                 font-size: 12px;
             }
         }
+
         .button {
             width: 100%;
             padding: 10px 40px;
@@ -939,6 +959,7 @@ a:active {
             border-radius: 4px;
         }
     }
+
     .copy-text {
         font-size: 8px;
         font-weight: 300;
@@ -957,11 +978,13 @@ a:active {
 .visit {
     margin-top: 40px;
     color: #3c727a;
+
     p {
         font-size: 12px;
         letter-spacing: 2px;
         font-weight: 400;
     }
+
     a {
         text-decoration: none;
         font-size: 10px;
@@ -969,6 +992,7 @@ a:active {
         color: #3c727a;
     }
 }
+
 .safari-padding {
     padding-bottom: 120px;
 }
@@ -976,9 +1000,11 @@ a:active {
 .admin-login {
     .checkbox-container {
         align-items: start;
+
         label {
             width: 20px;
             height: 20px;
+
             &::after {
                 left: 5px !important;
                 top: 0px !important;
@@ -986,6 +1012,7 @@ a:active {
                 height: 13px !important;
             }
         }
+
         p {
             font-size: 12px;
         }
@@ -996,9 +1023,11 @@ a:active {
     background-color: white;
     padding: 30px 10px;
 }
+
 .modal-landing {
     top: 19% !important;
 }
+
 #scanCompleteModal.modal-landing {
     top: 0 !important;
     left: 0;
@@ -1060,6 +1089,7 @@ a:active {
         cursor: pointer;
     }
 }
+
 .modal {
     position: fixed;
     top: 50%;
@@ -1067,8 +1097,10 @@ a:active {
     z-index: 1050;
     transform: translate(-50%, -50%);
     display: none;
-    width: auto; /* Adjust width as needed */
-    height: auto; /* Adjust height as needed */
+    width: auto;
+    /* Adjust width as needed */
+    height: auto;
+    /* Adjust height as needed */
     overflow: hidden;
     outline: 0;
 }
@@ -1087,14 +1119,19 @@ a:active {
 }
 
 .bottom-text {
-        font-size: 14px;
-    }
+    font-size: 14px;
+}
 
-  .welcome-txt {
-        font-family: "Singulier-Bold";
-        font-size: 20px;
-        letter-spacing: 1px;
-        color: black;
-        text-align: center;
-        margin-top: 20px;
-    }
+.welcome-txt {
+    font-family: "Singulier-Bold";
+    font-size: 20px;
+    letter-spacing: 1px;
+    color: black;
+    text-align: center;
+    margin-top: 20px;
+}
+
+.station-born,
+.station-name-dashboard,.station-name ,.tag-line{
+    color: #000 !important;
+}

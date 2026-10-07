@@ -30,18 +30,16 @@
         <div id="mainContent" class="text-content text-center">
             <div class="content">
                 <!-- <h1 class="station-born">UNLEASH YOUR INNER LIGHTS</h1> -->
-                <h2 class="station-name">
+                <h2 class="my-4 station-name">
 
                     {{ $station->name }}
                 </h2>
             </div>
             <div class="mt-3 station-img">
-                <p class="text-white tag-line">{!! $station->description !!}</p>
-
-                <img src="{{ asset('images/station 0' . $station->id . '.webp') }}" alt="" />
-
-
+                <img src="{{ asset('images/stations/' . $station->id . '.webp') }}" alt="" />
             </div>
+
+              <p class="tag-line">{{$station->description }}</p>
 
 
             @if ($user == false)
@@ -124,7 +122,7 @@
             // Keep the hidden input focused so the RFID reader (keyboard wedge) types into it
             function keepFocus() {
                 if (!processing) {
-                    rfidInput.focus();
+                    rfidInput.focus({ preventScroll: true });
                 }
             }
             document.addEventListener('click', keepFocus);

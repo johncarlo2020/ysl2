@@ -11,15 +11,15 @@
             letter-spacing: 3px;
         }
     </style>
-    <div class="modal fade " id="scanCompleteModal" tabindex="-1">
+    <div class="modal fade" id="scanCompleteModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-body">
                     <div class="text-center content">
-                        <div class="image-check d-flex justify-content-center">
-                            <div class="border rounded-circle d-flex justify-content-center align-items-center"
+                        <div class="d-flex justify-content-center image-check">
+                            <div class="d-flex align-items-center justify-content-center border rounded-circle"
                                 style="width: 50px; height: 50px; margin-bottom:20px;">
-                                <i class="fa-solid fa-exclamation d-block" style="font-size: 25px;
+                                <i class="d-block fa-solid fa-exclamation" style="font-size: 25px;
                                                                     "></i>
                             </div>
                         </div>
@@ -41,22 +41,21 @@
     </div>
     <div class="dashboard main main-bg safari-padding">
         <div class="branding-container">@include('components.branding')</div>
-        <h1 class="station-born">GET READY TO UNDRESS YOUR LIP</h1>
+        <h1 class="station-born">THE NEW NUDE OBSESSION</h1>
 
         <div class="content">
             @foreach ($stations as $station)
             <a class="title-container" id="station-link-{{ $station->id }}" href="{{ route('station.show', ['station' => $station->id]) }}">
                 <div class="tile {{ $station->id %2 == 0? '':'reverse' }}">
-                    <p class="station-number">{{$station->id}}</p>
                     <div id="station-{{ $station->id }}" class="img-container {{$station->status == true ? 'active':''}}">
-                        <img src="{{ asset('images/station 0' . $station->id . '.webp') }}" alt="" />
+                        <img src="{{ asset('images/stations/' . $station->id . '.webp') }}" alt="" />
                         <div class="marker">
                             <p>CHECK-IN SUCCESSFUL</p>
                         </div>
                     </div>
                     <div class="text-container-dashboard">
                         <p class="station-name-dashboard">
-                           {{ $station->name }}
+                           {{$station->id}} {{ $station->name }}
                         </p>
                     </div>
                 </div>
