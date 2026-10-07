@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="modal fade " id="scanCompleteModal" tabindex="-1">
+    <div class="modal fade" id="scanCompleteModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-body">
@@ -27,7 +27,7 @@
         <div class="branding-container">
             @include('components.branding')
         </div>
-        <div id="mainContent" class="text-center text-content">
+        <div id="mainContent" class="text-content text-center">
             <div class="content">
                 <!-- <h1 class="station-born">UNLEASH YOUR INNER LIGHTS</h1> -->
                 <h2 class="station-name">
@@ -36,7 +36,7 @@
                 </h2>
             </div>
             <div class="mt-3 station-img">
-                <p class="tag-line text-white">{!! $station->description !!}</p>
+                <p class="text-white tag-line">{!! $station->description !!}</p>
 
                 <img src="{{ asset('images/station 0' . $station->id . '.webp') }}" alt="" />
 
@@ -46,7 +46,7 @@
 
             @if ($user == false)
 
-            <div class="scanner-button container mt-2">
+            <div class="mt-2 scanner-button container">
                 <div id="rfid-status" class="mb-2" style="min-height:24px;"></div>
                 {{-- Hidden input captures keystrokes from RFID reader (keyboard wedge) --}}
                 <input type="text" id="rfid-input" autocomplete="off" inputmode="none"
@@ -54,7 +54,7 @@
                     aria-label="RFID input" />
                 <div id="tap-indicator" class="mt-3">
                     <img src="{{ asset('images/new/key.png') }}" alt="NFC Key" style="width: 60px;" />
-                    <p class="text-white mt-2" style="font-size:0.85rem;">Please tap the NFC to check in</p>
+                    <p class="mt-2 text-white" style="font-size:0.85rem;">Please tap the NFC to check in</p>
                 </div>
             </div>
             @else

@@ -1,18 +1,20 @@
 <x-app-layout>
-    
-    <div id="stationPage" class="station-page main main-bg safari-padding">
+
+    <div id="stationPage" class="welcome-page station-page main main-bg safari-padding">
         <div class="mb-3 branding-container" onclick="modal()">
             @include('components.branding')
         </div>
-        <div id="mainContent" class="text-center text-content">
+        <h1 class="welcome-txt">WELCOME TO THE ​<br>
+            YSL LOVENUDE BEAUTY HOTEL​</h1>
+        <div id="mainContent" class="text-content text-center">
             <div class="content">
-                <h2 class="station-born ">{{ env('APP_TITLE') }}<br>
+                <h2 class="station-born">{{ env('APP_TITLE') }}<br>
                 </h2>
             </div>
             <div class="station-img">
                 <img src="{{ asset('images/new/landing.webp') }}" alt="" />
             </div>
-            <div class="container mt-5" style="width: 65%;">
+            <div class="mt-5 container" style="width: 65%;">
                 <a class="button-discover" href="{{ route('register') }}">JOIN NOW</a>
             </div>
         </div>

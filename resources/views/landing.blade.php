@@ -1,19 +1,12 @@
 <x-app-layout>
-    <div class="modal-landing modal fade " id="scanCompleteModal" tabindex="-1">
+    <div class="modal-landing modal fade" id="scanCompleteModal" tabindex="-1"
+        aria-labelledby="memberIdTitle" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-body">
-                    <div class="text-center content">
-                        <div class="text-content">
-                            <p class="station-name-modal">
-                                Your Member Id
-                            </p>
-                            <p class="message">{{auth()->user()->code}}</p>
-                        </div>
-                        <div class="">
-                            <button class="button" type="button" data-bs-dismiss="modal">Done</button>
-                        </div>
-                    </div>
+                    <p class="member-id-title" id="memberIdTitle">Your Member ID</p>
+                    <p class="member-id-code">{{ auth()->user()->code }}</p>
+                    <button class="member-id-done" type="button" data-bs-dismiss="modal">DONE</button>
                 </div>
             </div>
         </div>
@@ -22,24 +15,30 @@
         <div class="mb-3 branding-container" onclick="modal()">
             @include('components.branding')
         </div>
-        <div id="mainContent" class="text-center text-content">
+        <h1 class="welcome-txt">WELCOME TO THE ​<br>
+            YSL LOVENUDE BEAUTY HOTEL​</h1>
+        <div id="mainContent" class="text-content text-center">
             <div class="content">
-                <h2 class="station-born ">{{ env('APP_TITLE') }}<br>
+                <h2 class="station-born">{{ env('APP_TITLE') }}<br>
                 </h2>
             </div>
-            <div class="station-img">
+            <div class="mb-3 station-img">
                 <img src="{{ asset('images/new/landing.webp') }}" alt="" />
             </div>
             <div class="content">
-                <p class="landing-tagline px-2">Discover YSL LOVENUDE Lip Blusher, a soft blurring lip colour with 7H blur finish and care like a balm for an undressed sensual pout</p>
+                <p class="px-2 landing-tagline">
+                    Indulge your late-night lip cravings. </p>
+
+                <p class="px-2 landing-tagline">
+
+                    Discover the new YSL LOVENUDE LIP STAIN,
+                    a new-generation lip stain that fuses the freshness of a serum with the softness of a blurred
+                    finish.
+                </p>
             </div>
-            <div class="container mt-5" style="width: 65%;">
-                @if (auth()->user()->rfid_uid)
-                    <a class="button-discover" href="{{ route('dashboard') }}">DISCOVER NOW</a>
-                @else
-                    <span class="button-discover" style="opacity:0.4;cursor:not-allowed;pointer-events:none;">DISCOVER NOW</span>
-                    <p class="text-white mt-3" style="font-size:0.8rem;opacity:0.7;">Please visit the registration desk to get your RFID wristband assigned before proceeding.</p>
-                @endif
+            <div class="mt-5 w-100 container">
+                <a class="button-discover {{ auth()->user()->rfid_uid ? '' : 'disabled' }}"
+                    @if (auth()->user()->rfid_uid) href="{{ route('dashboard') }}" @else aria-disabled="true" @endif>DISCOVER NOW</a>
             </div>
         </div>
     </div>
