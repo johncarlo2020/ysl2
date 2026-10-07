@@ -17,3 +17,6 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+// Users without an NFC/RFID card assigned — protected by X-API-Secret header
+Route::get('/users/without-nfc', 'App\Http\Controllers\StationController@usersWithoutNfc');

@@ -71,6 +71,8 @@ return [
     'timezone' => 'Asia/Kuala_Lumpur',
 
     'rfid_token' => env('RFID_TOKEN', 'change-me-secret'),
+    'api_secret' => env('API_SECRET'),
+
 
     /*
     |--------------------------------------------------------------------------

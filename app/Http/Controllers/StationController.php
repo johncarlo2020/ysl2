@@ -461,6 +461,18 @@ class StationController extends Controller
         return $check;
     }
 
+    public function usersWithoutNfc(Request $request)
+    {
+        $secret = config('app.api_secret');
+
+        if (!$secret || !hash_equals($secret, (string) $request->header('X-API-Secret'))) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        return response()->json(
+            User::whereNull('rfid_uid')->orWhere('rfid_uid', '')->get(['id', 'email', 'code'])
+        );
+    }
     public function rfidAdmin()
     {
         $totalStations = \App\Models\Station::count();
