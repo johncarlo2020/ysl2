@@ -470,7 +470,10 @@ class StationController extends Controller
         }
 
         return response()->json(
-            User::whereNull('rfid_uid')->orWhere('rfid_uid', '')->get(['id', 'email', 'code'])
+            User::whereNull('rfid_uid')->orWhere('rfid_uid', '')
+                ->orderByDesc('id')
+                ->limit(10)
+                ->get(['id', 'email', 'code'])
         );
     }
     public function rfidAdmin()
