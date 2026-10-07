@@ -36,9 +36,6 @@
             overflow: hidden;
             padding-bottom: calc(2rem + env(safe-area-inset-bottom));
         }
-        .main-bg {
-            background-image: url("{{ asset('images/new/Background.webp') }}");
-        }
 
         p {
             margin: 0;
