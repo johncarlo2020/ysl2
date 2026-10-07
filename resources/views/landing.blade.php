@@ -38,7 +38,7 @@
             </div>
             <div class="mt-5 w-100 container">
                 <a class="button-discover {{ auth()->user()->rfid_uid ? '' : 'disabled' }}"
-                    @if (auth()->user()->rfid_uid) href="{{ route('dashboard') }}" @else aria-disabled="true" @endif>DISCOVER NOW</a>
+                    @if (auth()->user()->rfid_uid) href="{{ route('dashboard') }}" @else aria-disabled="true" @endif>BEGIN YOUR JOURNEY</a>
             </div>
         </div>
     </div>
