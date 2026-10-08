@@ -47,6 +47,11 @@ class AdminApiTest extends TestCase
         $other = $this->account('other');
         $this->putJson('/api/admin/users/' . $other->id . '/nfc', ['rfid_uid' => 'ABC123'])->assertUnprocessable();
         $this->putJson('/api/admin/users/' . $admin->id . '/nfc', ['rfid_uid' => 'ADMIN'])->assertNotFound();
+        $this->deleteJson('/api/admin/users/' . $admin->id . '/nfc')->assertNotFound();
+        $this->deleteJson('/api/admin/users/' . $client->id . '/nfc')->assertOk()->assertJsonPath('data.rfid_uid', null);
+        $this->assertDatabaseHas('users', ['id' => $client->id, 'rfid_uid' => null]);
+        $this->deleteJson('/api/admin/users/' . $client->id . '/nfc')->assertOk();
+        $this->putJson('/api/admin/users/' . $other->id . '/nfc', ['rfid_uid' => 'ABC123'])->assertOk();
         $this->postJson('/api/admin/logout')->assertOk();
         $this->assertDatabaseCount('personal_access_tokens', 0);
     }
@@ -59,7 +64,9 @@ class AdminApiTest extends TestCase
         $this->postJson('/api/admin/login', ['email' => $admin->email, 'password' => 'wrong'])->assertUnprocessable();
         $this->assertDatabaseCount('personal_access_tokens', 0);
         $this->getJson('/api/admin/users')->assertUnauthorized();
+        $this->deleteJson('/api/admin/users/' . $client->id . '/nfc')->assertUnauthorized();
         $token = $client->createToken('client', ['nfc:manage'])->plainTextToken;
         $this->withHeader('Authorization', 'Bearer ' . $token)->getJson('/api/admin/users')->assertForbidden();
+        $this->deleteJson('/api/admin/users/' . $client->id . '/nfc')->assertForbidden();
     }
 }

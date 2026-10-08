@@ -20,6 +20,7 @@ For all endpoints below send `Authorization: Bearer <token>`.
 | GET | /api/admin/users | Paginated assignment users, excluding admins |
 | GET | /api/admin/users/{id} | One assignment user, under `data` |
 | PUT | /api/admin/users/{id}/nfc | Assign or replace NFC UID |
+| DELETE | /api/admin/users/{id}/nfc | Unassign NFC card (no request body) |
 | POST | /api/admin/logout | Revoke current token |
 
 List parameters: `without_nfc=1`, `search` (mobile number or exact ID), `per_page` (1–100, default 25), and `page`. Pagination response includes `data`, `current_page`, `last_page`, and `total`.

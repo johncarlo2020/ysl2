@@ -8,6 +8,12 @@ use Illuminate\Validation\Rule;
 
 class RfidAssignment
 {
+    public function unassign(User $user): void
+    {
+        $user->rfid_uid = null;
+        $user->save();
+    }
+
     public function assign(User $user, mixed $uid): void
     {
         $data = Validator::make(['rfid_uid' => is_string($uid) ? trim($uid) : $uid], [

@@ -92,6 +92,14 @@ class AdminController extends Controller
         return response()->json(['message' => 'NFC assigned successfully.', 'data' => $this->userData($user)]);
     }
 
+    public function unassign(Request $request, User $user)
+    {
+        $this->authorizeAdmin($request);
+        abort_if($user->hasRole('admin'), 404);
+        app(\App\Services\RfidAssignment::class)->unassign($user);
+        return response()->json(['message' => 'NFC unassigned successfully.', 'data' => $this->userData($user)]);
+    }
+
     public function logout(Request $request)
     {
         $this->authorizeAdmin($request);

@@ -572,8 +572,7 @@ class StationController extends Controller
         ]);
 
         $user = User::findOrFail($request->user_id);
-        $user->rfid_uid = null;
-        $user->save();
+        app(\App\Services\RfidAssignment::class)->unassign($user);
 
         return response()->json(['message' => 'RFID unlinked successfully']);
     }
