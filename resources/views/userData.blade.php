@@ -10,7 +10,7 @@
         .user-station-row .big-checkbox:disabled { cursor: default; }
     </style>
     <div class="py-4 user-stations-panel">
-        <a href="{{ route('users') }}" class="d-inline-block mb-3 text-white">
+        <a href="{{ route('users') }}" class="d-inline-block mb-3 text-dark">
             <i class="fa-solid fa-arrow-left me-2" aria-hidden="true"></i>Back to users
         </a>
         <div class="card mb-4">

@@ -342,7 +342,7 @@ class StationController extends Controller
             });
         }
 
-        $data['stations'] = $stations->map(function ($name, $id) use ($userStations, $averageTimespentByStation) {
+        $data['stations'] = $stations->map(function ($name, $id) use ($averageTimespentByStation) {
             return [
                 'name' => $name,
                 'average_timespent' => number_format(($averageTimespentByStation->get($id)['average_timespent'] ?? 0) / 60, 2),
@@ -376,6 +376,16 @@ class StationController extends Controller
 
         foreach ($data['users'] as $user) {
             $userStations = $user->stationUser->pluck('station_id')->toArray();
+            $requiredChecks = $stations->keys()->map(function ($id) use ($user) {
+                return $user->stationUser->where('station_id', $id)->sortBy('created_at')->first();
+            });
+            $completedAt = $requiredChecks->isNotEmpty() && $requiredChecks->every(function ($check) {
+                return $check && $check->created_at;
+            }) ? $requiredChecks->max('created_at') : null;
+            $user->completed_at = $completedAt;
+            $user->completion_seconds = $completedAt && $user->created_at && $completedAt->gte($user->created_at)
+                ? $user->created_at->diffInSeconds($completedAt) : null;
+
             $user->stations = $stations->map(function ($name, $id) use ($userStations, $averageTimespentByStation) {
                 return [
                     'name' => $name,
@@ -384,7 +394,7 @@ class StationController extends Controller
             });
         }
 
-        $data['stations'] = $stations->map(function ($name, $id) use ($userStations, $averageTimespentByStation) {
+        $data['stations'] = $stations->map(function ($name, $id) use ($averageTimespentByStation) {
             return [
                 'name' => $name,
                 'average_timespent' => number_format(($averageTimespentByStation->get($id)['average_timespent'] ?? 0) / 60, 2),
