@@ -21,8 +21,8 @@ class AdminController extends Controller
         ]);
         $user = User::where('email', $data['email'])->first();
 
-        if (!$user || !Hash::check($data['password'], $user->password) || !$user->hasRole('admin')) {
-            throw ValidationException::withMessages(['email' => 'The provided admin credentials are invalid.']);
+        if (!$user || !Hash::check($data['password'], $user->password) || !($user->hasRole('admin') || $this->validStaff($user))) {
+            throw ValidationException::withMessages(['email' => 'The provided staff or admin credentials are invalid.']);
         }
 
         $expiresAt = now()->addDay();
@@ -36,9 +36,19 @@ class AdminController extends Controller
         ]);
     }
 
-    private function authorizeAdmin(Request $request): void
+    private function validStaff(User $user): bool
     {
-        abort_unless($request->user()->hasRole('admin') && $request->user()->tokenCan('nfc:manage'), 403);
+        return $user->hasRole('staff') && (
+            ($user->staff_function === 'register' && $user->station_id === null) ||
+            ($user->staff_function === 'station' && Station::whereKey($user->station_id)->exists())
+        );
+    }
+
+    private function authorizeAdmin(Request $request, ?string $function = null): void
+    {
+        $user = $request->user();
+        abort_unless($user->tokenCan('nfc:manage') && ($user->hasRole('admin') ||
+            ($this->validStaff($user) && ($function === null || $user->staff_function === $function))), 403);
     }
 
     private function userData(User $user): array
@@ -49,6 +59,9 @@ class AdminController extends Controller
             'code' => $user->code,
             'mobile_number' => $user->code,
             'rfid_uid' => $user->rfid_uid,
+            'role' => $user->hasRole('admin') ? 'admin' : ($user->hasRole('staff') ? 'staff' : 'client'),
+            'staff_function' => $user->staff_function,
+            'station_id' => $user->station_id,
         ];
     }
 
@@ -60,19 +73,19 @@ class AdminController extends Controller
 
     public function users(Request $request)
     {
-        $this->authorizeAdmin($request);
+        $this->authorizeAdmin($request, 'register');
         $data = $request->validate([
             'search' => ['nullable', 'string', 'max:255'],
             'without_nfc' => ['sometimes', 'boolean'],
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
         ]);
-        $query = User::whereDoesntHave('roles', fn ($query) => $query->where('name', 'admin'));
+        $query = User::whereDoesntHave('roles', fn ($query) => $query->whereIn('name', ['admin', 'staff']));
         if ($request->boolean('without_nfc')) {
             $query->where(fn ($query) => $query->whereNull('rfid_uid')->orWhere('rfid_uid', ''));
         }
         if (!empty($data['search'])) {
             $query->where(fn ($query) => $query->where('code', 'like', '%' . $data['search'] . '%')
-                ->orWhere('id', $data['search']));
+                ->orWhere('id', $data['search'])->orWhere('rfid_uid', $data['search']));
         }
         $users = $query->orderByDesc('id')->paginate($data['per_page'] ?? 25);
         $users->through(fn ($user) => $this->userData($user));
@@ -81,23 +94,23 @@ class AdminController extends Controller
 
     public function show(Request $request, User $user)
     {
-        $this->authorizeAdmin($request);
-        abort_if($user->hasRole('admin'), 404);
+        $this->authorizeAdmin($request, 'register');
+        abort_if($user->hasAnyRole(['admin', 'staff']), 404);
         return response()->json(['data' => $this->userData($user)]);
     }
 
     public function assign(Request $request, User $user)
     {
-        $this->authorizeAdmin($request);
-        abort_if($user->hasRole('admin'), 404);
+        $this->authorizeAdmin($request, 'register');
+        abort_if($user->hasAnyRole(['admin', 'staff']), 404);
         app(\App\Services\RfidAssignment::class)->assign($user, $request->input('rfid_uid'));
         return response()->json(['message' => 'NFC assigned successfully.', 'data' => $this->userData($user)]);
     }
 
     public function unassign(Request $request, User $user)
     {
-        $this->authorizeAdmin($request);
-        abort_if($user->hasRole('admin'), 404);
+        $this->authorizeAdmin($request, 'register');
+        abort_if($user->hasAnyRole(['admin', 'staff']), 404);
         app(\App\Services\RfidAssignment::class)->unassign($user);
         return response()->json(['message' => 'NFC unassigned successfully.', 'data' => $this->userData($user)]);
     }
@@ -111,20 +124,28 @@ class AdminController extends Controller
 
     public function stations(Request $request)
     {
-        $this->authorizeAdmin($request);
-        return response()->json(['data' => Station::orderBy('id')->get(['id', 'name', 'description'])]);
+        $this->authorizeAdmin($request, 'station');
+        return response()->json(['data' => Station::query()
+            ->when(!$request->user()->hasRole('admin'), fn ($query) => $query->whereKey($request->user()->station_id))
+            ->orderBy('id')->get(['id', 'name', 'description'])]);
     }
 
     public function checkIn(Request $request)
     {
-        $this->authorizeAdmin($request);
+        $this->authorizeAdmin($request, 'station');
+        if (!$request->user()->hasRole('admin')) {
+            if ($request->has('station_id') && (string) $request->input('station_id') !== (string) $request->user()->station_id) {
+                abort(403, 'This account can only check in at its assigned station.');
+            }
+            $request->merge(['station_id' => $request->user()->station_id]);
+        }
         $data = $request->validate([
             'rfid_uid' => ['required', 'string', 'max:64'],
             'station_id' => ['required', 'integer', 'exists:stations,id'],
         ]);
         // Keep desktop check-ins consistent with the physical station kiosks.
         $user = User::where('rfid_uid', trim($data['rfid_uid']))->first();
-        abort_if($user && $user->hasRole('admin'), 404);
+        abort_if($user && $user->hasAnyRole(['admin', 'staff']), 404);
         return app(StationController::class)->rfidTap($request);
     }
 }

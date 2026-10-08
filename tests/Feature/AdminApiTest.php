@@ -20,6 +20,7 @@ class AdminApiTest extends TestCase
             'database/migrations/2026_04_28_000000_add_rfid_uid_to_users_table.php',
             'database/migrations/2024_05_09_152825_create_stations_table.php',
             'database/migrations/2024_05_16_041232_create_station_users_table.php',
+            'database/migrations/2026_10_08_000000_add_staff_fields_to_users_table.php',
         ] as $path) {
             $this->artisan('migrate', ['--path' => $path, '--force' => true]);
         }
@@ -32,6 +33,53 @@ class AdminApiTest extends TestCase
             $user->assignRole(Role::findOrCreate('admin', 'web'));
         }
         return $user;
+    }
+
+    public function test_staff_login_permissions_and_seeder(): void
+    {
+        \Illuminate\Support\Facades\Event::fake([\App\Events\StationCheckedIn::class]);
+        foreach (range(1, 4) as $id) {
+            \Illuminate\Support\Facades\DB::table('stations')->insert(['id' => $id, 'name' => 'Station ' . $id, 'description' => 'Description']);
+        }
+        $previousPassword = getenv('TAURI_STAFF_PASSWORD');
+        putenv('TAURI_STAFF_PASSWORD=test-staff-password');
+        try {
+            $this->seed(\Database\Seeders\TauriStaffSeeder::class);
+            $hash = User::where('email', 'registration1@staff.ysl.local')->first()->password;
+            $this->seed(\Database\Seeders\TauriStaffSeeder::class);
+            $this->assertSame($hash, User::where('email', 'registration1@staff.ysl.local')->first()->password);
+        } finally {
+            putenv($previousPassword === false ? 'TAURI_STAFF_PASSWORD' : 'TAURI_STAFF_PASSWORD=' . $previousPassword);
+        }
+        $this->assertSame(6, User::role('staff')->count());
+        $client = $this->account('attendee');
+        $login = $this->postJson('/api/admin/login', ['email' => 'registration1@staff.ysl.local', 'password' => 'test-staff-password']);
+        $login->assertOk()->assertJsonPath('user.staff_function', 'register')->assertJsonPath('user.station_id', null);
+        $this->withToken($login->json('token'));
+        $this->getJson('/api/admin/users')->assertOk()->assertJsonCount(1, 'data');
+        $this->putJson('/api/admin/users/' . $client->id . '/nfc', ['rfid_uid' => 'STAFFTEST'])->assertOk();
+        $this->getJson('/api/admin/users?search=STAFFTEST')->assertOk()->assertJsonPath('data.0.id', $client->id);
+        $this->deleteJson('/api/admin/users/' . $client->id . '/nfc')->assertOk();
+        $this->putJson('/api/admin/users/' . $client->id . '/nfc', ['rfid_uid' => 'STAFFTEST'])->assertOk();
+        $staff = User::where('email', 'station1@staff.ysl.local')->first();
+        $this->putJson('/api/admin/users/' . $staff->id . '/nfc', ['rfid_uid' => 'NO'])->assertNotFound();
+        $this->getJson('/api/admin/stations')->assertForbidden();
+        $this->postJson('/api/admin/stations/check-in', ['rfid_uid' => 'STAFFTEST', 'station_id' => 1])->assertForbidden();
+        $this->postJson('/api/admin/logout')->assertOk();
+        app('auth')->forgetGuards();
+        $this->flushHeaders();
+        $login = $this->postJson('/api/admin/login', ['email' => $staff->email, 'password' => 'test-staff-password']);
+        $login->assertOk()->assertJsonPath('user.staff_function', 'station')->assertJsonPath('user.station_id', 1);
+        $this->withToken($login->json('token'));
+        $this->getJson('/api/admin/user')->assertOk();
+        $this->getJson('/api/admin/stations')->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', 1);
+        $this->getJson('/api/admin/users')->assertForbidden();
+        $this->putJson('/api/admin/users/' . $client->id . '/nfc', ['rfid_uid' => 'NO'])->assertForbidden();
+        $this->deleteJson('/api/admin/users/' . $client->id . '/nfc')->assertForbidden();
+        $this->postJson('/api/admin/stations/check-in', ['rfid_uid' => 'STAFFTEST', 'station_id' => 2])->assertForbidden();
+        $this->postJson('/api/admin/stations/check-in', ['rfid_uid' => 'STAFFTEST'])->assertOk()->assertJsonPath('status', 'success');
+        $this->assertDatabaseHas('station_users', ['user_id' => $client->id, 'station_id' => 1]);
+        $this->postJson('/api/admin/logout')->assertOk();
     }
 
     public function test_station_check_in_preserves_kiosk_rules(): void

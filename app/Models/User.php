@@ -33,6 +33,7 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'station_id' => 'integer',
     ];
 
     public function stationUser()

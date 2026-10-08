@@ -79,7 +79,7 @@ Use 14–16px icons inside controls, 24–26px in feature tiles. Preserve the lo
 
 ## NFC app flow
 
-1. Sign in with admin credentials using the existing API.
+1. Sign in with staff or admin credentials using the existing API. Use the returned `staff_function` to open registration or station check-in. Registration staff see card management; station staff see their assigned station.
 2. Show reader connection state next to the page heading, with text such as Reader connected or Reader disconnected.
 3. Display searchable users with ID, mobile number, UID, and Assigned / Unassigned status. Default filter: All.
 4. Select a user, then open a Link card panel showing that user's identity and a waiting-for-card state. Show the captured UID before the explicit Link card action.
@@ -93,7 +93,7 @@ Use “Assigned” and “Unassigned” consistently in the app; the current web
 
 Add a Station check-in navigation item beside card assignment. Use the same cards, buttons, spacing, and status colors as the other NFC screens.
 
-1. Load available stations from the authenticated API and require a station selection before accepting a tap. Keep the station name visible above the reader panel.
+1. Station staff use the station returned at login; display it without a station switcher. Admins load available stations from the authenticated API and select a station before accepting a tap. Keep the station name visible above the reader panel.
 2. Show Reader connected / Reader disconnected and a persistent Waiting for card state. Disable scanning actions when disconnected or no station is selected.
 3. Capture the UID and submit it with the selected station ID. Show Checking in… and prevent repeated submissions or station changes while the request is pending.
 4. Announce Checked in on success and Already checked in for a duplicate. Keep the selected station and latest result visible, then accept the next card.
