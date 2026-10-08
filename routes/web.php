@@ -17,6 +17,10 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
+    if (auth()->check()) {
+        return redirect()->route(auth()->user()->hasRole('admin') ? 'admin' : 'dashboard');
+    }
+
     return view('welcome');
 })->name('welcome');
 

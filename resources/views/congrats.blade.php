@@ -39,7 +39,6 @@
 
         p {
             margin: 0;
-            color: white;
         }
 
         .main-logo {
@@ -69,7 +68,7 @@
         }
 
         .white {
-            color: white;
+            color: rgb(4, 4, 4);
         }
 
         .visit {
@@ -94,18 +93,19 @@
     </style>
     <div class="congrats main main-bg safari-padding">
         <div class="branding-container">@include('components.branding')</div>
-        <h1 class="station-born">GET READY TO UNDRESS YOUR LIP</h1>
+        <h1 class="mt-5 station-born">THANK YOU FOR VISITING
+THE YSL LOVENUDE BEAUTY HOTEL</h1>
 
         <div class="content">
             <div class="content">
                 <p>Visit</p>
                 <div class="branding congrats-branding" >
                     <a href="https://www.yslbeauty.com.my/en_MY/holiday-shop/ ">
-                        <img class="logo" src="{{ asset('images/logo-large1.webp') }}" alt="">
+                        <img class="logo" src="{{ asset('images/logo.webp') }}" alt="">
 
                     </a>
                 </div>
-                <a class="white" href="https://www.yslbeauty.com.my/en_MY/holiday-shop/ 
+                <a class="white" href="https://www.yslbeauty.com.my/en_MY/holiday-shop/
  ">for more information</a>
             </div>
 
