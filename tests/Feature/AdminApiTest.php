@@ -18,6 +18,8 @@ class AdminApiTest extends TestCase
             'database/migrations/2019_12_14_000001_create_personal_access_tokens_table.php',
             'database/migrations/2024_07_16_061509_create_permission_tables.php',
             'database/migrations/2026_04_28_000000_add_rfid_uid_to_users_table.php',
+            'database/migrations/2024_05_09_152825_create_stations_table.php',
+            'database/migrations/2024_05_16_041232_create_station_users_table.php',
         ] as $path) {
             $this->artisan('migrate', ['--path' => $path, '--force' => true]);
         }
@@ -30,6 +32,37 @@ class AdminApiTest extends TestCase
             $user->assignRole(Role::findOrCreate('admin', 'web'));
         }
         return $user;
+    }
+
+    public function test_station_check_in_preserves_kiosk_rules(): void
+    {
+        \Illuminate\Support\Facades\Event::fake([\App\Events\StationCheckedIn::class]);
+        foreach (range(1, 4) as $id) {
+            \Illuminate\Support\Facades\DB::table('stations')->insert(['id' => $id, 'name' => 'Station ' . $id, 'description' => 'Description']);
+        }
+        $client = $this->account('client');
+        $client->update(['rfid_uid' => 'ABC123']);
+        $body = ['rfid_uid' => 'ABC123', 'station_id' => 1];
+        $this->getJson('/api/admin/stations')->assertUnauthorized();
+        $this->postJson('/api/admin/stations/check-in', $body)->assertUnauthorized();
+        $this->withToken($client->createToken('client', ['nfc:manage'])->plainTextToken);
+        $this->postJson('/api/admin/stations/check-in', $body)->assertForbidden();
+        $admin = $this->account('admin', true);
+        app('auth')->forgetGuards();
+        $this->withToken($admin->createToken('desktop', ['nfc:manage'])->plainTextToken);
+        $this->getJson('/api/admin/stations')->assertOk()->assertJsonCount(4, 'data');
+        $this->postJson('/api/admin/stations/check-in', ['rfid_uid' => 'unknown', 'station_id' => 1])->assertNotFound();
+        $this->postJson('/api/admin/stations/check-in', ['rfid_uid' => 'ABC123', 'station_id' => 99])->assertUnprocessable();
+        $this->postJson('/api/admin/stations/check-in', ['rfid_uid' => 'ABC123', 'station_id' => 4])->assertUnprocessable()->assertJsonPath('status', 'prerequisites_not_met');
+        $this->postJson('/api/admin/stations/check-in', $body)->assertOk()->assertJsonPath('status', 'success');
+        $this->postJson('/api/admin/stations/check-in', $body)->assertOk()->assertJsonPath('status', 'duplicate');
+        $this->assertDatabaseCount('station_users', 1);
+        foreach ([2, 3, 4] as $id) {
+            $this->postJson('/api/admin/stations/check-in', ['rfid_uid' => 'ABC123', 'station_id' => $id])->assertOk()->assertJsonPath('status', 'success');
+        }
+        $this->assertDatabaseCount('station_users', 4);
+        $this->assertNull($client->fresh()->rfid_uid);
+        \Illuminate\Support\Facades\Event::assertDispatched(\App\Events\StationCheckedIn::class, 4);
     }
 
     public function test_admin_can_login_get_users_assign_nfc_and_revoke_token(): void

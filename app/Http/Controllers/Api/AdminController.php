@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Station;
+use App\Http\Controllers\StationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -105,5 +107,24 @@ class AdminController extends Controller
         $this->authorizeAdmin($request);
         $request->user()->currentAccessToken()->delete();
         return response()->json(['message' => 'Logged out successfully.']);
+    }
+
+    public function stations(Request $request)
+    {
+        $this->authorizeAdmin($request);
+        return response()->json(['data' => Station::orderBy('id')->get(['id', 'name', 'description'])]);
+    }
+
+    public function checkIn(Request $request)
+    {
+        $this->authorizeAdmin($request);
+        $data = $request->validate([
+            'rfid_uid' => ['required', 'string', 'max:64'],
+            'station_id' => ['required', 'integer', 'exists:stations,id'],
+        ]);
+        // Keep desktop check-ins consistent with the physical station kiosks.
+        $user = User::where('rfid_uid', trim($data['rfid_uid']))->first();
+        abort_if($user && $user->hasRole('admin'), 404);
+        return app(StationController::class)->rfidTap($request);
     }
 }

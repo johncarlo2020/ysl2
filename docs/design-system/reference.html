@@ -24,6 +24,15 @@
 <div class="pagination"><span id="count">Showing 2 sample users</span><div class="row"><button disabled aria-label="Previous page">‹</button><button aria-current="page">1</button><button disabled aria-label="Next page">›</button></div></div><p id="export-note" role="status"></p></section>
 <section><h2>Empty state</h2><div class="empty"><div class="tile" aria-hidden="true">⌕</div><strong>No records found</strong><p>Try another search or card assignment filter.</p></div></section>
 <dialog id="dialog" aria-labelledby="dialog-title"><h2 id="dialog-title">Unassign this card?</h2><p>The card will be removed from this user. You can link another card in the app.</p><div class="row"><button class="secondary" id="cancel" autofocus>Cancel</button><button class="danger" id="confirm">Yes, unassign</button></div></dialog>
+<section aria-labelledby="station-title"><h2 id="station-title">Station check-in</h2>
+<div class="toolbar"><strong>Station 1 · Discover the perfect YSL LOVENUDE combo</strong><span class="badge">✓ Reader connected</span></div>
+<p>Static example · choose a station in the desktop app before tapping a card.</p>
+<div class="row"><span class="badge pending">Waiting for card</span><button disabled>Checking in…</button></div>
+<p>Last captured UID: <code>04A1B2C3D4</code></p>
+<p role="status"><span class="badge">✓ Checked in</span> User 1024 · Station 1</p>
+<p><span class="badge pending">Already checked in</span> Repeat taps do not add another check-in.</p>
+<p class="note">Gift redemption at Station 4 requires Stations 1, 2, and 3. Successful redemption unassigns the card for reuse.</p>
+</section>
 </main><script>
 const rows = [...document.querySelectorAll('tbody tr')]; let filter = 'all';
 function update(){let count=0;const query=document.getElementById('search').value.toLowerCase();rows.forEach(row=>{row.hidden=!(filter==='all'||row.dataset.status===filter)||!row.textContent.toLowerCase().includes(query);if(!row.hidden)count++;});document.getElementById('count').textContent='Showing '+count+' sample users';}

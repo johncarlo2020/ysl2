@@ -25,6 +25,8 @@ Route::get('/users/without-nfc', 'App\Http\Controllers\StationController@usersWi
 Route::post('/admin/login', [\App\Http\Controllers\Api\AdminController::class, 'login'])->middleware('throttle:5,1');
 Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
     Route::get('/user', [\App\Http\Controllers\Api\AdminController::class, 'me']);
+    Route::get('/stations', [\App\Http\Controllers\Api\AdminController::class, 'stations']);
+    Route::post('/stations/check-in', [\App\Http\Controllers\Api\AdminController::class, 'checkIn']);
     Route::get('/users', [\App\Http\Controllers\Api\AdminController::class, 'users']);
     Route::get('/users/{user}', [\App\Http\Controllers\Api\AdminController::class, 'show']);
     Route::put('/users/{user}/nfc', [\App\Http\Controllers\Api\AdminController::class, 'assign']);

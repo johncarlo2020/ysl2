@@ -89,6 +89,19 @@ Use 14–16px icons inside controls, 24–26px in feature tiles. Preserve the lo
 
 Use “Assigned” and “Unassigned” consistently in the app; the current web badges use “Linked” and “Not linked” with the same meanings. All search and filter states compose. Export includes filtered results and excludes action controls. API details are in `../tauri-api.md`.
 
+## Station check-in flow
+
+Add a Station check-in navigation item beside card assignment. Use the same cards, buttons, spacing, and status colors as the other NFC screens.
+
+1. Load available stations from the authenticated API and require a station selection before accepting a tap. Keep the station name visible above the reader panel.
+2. Show Reader connected / Reader disconnected and a persistent Waiting for card state. Disable scanning actions when disconnected or no station is selected.
+3. Capture the UID and submit it with the selected station ID. Show Checking in… and prevent repeated submissions or station changes while the request is pending.
+4. Announce Checked in on success and Already checked in for a duplicate. Keep the selected station and latest result visible, then accept the next card.
+5. Show unknown-card and prerequisite errors in the panel. Station 4 requires stations 1, 2, and 3; explain that successful gift redemption unassigns the card for reuse.
+6. On connection or server failure, retain the UID and show an explicit retry action. Do not automatically retry an uncertain redemption.
+
+Use a labeled station selector, a monospace captured UID, and a `role="status"` result area. Pair every success, duplicate, or error color with text. The reference sheet includes a static station check-in example; the desktop app supplies the reader and API integration. Endpoint details are in `../tauri-api.md`.
+
 ## Implementation sources
 
 - `resources/views/layouts/admin.blade.php`: font, shell, sidebar, logout dialog and motion.
