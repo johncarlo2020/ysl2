@@ -44,6 +44,11 @@
         .station-status { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; font-size: 14px; font-weight: 700; }
         .station-status.complete { background: #e7f5ec; color: #23864b; }
         .station-status.pending { background: #f1f2f5; color: #8392ab; }
+        #customer-table td.dt-empty { padding: 48px 16px; background: #fff; text-align: center; }
+        .users-empty { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .users-empty-icon { display: flex; align-items: center; justify-content: center; width: 64px; height: 64px; margin-bottom: 6px; border-radius: 18px; background: #eef0ff; color: #5e72e4; font-size: 26px; }
+        .users-empty strong { color: #344767; font-size: 16px; font-weight: 600; }
+        .users-empty p { margin: 0; max-width: 320px; color: #8392ab; font-size: 13px; line-height: 1.6; white-space: normal; }
     </style>
     <div class="mt-4 mb-4 card users-table-card">
         <div class="card-header pb-3">
@@ -53,7 +58,7 @@
         <div class="users-toolbar">
             <label class="users-search" for="users-search">
                 <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-                <input id="users-search" type="search" placeholder="Search by user ID" aria-label="Search users">
+                <input id="users-search" type="search" placeholder="Search by user ID or mobile number" aria-label="Search users">
             </label>
             <details class="users-export" id="users-export">
                 <summary><i class="fa-solid fa-arrow-up-from-bracket me-2" aria-hidden="true"></i>Export <i class="fa-solid fa-chevron-down ms-2" aria-hidden="true"></i></summary>
@@ -69,6 +74,7 @@
                 <thead>
                     <tr>
                         <th>User ID</th>
+                        <th>Mobile number</th>
                         <th>Registered</th>
                         <th>Completed</th>
                         <th>Total duration</th>
@@ -82,9 +88,10 @@
                         <tr>
                             <td data-order="{{ $user->id }}">
                                 <a href="{{ route('userData', ['user' => $user->id]) }}" class="font-weight-bold text-primary">
-                                    {{ $user->code ?: $user->id }}
+                                    {{ $user->id }}
                                 </a>
                             </td>
+                            <td class="text-nowrap">{{ $user->code ?: '—' }}</td>
                             <td data-order="{{ $user->created_at?->timestamp ?? 0 }}" data-export="{{ $user->created_at?->copy()->timezone('Asia/Manila')->format('Y-m-d H:i:s') ?? 'Unavailable' }}">
                                 @if ($user->created_at)
                                     <time class="user-timestamp" datetime="{{ $user->created_at->toIso8601String() }}">{{ $user->created_at->copy()->timezone('Asia/Manila')->format('M d, Y') }}<span>{{ $user->created_at->copy()->timezone('Asia/Manila')->format('h:i:s A') }}</span></time>
@@ -154,8 +161,9 @@
                 },
                 language: {
                     search: 'Search users:',
-                    searchPlaceholder: 'User ID',
-                    emptyTable: 'No users yet.',
+                    searchPlaceholder: 'User ID or mobile number',
+                    emptyTable: '<div class="users-empty"><span class="users-empty-icon"><i class="fa-solid fa-users" aria-hidden="true"></i></span><strong>No users yet</strong><p>Registered users will appear here once they start their journey.</p></div>',
+                    zeroRecords: '<div class="users-empty"><span class="users-empty-icon"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i></span><strong>No records found</strong><p>Try a different user ID or mobile number, or clear your search to see all users.</p></div>',
                 },
             });
             document.getElementById('users-search').addEventListener('input', function () {

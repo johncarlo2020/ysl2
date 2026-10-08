@@ -368,7 +368,11 @@ class StationController extends Controller
         $permission = auth()->user()->getPermissionNames()->first();
 
         $startDate = Carbon::create(2024, 5, 24);
-        $data['users'] = User::whereDate('created_at', '>=', $startDate->toDateString())->with('stationUser')->orderBy('id', 'desc')->get();
+        $data['users'] = User::whereDate('created_at', '>=', $startDate->toDateString())
+            ->whereDoesntHave('roles', function ($query) {
+                $query->where('name', 'admin');
+            })
+            ->with('stationUser')->orderBy('id', 'desc')->get();
 
         $averageTimespentByStation = StationUser::select('station_id', \DB::raw('AVG(time_spent) as average_timespent'))->groupBy('station_id')->get()->keyBy('station_id');
 

@@ -1,87 +1,65 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-        <title>{{ env("APP_NAME") }}</title>
-
-        @vite(['resources/sass/app.scss', 'resources/js/app.js'])
-
-        <link rel="preconnect" href="https://fonts.bunny.net" />
-        <link
-            href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap"
-            rel="stylesheet"
-        />
-        <link
-            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-            rel="stylesheet"
-            integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
-            crossorigin="anonymous"
-        />
-    </head>
-
-    <body class="main admin-login">
-        <div class="contaniner wrapper d-flex justify-container-center p-2">
-            <div class="branding-container">
-                @include('components.branding')
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
+    <title>Admin sign in · {{ config('app.name') }}</title>
+    <link rel="icon" href="{{ asset('images/logo.svg') }}" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700&display=swap" rel="stylesheet" />
+    <link href="{{ asset('assets/css/argon-dashboard.css?v=2.0.4') }}" rel="stylesheet" />
+    <style>
+        body { margin: 0; background: #f8f9fa; color: #344767; font-family: 'Open Sans', sans-serif; }
+        .admin-signin { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; position: relative; isolation: isolate; }
+        .admin-signin::before { content: ''; position: absolute; inset: 0 0 auto; height: 36%; min-height: 220px; background: #5e72e4; z-index: -1; }
+        .signin-card { width: 100%; max-width: 440px; padding: 36px; background: #fff; border: 1px solid #edf0f5; border-radius: 20px; box-shadow: 0 16px 48px #34476714; }
+        .signin-logo { display: block; max-width: 150px; height: 54px; object-fit: contain; margin: 0 auto 28px; }
+        .signin-heading { text-align: center; margin-bottom: 28px; }
+        .signin-heading h1 { font-size: 24px; font-weight: 700; margin: 0 0 10px; color: #344767; }
+        .signin-heading p { font-size: 13px; line-height: 1.6; color: #8392ab; margin: 0; }
+        .signin-field { margin-bottom: 20px; }
+        .signin-field label { display: block; margin: 0 0 8px; font-size: 13px; font-weight: 600; color: #344767; }
+        .signin-field .form-control { border: 1px solid #dfe5ee; border-radius: 10px; padding: 13px 14px; background: #f8fafc; color: #344767; font-size: 14px; }
+        .signin-field .form-control:focus { border-color: #5e72e4; box-shadow: 0 0 0 3px #5e72e415; background: #fff; }
+        .signin-field .form-control::placeholder { color: #8392ab; }
+        .signin-submit { width: 100%; margin: 8px 0 0; padding: 14px 18px; border: 0; border-radius: 10px; background: #5e72e4; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; transition: background .2s; }
+        .signin-submit:hover { background: #4c60d2; }
+        .signin-submit:focus-visible { outline: 3px solid #b6bfff; outline-offset: 3px; }
+        .signin-error { padding: 12px 14px; margin-bottom: 22px; border: 1px solid #f5c9cc; border-radius: 10px; background: #fff1f2; color: #b42332; font-size: 13px; line-height: 1.6; }
+        .signin-footer { margin: 24px 0 0; text-align: center; color: #8392ab; font-size: 11px; line-height: 1.8; }
+        @media (max-width: 480px) { .admin-signin { padding: 28px 16px; } .signin-card { padding: 28px 24px; } }
+    </style>
+</head>
+<body>
+    <main class="admin-signin">
+        <section class="signin-card" aria-labelledby="signin-title">
+            <img class="signin-logo" src="{{ asset('images/logo2.png') }}" alt="YSL" />
+            <div class="signin-heading">
+                <h1 id="signin-title">Admin sign in</h1>
+                <p>Welcome back. Sign in to manage users and station activity.</p>
             </div>
-            <div
-                class="p-4 mx-auto shadow-sm form-container"
-            >
-                <h2>Sign in to Admin</h2>
-                @if ($errors->any())
-                    <div class="alert alert-danger" role="alert">{{ $errors->first() }}</div>
-                @endif
-                <form
-                    method="POST"
-                    id="loginForm"
-                    action="{{ route('authenticateAdmin') }}"
-                >
-                    @csrf
-                    <div class="mb-4">
-                        <label for="exampleInputEmail1" class="form-label"
-                            >Email</label
-                        >
-                        <input
-                            placeholder="Enter your email"
-                            type="email"
-                            name="email"
-                            class="form-control"
-                            id="exampleInputEmail1"
-                            aria-describedby="emailHelp"
-                        />
-                    </div>
-                    <div class="mb-4">
-                        <label for="exampleInputPassword1" class="form-label"
-                            >Password</label
-                        >
-                        <input
-                            placeholder="Enter your password"
-                            type="password"
-                            name="password"
-                            class="form-control"
-                            id="exampleInputPassword1"
-                        />
-                    </div>
-{{--
-                    <div class="checkbox-container">
-                        <input type="checkbox" id="remember" name="remember" />
-                        <label for="remember"> </label>
-                        <p>Remember me</p>
-                    </div> --}}
-                    <button type="submit" class="btn button">Login</button>
-                    <p class="mt-3">Dont have an account? <a href="">Create One</a></p>
-                </form>
-            </div>
-            <p class="copy-text">YSL.com <br> <span>®️ ALL RIGHTS RESERVED BY YSL.
-                POWERED BY WOWSOME 2024</span></p>
-        </div>
-        <script
-            src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-            crossorigin="anonymous"
-        ></script>
-
-    </body>
+            @if ($errors->any())
+                <div class="signin-error" id="signin-error" role="alert">{{ $errors->first() }}</div>
+            @endif
+            <form method="POST" id="loginForm" action="{{ route('authenticateAdmin') }}">
+                @csrf
+                <div class="signin-field">
+                    <label for="email">Email address</label>
+                    <input id="email" class="form-control" type="email" name="email" value="{{ old('email') }}"
+                        placeholder="Enter your email" required autocomplete="username" autofocus
+                        @error('email') aria-invalid="true" aria-describedby="signin-error" @enderror />
+                </div>
+                <div class="signin-field">
+                    <label for="password">Password</label>
+                    <input id="password" class="form-control" type="password" name="password"
+                        placeholder="Enter your password" required autocomplete="current-password"
+                        @error('password') aria-invalid="true" aria-describedby="signin-error" @enderror />
+                </div>
+                <button type="submit" class="signin-submit">Sign in</button>
+            </form>
+        </section>
+        <footer class="signin-footer">&copy; {{ now()->year }} YSL. All rights reserved.<br>Powered by Wowsome</footer>
+    </main>
+</body>
 </html>

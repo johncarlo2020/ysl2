@@ -55,6 +55,24 @@
         .admin-page-content {
             flex: 1;
         }
+        #sidenav-main { display: flex; flex-direction: column; align-items: stretch; }
+        #sidenav-main .sidenav-header, #sidenav-main > hr { flex-shrink: 0; }
+        #sidenav-main #sidenav-collapse-main { flex: 1; min-height: 0; height: auto; width: 100% !important; overflow-y: auto; }
+        .sidebar-footer { flex-shrink: 0; margin-top: auto; padding: 16px; border-top: 1px solid #edf0f5; }
+        .sidebar-logout { display: flex; align-items: center; border: 0; border-radius: 10px; padding: 12px 16px; background: transparent; width: 100%; text-align: left; transition: background .2s; }
+        .sidebar-logout:hover, .sidebar-logout:focus-visible { background: #fff1f2; }
+        .sidebar-logout i { transition: transform .2s; }
+        .sidebar-logout:hover i, .sidebar-logout:focus-visible i { transform: translateX(4px); }
+        .logout-dialog { width: calc(100% - 32px); max-width: 400px; padding: 32px; border: 1px solid #edf0f5; border-radius: 20px; box-shadow: 0 24px 64px #34476730; color: #344767; text-align: center; }
+        .logout-dialog[open] { animation: logout-enter .2s ease-out; }
+        .logout-dialog::backdrop { background: #172b4d80; }
+        .logout-dialog-icon { display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; margin-bottom: 20px; border-radius: 18px; background: #fff1f2; color: #ea0606; font-size: 24px; }
+        .logout-dialog h2 { font-size: 20px; margin-bottom: 10px; }
+        .logout-dialog p { color: #8392ab; font-size: 14px; margin-bottom: 24px; }
+        .logout-actions { display: flex; gap: 12px; }
+        .logout-actions .btn { flex: 1; margin: 0; padding: 12px; border-radius: 10px; }
+        @keyframes logout-enter { from { opacity: 0; transform: translateY(12px) scale(.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @media (prefers-reduced-motion: reduce) { .sidebar-logout, .sidebar-logout i { transition: none; } .logout-dialog[open] { animation: none; } }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
 </head>
@@ -148,6 +166,14 @@
 
             </ul>
         </div>
+        <div class="sidebar-footer">
+                    <button type="button" class="nav-link sidebar-logout" id="sidebar-logout" aria-haspopup="dialog" aria-controls="logout-dialog">
+                        <span class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                            <i class="fa-solid fa-right-from-bracket text-danger text-sm" aria-hidden="true"></i>
+                        </span>
+                        <span class="nav-link-text ms-1 text-danger">Logout</span>
+                    </button>
+        </div>
     </aside>
     <main class="main-content admin-main position-relative border-radius-lg">
         <!-- Navbar -->
@@ -197,6 +223,25 @@
         </footer>
     </main>
 
+    <dialog class="logout-dialog" id="logout-dialog" aria-labelledby="logout-title" aria-describedby="logout-description">
+        <span class="logout-dialog-icon"><i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i></span>
+        <h2 id="logout-title">Are you sure you want to log out?</h2>
+        <p id="logout-description">You’ll need to sign in again to access the admin panel.</p>
+        <form method="POST" action="{{ route('logout') }}" class="logout-actions">
+            @csrf
+            <button type="button" class="btn btn-light" id="cancel-logout" autofocus>Cancel</button>
+            <button type="submit" class="btn btn-danger">Yes, log out</button>
+        </form>
+    </dialog>
+    <script>
+        const logoutDialog = document.getElementById('logout-dialog');
+        document.getElementById('sidebar-logout').addEventListener('click', function () {
+            logoutDialog.showModal();
+        });
+        document.getElementById('cancel-logout').addEventListener('click', function () {
+            logoutDialog.close();
+        });
+    </script>
     <script>
         var win = navigator.platform.indexOf("Win") > -1;
         if (win && document.querySelector("#sidenav-scrollbar")) {
