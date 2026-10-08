@@ -699,11 +699,24 @@ a:active {
         margin-top: 3vh;
         padding-bottom: 2vh;
 
+        .button {
+            width: 200px;
+            padding: 10px 40px;
+            font-size: 14px;
+            font-weight: 400;
+            margin-top: 20px;
+            background-color: #ffff !important;
+            color: #000000 !important;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
         .scan-btn {
             background-color: transparent;
             border: none;
             outline: none;
             margin-bottom: 10px;
+
         }
 
         p {
@@ -1181,7 +1194,7 @@ a:active {
     .station-incomplete-message {
         margin: 0 0 30px;
         font-family: "Singulier-light", sans-serif;
-        font-size: 18px;
+        font-size: 16px;
         line-height: 22px;
         color: #000;
     }
