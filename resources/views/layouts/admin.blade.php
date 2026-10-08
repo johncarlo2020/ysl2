@@ -58,6 +58,8 @@
         #sidenav-main { display: flex; flex-direction: column; align-items: stretch; }
         #sidenav-main .sidenav-header, #sidenav-main > hr { flex-shrink: 0; }
         #sidenav-main #sidenav-collapse-main { flex: 1; min-height: 0; height: auto; width: 100% !important; overflow-y: auto; }
+        .sidebar-nav-icon { color: #67748e; flex-shrink: 0; }
+        .nav-link.active .sidebar-nav-icon { color: #5e72e4; }
         .sidebar-footer { flex-shrink: 0; margin-top: auto; padding: 16px; border-top: 1px solid #edf0f5; }
         .sidebar-logout { display: flex; align-items: center; border: 0; border-radius: 10px; padding: 12px 16px; background: transparent; width: 100%; text-align: left; transition: background .2s; }
         .sidebar-logout:hover, .sidebar-logout:focus-visible { background: #fff1f2; }
@@ -98,7 +100,7 @@
                     <a class="nav-link {{ request()->routeIs('admin') ? 'active' : '' }}" href="{{ route('admin') }}">
                         <div
                             class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                            <i class="ni ni-tv-2 text-primary text-sm opacity-10"></i>
+                            <svg class="sidebar-nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
                         </div>
                         <span class="nav-link-text ms-1">Dashboard</span>
                     </a>
@@ -111,43 +113,9 @@
                     <a class="nav-link {{ request()->routeIs('users') ? 'active' : '' }}" href="{{ route('users') }}">
                         <div
                             class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                            <i class="ni ni-single-02 text-warning text-sm opacity-10"></i>
+                            <svg class="sidebar-nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 21v-2a6 6 0 0 1 12 0v2M16 5a3 3 0 0 1 0 6M21 21v-2a6 6 0 0 0-4-5.65"/></svg>
                         </div>
                         <span class="nav-link-text ms-1">Users</span>
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('stocks') ? 'active' : '' }}" href="{{ route('stocks') }}">
-                        <div
-                            class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                            <i class="ni ni-box-2 text-success text-sm opacity-10"></i>
-                        </div>
-                        <span class="nav-link-text ms-1">Stocks</span>
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('refill.logs') ? 'active' : '' }}" href="{{ route('refill.logs') }}">
-                        <div
-                            class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                            <i class="ni ni-bullet-list-67 text-info text-sm opacity-10"></i>
-                        </div>
-                        <span class="nav-link-text ms-1">Refill Logs</span>
-                    </a>
-                </li>
-
-
-                <!-- Scanner link visible for both 'view' and 'full' permissions -->
-
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('scanner') ? 'active' : '' }}"
-                        href="{{ route('scanner') }}">
-                        <div
-                            class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                            <i class="ni ni-camera-compact text-danger text-sm opacity-10"></i>
-                        </div>
-                        <span class="nav-link-text ms-1">Scanner</span>
                     </a>
                 </li>
 
@@ -156,7 +124,7 @@
                         href="{{ route('rfid.admin') }}">
                         <div
                             class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                            <i class="fa-solid fa-id-card text-secondary text-sm opacity-10"></i>
+                            <svg class="sidebar-nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="3"/><circle cx="8" cy="10" r="2"/><path d="M5 16a3 3 0 0 1 6 0M14 9h4M14 13h4"/></svg>
                         </div>
                         <span class="nav-link-text ms-1">RFID Cards</span>
                     </a>
@@ -164,6 +132,12 @@
 
 
 
+            <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('staff.*') ? 'active' : '' }}" href="{{ route('staff.index') }}">
+                        <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center"><svg class="sidebar-nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 20 6v6c0 5-8 9-8 9s-8-4-8-9V6z"/><circle cx="12" cy="10" r="2.5"/><path d="M8 16a4 4 0 0 1 8 0"/></svg></div>
+                        <span class="nav-link-text ms-1">Staff users</span>
+                    </a>
+                </li>
             </ul>
         </div>
         <div class="sidebar-footer">

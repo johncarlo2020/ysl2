@@ -61,6 +61,8 @@ Route::group(['middleware' => ['admin']], function () {
 
     Route::post('/admin/refill', 'App\Http\Controllers\StationController@refill')->name('refill');
 
+    Route::resource('/admin/staff', \App\Http\Controllers\StaffController::class)->only(['index', 'create', 'store', 'edit', 'update']);
+
     Route::get('/admin/{user}', 'App\Http\Controllers\StationController@userData')->name('userData');
     Route::post('/admin/check', 'App\Http\Controllers\StationController@check')->name('check');
 });

@@ -12,6 +12,7 @@ class AdminApiTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
         config(['database.default' => 'sqlite', 'database.connections.sqlite.database' => ':memory:']);
         foreach ([
             'database/migrations/2014_10_12_000000_create_users_table.php',
@@ -35,6 +36,38 @@ class AdminApiTest extends TestCase
         return $user;
     }
 
+    public function test_admin_can_manage_staff_with_validation_and_token_revocation(): void
+    {
+        $this->get('/admin/staff')->assertRedirect('/admin/login');
+        $client = $this->account('client');
+        $this->actingAs($client)->get('/admin/staff')->assertRedirect('/admin/login');
+        $admin = $this->account('admin', true);
+        $this->actingAs($admin);
+        \Illuminate\Support\Facades\DB::table('stations')->insert(['id' => 1, 'name' => 'Station 1', 'description' => 'Description']);
+        $this->get('/admin/staff')->assertOk()->assertSee('Staff users')->assertSee('staff-dialog')->assertSee('staff-table');
+        $this->get('/admin/staff/create')->assertOk();
+        $body = ['email' => 'newstaff@example.com', 'staff_function' => 'station', 'password' => 'staff-password-123', 'password_confirmation' => 'staff-password-123'];
+        $this->post('/admin/staff', $body)->assertSessionHasErrors('station_id');
+        $this->post('/admin/staff', $body + ['station_id' => 1])->assertRedirect(route('staff.index'));
+        $staff = User::where('email', $body['email'])->firstOrFail();
+        $this->assertTrue($staff->hasRole('staff'));
+        $this->assertTrue(Hash::check($body['password'], $staff->password));
+        $this->get('/admin/staff/' . $staff->id . '/edit')->assertOk()->assertSee($staff->email);
+        $staff->createToken('desktop', ['nfc:manage']);
+        $oldHash = $staff->password;
+        $this->put('/admin/staff/' . $staff->id, ['email' => $staff->email, 'staff_function' => 'register'])->assertRedirect(route('staff.index'));
+        $this->assertNull($staff->fresh()->station_id);
+        $this->assertSame($oldHash, $staff->fresh()->password);
+        $this->assertSame(0, $staff->tokens()->count());
+        $this->put('/admin/staff/' . $staff->id, ['email' => $client->email, 'staff_function' => 'register'])->assertSessionHasErrors('email');
+        $this->put('/admin/staff/' . $staff->id, ['email' => $staff->email, 'staff_function' => 'register', 'password' => 'replacement-password', 'password_confirmation' => 'replacement-password'])->assertRedirect(route('staff.index'));
+        $this->assertTrue(Hash::check('replacement-password', $staff->fresh()->password));
+        $this->postJson('/admin/staff', ['email' => 'modal@example.com', 'staff_function' => 'register', 'password' => 'modal-password-123', 'password_confirmation' => 'modal-password-123'])->assertOk()->assertJsonPath('message', 'Staff account created.');
+        $this->postJson('/admin/staff', ['email' => 'modal@example.com', 'staff_function' => 'register'])->assertUnprocessable()->assertJsonValidationErrors(['email', 'password']);
+        $this->get('/admin/staff/' . $client->id . '/edit')->assertNotFound();
+        $this->put('/admin/staff/' . $admin->id, ['email' => $admin->email, 'staff_function' => 'register'])->assertNotFound();
+    }
+
     public function test_staff_login_permissions_and_seeder(): void
     {
         \Illuminate\Support\Facades\Event::fake([\App\Events\StationCheckedIn::class]);
@@ -42,6 +75,9 @@ class AdminApiTest extends TestCase
             \Illuminate\Support\Facades\DB::table('stations')->insert(['id' => $id, 'name' => 'Station ' . $id, 'description' => 'Description']);
         }
         $previousPassword = getenv('TAURI_STAFF_PASSWORD');
+        $previousEnvPassword = $_ENV['TAURI_STAFF_PASSWORD'] ?? null;
+        $previousServerPassword = $_SERVER['TAURI_STAFF_PASSWORD'] ?? null;
+        $_ENV['TAURI_STAFF_PASSWORD'] = $_SERVER['TAURI_STAFF_PASSWORD'] = 'test-staff-password';
         putenv('TAURI_STAFF_PASSWORD=test-staff-password');
         try {
             $this->seed(\Database\Seeders\TauriStaffSeeder::class);
@@ -49,6 +85,8 @@ class AdminApiTest extends TestCase
             $this->seed(\Database\Seeders\TauriStaffSeeder::class);
             $this->assertSame($hash, User::where('email', 'registration1@staff.ysl.local')->first()->password);
         } finally {
+            if ($previousEnvPassword === null) { unset($_ENV['TAURI_STAFF_PASSWORD']); } else { $_ENV['TAURI_STAFF_PASSWORD'] = $previousEnvPassword; }
+            if ($previousServerPassword === null) { unset($_SERVER['TAURI_STAFF_PASSWORD']); } else { $_SERVER['TAURI_STAFF_PASSWORD'] = $previousServerPassword; }
             putenv($previousPassword === false ? 'TAURI_STAFF_PASSWORD' : 'TAURI_STAFF_PASSWORD=' . $previousPassword);
         }
         $this->assertSame(6, User::role('staff')->count());
