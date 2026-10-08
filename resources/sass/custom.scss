@@ -1134,3 +1134,68 @@ a:active {
 .station-name-dashboard,.station-name ,.tag-line{
     color: #000 !important;
 }
+
+
+#scanCompleteModal.station-incomplete-modal {
+    top: 0;
+    left: 0;
+    transform: none;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+
+    .modal-dialog {
+        width: calc(100% - 20px);
+        max-width: 394px;
+        margin: 0 auto;
+        min-height: 100%;
+    }
+
+    .modal-content {
+        border: 0;
+        border-radius: 0;
+        color: #000;
+    }
+
+    .modal-body {
+        padding: 32px 20px 28px;
+    }
+
+    .station-incomplete-icon {
+        display: block;
+        width: 40px;
+        height: 40px;
+        margin: 0 auto 30px;
+    }
+
+    .station-incomplete-title {
+        margin: 0 0 40px;
+        font-family: "Singulier-Bold", sans-serif;
+        font-size: clamp(17px, 5.1vw, 22px);
+        font-weight: 700;
+        line-height: 1.2;
+        letter-spacing: 1px;
+        color: #000;
+    }
+
+    .station-incomplete-message {
+        margin: 0 0 30px;
+        font-family: "Singulier-light", sans-serif;
+        font-size: 18px;
+        line-height: 22px;
+        color: #000;
+    }
+
+    .station-incomplete-close {
+        width: 100%;
+        max-width: 272px;
+        min-height: 34px;
+        margin: 0 auto;
+        padding: 7px 16px;
+        background-color: #000 !important;
+        font-size: 12px;
+        font-weight: 400;
+        line-height: 20px;
+        letter-spacing: 0;
+    }
+}

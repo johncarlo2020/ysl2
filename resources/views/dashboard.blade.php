@@ -1,40 +1,19 @@
 <x-app-layout>
-    <style>
-        .message {
-            color: black;
-        }
-
-        .station-name-modal {
-            color: black;
-            font-size: 20px;
-            font-weight: bolder;
-            letter-spacing: 3px;
-        }
-    </style>
-    <div class="modal fade" id="scanCompleteModal" tabindex="-1">
+    <div class="modal fade station-incomplete-modal" id="scanCompleteModal" tabindex="-1"
+        role="dialog" aria-labelledby="station-incomplete-title" aria-describedby="station-incomplete-message">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-body">
-                    <div class="text-center content">
-                        <div class="d-flex justify-content-center image-check">
-                            <div class="d-flex align-items-center justify-content-center border rounded-circle"
-                                style="width: 50px; height: 50px; margin-bottom:20px;">
-                                <i class="d-block fa-solid fa-exclamation" style="font-size: 25px;
-                                                                    "></i>
-                            </div>
-                        </div>
-
-                        <div class="text-content">
-                            <p class="px-5 station-name-modal">
-                                {{ env('APP_TITLE') }}
-                            </p>
-                            <p class="px-5 message">Kindly complete
-                                Station 1 - 3 to proceed to Break The Glass</p>
-                        </div>
-                        <div class="">
-                            <button type="button" onclick="test()" class="button" data-bs-dismiss="modal">Close</button>
-                        </div>
-                    </div>
+                <div class="modal-body text-center">
+                    <svg class="station-incomplete-icon" viewBox="0 0 40 40" aria-hidden="true">
+                        <circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" stroke-width="3" />
+                        <path d="M20 12v9" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+                        <circle cx="20" cy="28" r="1.7" fill="currentColor" />
+                    </svg>
+                    <h2 id="station-incomplete-title" class="station-incomplete-title">THE NEW NUDE OBSESSION</h2>
+                    <p id="station-incomplete-message" class="station-incomplete-message">
+                        Kindly complete Station 1 - 3 to proceed to<br>REDEEM YOUR GIFT
+                    </p>
+                    <button type="button" class="button station-incomplete-close" data-dismiss="modal">CLOSE</button>
                 </div>
             </div>
         </div>
@@ -92,6 +71,7 @@
             }
 
             function openModal(event) {
+                event.preventDefault();
                 $('#scanCompleteModal').modal('show');
             }
 
@@ -105,8 +85,5 @@
 
         });
 
-        function test() {
-            $('#scanCompleteModal').modal('hide');
-        }
     </script>
 </x-app-layout>

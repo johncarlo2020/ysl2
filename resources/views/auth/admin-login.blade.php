@@ -30,6 +30,9 @@
                 class="p-4 mx-auto shadow-sm form-container"
             >
                 <h2>Sign in to Admin</h2>
+                @if ($errors->any())
+                    <div class="alert alert-danger" role="alert">{{ $errors->first() }}</div>
+                @endif
                 <form
                     method="POST"
                     id="loginForm"
@@ -79,53 +82,6 @@
             integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
             crossorigin="anonymous"
         ></script>
-        <script>
-            document.addEventListener("DOMContentLoaded", (event) => {
-                const emailField =
-                    document.getElementById("exampleInputEmail1");
-                const passwordField = document.getElementById(
-                    "exampleInputPassword1"
-                );
-                const rememberCheckbox = document.getElementById("remember");
 
-                if (getCookie("email") && getCookie("password")) {
-                    emailField.value = getCookie("email");
-                    passwordField.value = getCookie("password");
-                    rememberCheckbox.checked = true;
-                }
-
-                document
-                    .getElementById("loginForm")
-                    .addEventListener("submit", function (event) {
-                        if (rememberCheckbox.checked) {
-                            setCookie("email", emailField.value, 30);
-                            setCookie("password", passwordField.value, 30);
-                        } else {
-                            setCookie("email", "", 0);
-                            setCookie("password", "", 0);
-                        }
-                    });
-
-                function setCookie(name, value, days) {
-                    const date = new Date();
-                    date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
-                    const expires = "expires=" + date.toUTCString();
-                    document.cookie =
-                        name + "=" + value + ";" + expires + ";path=/";
-                }
-
-                function getCookie(name) {
-                    const nameEQ = name + "=";
-                    const ca = document.cookie.split(";");
-                    for (let i = 0; i < ca.length; i++) {
-                        let c = ca[i];
-                        while (c.charAt(0) == " ") c = c.substring(1, c.length);
-                        if (c.indexOf(nameEQ) == 0)
-                            return c.substring(nameEQ.length, c.length);
-                    }
-                    return null;
-                }
-            });
-        </script>
     </body>
 </html>

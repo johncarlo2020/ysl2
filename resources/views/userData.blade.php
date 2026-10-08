@@ -2,185 +2,71 @@
 
 @section('content')
     <style>
-        .big-checkbox {
-            transform: scale(1.5);
-            /* Increase the size of the checkbox */
-        }
-
-        .stripe-li:nth-child(even) {
-            background-color: #f2f2f2;
-            /* Even rows background color */
-        }
-
-        .stripe-li:nth-child(odd) {
-            background-color: #ffffff;
-            /* Odd rows background color */
-        }
+        .user-stations-panel { max-width: 800px; margin: 0 auto; }
+        .user-station-row { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 20px; }
+        .user-station-row:nth-child(even) { background: #f6f7f9; }
+        .user-station-row label { margin: 0; cursor: pointer; }
+        .user-station-row .big-checkbox { width: 22px; height: 22px; flex-shrink: 0; cursor: pointer; accent-color: #5e72e4; }
+        .user-station-row .big-checkbox:disabled { cursor: default; }
     </style>
-    <div class="row">
-        <div class="mx-4 shadow-lg card ">
-            <div class="p-3 card-body">
-                <div class="row gx-4">
-                    <div class="col-auto">
-                        <div class="">
-                            <i class="fa-solid fa-user" style="font-size: 3rem;"></i>
-                        </div>
-                    </div>
-                    <div class="col-auto my-auto">
-                        <div class="h-100">
-                            <h5 class="mb-1">
-                                {{ $user->fname }} {{ $user->lname }}
-                            </h5>
-                            <p class="mb-0 text-sm font-weight-bold">
-                                {{ $user->email }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
+    <div class="py-4 user-stations-panel">
+        <a href="{{ route('users') }}" class="d-inline-block mb-3 text-white">
+            <i class="fa-solid fa-arrow-left me-2" aria-hidden="true"></i>Back to users
+        </a>
+        <div class="card mb-4">
+            <div class="card-body">
+                <p class="text-sm text-uppercase text-secondary mb-2">User ID</p>
+                <h4 class="mb-0 text-break">{{ $user->code ?: $user->id }}</h4>
             </div>
         </div>
-        <div class="py-4 container-fluid">
-            <div class="row">
-                <div class="col-md-8">
-                    <div class="card">
-                        <div class="card-body">
-                            <p class="text-sm text-uppercase">User Information</p>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="example-text-input" class="form-control-label">First Name</label>
-                                        <input class="form-control" type="text" value="{{ $user->fname }}">
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="example-text-input" class="form-control-label">Last Name</label>
-                                        <input class="form-control" type="text" value="{{ $user->lname }}">
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="example-text-input" class="form-control-label">Email Address</label>
-                                        <input class="form-control" type="email" value="{{ $user->email }}">
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="example-text-input" class="form-control-label">Phone Number</label>
-                                        <input class="form-control" type="text" value="{{ $user->number }}">
-                                    </div>
-                                </div>
-                            </div>
-                            <hr class="horizontal dark">
-                            <p class="text-sm text-uppercase">Contact Information</p>
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label for="example-text-input" class="form-control-label">Address</label>
-                                        <input class="form-control" type="text" value="">
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="example-text-input" class="form-control-label">City</label>
-                                        <input class="form-control" type="text" value="">
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="example-text-input" class="form-control-label">Country</label>
-                                        <input class="form-control" type="text" value="">
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="example-text-input" class="form-control-label">Postal code</label>
-                                        <input class="form-control" type="text" value="">
-                                    </div>
-                                </div>
-                            </div>
-                            <hr class="horizontal dark">
-
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="p-3 pb-0 card-header">
-                            <h6 class="mb-0">Stations</h6>
-                        </div>
-                        <div class="p-3 card-body">
-                            <ul class="list-group">
-                                @foreach ($user['stations'] as $station)
-                                    <li
-                                        class="mb-2 border-0 list-group-item stripe-li d-flex justify-content-between ps-0 ">
-                                        <div class="d-flex align-items-center">
-                                            <div class="d-flex flex-column">
-                                                <h6 class="mb-1 text-sm text-dark"></h6>
-                                                <h6 class="mb-1 text-sm text-dark">#{{ $station['id'] }}
-                                                    {{ $station['name'] }}</h6>
-                                                <span class="text-xs">Average Time : <span
-                                                        class="font-weight-bold">{{ $station['time_spent'] }}
-                                                        minutes</span></span>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <input type="checkbox" data-id="{{ $station['id'] }}"
-                                                id="station_checkbox_{{ $station['id'] }}" class="big-checkbox"
-                                                {{ $station['value'] ? 'checked' : '' }}>
-                                        </div>
-                                    </li>
-                                @endforeach
-                                <li
-                                    class="mb-2 border-0 list-group-item d-flex justify-content-between ps-0 border-radius-lg">
-                                    <div class="d-flex align-items-center">
-
-                                        <div class="d-flex flex-column">
-                                            <h6 class="mb-1 text-sm text-dark">Total Minutes</h6>
-                                            <span class="text-xs"> <span class="font-weight-bold">{{ $totalMinutes }}
-                                                    minutes</span></span>
-                                        </div>
-                                    </div>
-                                </li>
-
-                            </ul>
-                        </div>
-                    </div>
-                </div>
+        <div class="card overflow-hidden">
+            <div class="card-header pb-3">
+                <h5 class="mb-0">Station checks</h5>
             </div>
-
+            <div class="card-body p-0">
+                <ul class="list-unstyled mb-0">
+                    @foreach ($user['stations'] as $station)
+                        <li class="user-station-row">
+                            <label for="station_checkbox_{{ $station['id'] }}" class="text-sm text-dark font-weight-bold">
+                                #{{ $station['id'] }} {{ $station['name'] }}
+                            </label>
+                            <input type="checkbox" data-id="{{ $station['id'] }}"
+                                id="station_checkbox_{{ $station['id'] }}" class="big-checkbox"
+                                {{ $station['value'] ? 'checked' : '' }}
+                                @disabled(!auth()->user()->hasPermissionTo('full'))>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
         </div>
     </div>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script>
-        var permissionName = "{{ $permission }}";
-        if(permissionName === 'full'){
-            $('.big-checkbox').change(function() {
-            var newState = $(this).prop('checked');
-            var user_id = {{ $user->id }}
-            var station_id = $(this).data('id');
-            var csrfToken = $('meta[name="csrf-token"]').attr('content');
-
-            $.ajax({
-                url: '{{ route('check') }}', // Using Laravel's route() helper function
-                type: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': csrfToken, // Include the CSRF token in the headers
-                },
-                data: {
-                    user_id: user_id,
-                    station_id: station_id
-                },
-                success: function(response) {
-
-                },
-                error: function(xhr, status, error) {
-
+        document.querySelectorAll('.big-checkbox:not(:disabled)').forEach(function (checkbox) {
+            checkbox.addEventListener('change', async function () {
+                const newState = checkbox.checked;
+                checkbox.disabled = true;
+                try {
+                    const response = await fetch(@json(route('check')), {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        },
+                        body: JSON.stringify({
+                            user_id: @json($user->id),
+                            station_id: checkbox.dataset.id,
+                            checked: newState,
+                        }),
+                    });
+                    if (!response.ok) throw new Error('Unable to save station completion. Please refresh and try again.');
+                    window.location.reload();
+                } catch (error) {
+                    checkbox.checked = !newState;
+                    checkbox.disabled = false;
+                    alert(error.message);
                 }
             });
         });
-        }
-       
     </script>
 @endsection

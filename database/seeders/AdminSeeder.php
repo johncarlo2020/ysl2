@@ -7,6 +7,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use RuntimeException;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 
 class AdminSeeder extends Seeder
 {
@@ -30,5 +31,7 @@ class AdminSeeder extends Seeder
         ]);
 
         $user->assignRole('admin');
+        Permission::findOrCreate('full', 'web');
+        $user->givePermissionTo('full');
     }
 }

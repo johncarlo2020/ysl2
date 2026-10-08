@@ -444,21 +444,26 @@ class StationController extends Controller
 
     public function check(Request $request)
     {
-        $check = StationUser::where('user_id', $request->user_id)
-            ->where('station_id', $request->station_id)
-            ->first();
+        abort_unless($request->user()->hasPermissionTo('full'), 403);
 
-        if (!$check) {
-            $stationUser = new StationUser();
-            $stationUser->user_id = $request->user_id;
-            $stationUser->station_id = $request->station_id;
-            $stationUser->time_spent = 60;
-            $stationUser->save();
+        $data = $request->validate([
+            'user_id' => ['required', 'integer', 'exists:users,id'],
+            'station_id' => ['required', 'integer', 'exists:stations,id'],
+            'checked' => ['required', 'boolean'],
+        ]);
+
+        $attributes = [
+            'user_id' => $data['user_id'],
+            'station_id' => $data['station_id'],
+        ];
+
+        if ($data['checked']) {
+            StationUser::firstOrCreate($attributes, ['time_spent' => 60]);
         } else {
-            $check->delete();
+            StationUser::where($attributes)->delete();
         }
 
-        return $check;
+        return response()->json(['checked' => $data['checked']]);
     }
 
     public function usersWithoutNfc(Request $request)

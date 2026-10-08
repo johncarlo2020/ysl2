@@ -29,7 +29,6 @@
     <link href="{{ asset('assets/css/nucleo-svg.css') }}" rel="stylesheet" />
 
     <!-- Font Awesome Icons -->
-    <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
     <link href="{{ asset('assets/css/nucleo-svg.css') }}" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.datatables.net/2.0.7/css/dataTables.dataTables.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
@@ -40,6 +39,23 @@
 
     <!-- CSS Files -->
     <link id="pagestyle" href="{{ asset('assets/css/argon-dashboard.css?v=2.0.4') }}" rel="stylesheet" />
+    <style>
+        .admin-main {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            min-height: 100dvh;
+        }
+
+        .admin-main > .navbar,
+        .admin-main > .footer {
+            flex-shrink: 0;
+        }
+
+        .admin-page-content {
+            flex: 1;
+        }
+    </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
 </head>
 
@@ -134,7 +150,7 @@
             </ul>
         </div>
     </aside>
-    <main class="main-content position-relative border-radius-lg">
+    <main class="main-content admin-main position-relative border-radius-lg">
         <!-- Navbar -->
         <nav class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl" id="navbarBlur"
             data-scroll="false">
@@ -166,15 +182,15 @@
             </div>
         </nav>
         <!-- End Navbar -->
-        <div class="container-fluid">@yield('content')</div>
+        <div class="container-fluid admin-page-content">@yield('content')</div>
 
-        <footer class="footer pt-3">
+        <footer class="footer py-3">
             <div class="container-fluid">
                 <div class="row align-items-center justify-content-lg-between">
-                    <div class="col-lg-6 mb-lg-0 mb-4">
+                    <div class="col-lg-6">
                         <div class="copyright text-center text-sm text-muted text-lg-start">
                             <a href="https://wowsome.com.my/" class="font-weight-bold" target="_blank">Wowsome</a>
-                            © Copyright 2024
+                            © Copyright {{ now()->year }}
                         </div>
                     </div>
                 </div>
@@ -197,7 +213,7 @@
     <!-- Github buttons -->
     <script async defer src="https://buttons.github.io/buttons.js"></script>
     <!-- Control Center for Soft Dashboard: parallax effects, scripts for the example pages etc -->
-    <script src="{{ asset('assets/js/argon-dashboard.min.js?v=2.0.4') }}"></script>
+    <script src="{{ asset('assets/js/argon-dashboard.min.js?v=2.0.4.1') }}"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdn.datatables.net/2.0.7/js/dataTables.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>

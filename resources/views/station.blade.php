@@ -52,7 +52,7 @@
                     aria-label="RFID input" />
                 <div id="tap-indicator" class="mt-3">
                     <img src="{{ asset('images/new/key.webp') }}" alt="NFC Key" style="width: 60px;" />
-                    <p class="mt-2 text-dark" style="font-size:0.85rem;">PLEASE CHECK-IN WITH YOUR LOVENUDE HOTEL KEY UPON COMPLETION</p>
+                    <p class="mt-2 text-dark" style="font-size:0.75rem;">PLEASE CHECK-IN WITH YOUR LOVENUDE HOTEL KEY UPON COMPLETION</p>
                 </div>
             </div>
             @else
