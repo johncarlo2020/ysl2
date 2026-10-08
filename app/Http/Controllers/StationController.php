@@ -499,7 +499,10 @@ class StationController extends Controller
     {
         $totalStations = \App\Models\Station::count();
 
-        $users = User::orderBy('id', 'desc')
+        $users = User::whereDoesntHave('roles', function ($query) {
+                $query->where('name', 'admin');
+            })
+            ->orderBy('id', 'desc')
             ->get(['id', 'code', 'rfid_uid'])
             ->filter(function ($user) use ($totalStations) {
                 return StationUser::where('user_id', $user->id)->count() < $totalStations;
@@ -554,12 +557,10 @@ class StationController extends Controller
     {
         $request->validate([
             'user_id' => 'required|exists:users,id',
-            'rfid_uid' => 'required|string|max:64|unique:users,rfid_uid,' . $request->user_id,
         ]);
 
         $user = User::findOrFail($request->user_id);
-        $user->rfid_uid = trim($request->rfid_uid);
-        $user->save();
+        app(\App\Services\RfidAssignment::class)->assign($user, $request->input('rfid_uid'));
 
         return response()->json(['message' => 'RFID assigned successfully']);
     }

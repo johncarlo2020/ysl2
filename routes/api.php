@@ -18,5 +18,15 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-// Users without an NFC/RFID card assigned — protected by X-API-Secret header
+// Users without an NFC/RFID card assigned ï¿½ protected by X-API-Secret header
 Route::get('/users/without-nfc', 'App\Http\Controllers\StationController@usersWithoutNfc');
+
+
+Route::post('/admin/login', [\App\Http\Controllers\Api\AdminController::class, 'login'])->middleware('throttle:5,1');
+Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
+    Route::get('/user', [\App\Http\Controllers\Api\AdminController::class, 'me']);
+    Route::get('/users', [\App\Http\Controllers\Api\AdminController::class, 'users']);
+    Route::get('/users/{user}', [\App\Http\Controllers\Api\AdminController::class, 'show']);
+    Route::put('/users/{user}/nfc', [\App\Http\Controllers\Api\AdminController::class, 'assign']);
+    Route::post('/logout', [\App\Http\Controllers\Api\AdminController::class, 'logout']);
+});
