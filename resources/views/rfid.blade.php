@@ -11,11 +11,6 @@
     .rfid-app-note > i { color: #5e72e4; font-size: 24px; }
     .rfid-app-note strong { font-size: 14px; }
     .rfid-app-note p { margin: 4px 0 0; font-size: 13px; color: #67748e; }
-    .rfid-kiosks { padding: 20px 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
-    .rfid-kiosk { display: flex; align-items: center; gap: 12px; padding: 16px; border: 1px solid #e9edf3; border-radius: 12px; color: #344767; transition: border-color .2s, background .2s; font-size: 13px; font-weight: 600; }
-    .rfid-kiosk:hover { border-color: #5e72e4; background: #f8f9ff; color: #5e72e4; }
-    .rfid-kiosk > i:first-child { padding: 12px; border-radius: 10px; background: #eef0ff; color: #5e72e4; }
-    .rfid-kiosk > i:last-child { margin-left: auto; color: #8392ab; }
     .rfid-toolbar { padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
     .rfid-search { display: flex; align-items: center; gap: 10px; border: 1px solid #dfe5ee; border-radius: 10px; padding: 0 14px; background: #f8fafc; color: #8392ab; width: 340px; max-width: 100%; }
     .rfid-search input { border: 0; background: transparent; outline: 0; padding: 12px 0; width: 100%; color: #344767; font-size: 13px; }
@@ -63,8 +58,7 @@
     .rfid-dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
     .rfid-result { margin-top: 16px; padding: 14px; border-radius: 10px; background: #f8fafc; font-size: 13px; }
     .rfid-result:empty { display: none; }
-    @media (max-width: 576px) { .rfid-header, .rfid-toolbar, .rfid-kiosks { padding: 16px; } .rfid-card .dt-container { padding: 0 12px 16px; } }
-    @media (prefers-reduced-motion: reduce) { .rfid-kiosk { transition: none; } }
+    @media (max-width: 576px) { .rfid-header, .rfid-toolbar { padding: 16px; } .rfid-card .dt-container { padding: 0 12px 16px; } }
         .rfid-export { position: relative; flex-shrink: 0; }
         .rfid-export summary { list-style: none; cursor: pointer; background: #5e72e4; color: #fff; padding: 12px 18px; border-radius: 10px; font-size: 13px; font-weight: 600; }
         .rfid-export summary::-webkit-details-marker { display: none; }
@@ -77,16 +71,6 @@
 </style>
 <div class="rfid-page">
     <div class="rfid-app-note"><i class="fa-solid fa-desktop" aria-hidden="true"></i><div><strong>Link cards in the app</strong><p>Use the desktop app to link or replace a user’s NFC card. Search and review card links here.</p></div></div>
-    <section class="card rfid-card">
-        <div class="rfid-header"><div><h5>Station kiosks</h5><p class="rfid-caption">Open each kiosk on its station device with the RFID reader connected.</p></div></div>
-        <div class="rfid-kiosks">
-            @forelse (\App\Models\Station::orderBy('id')->get() as $station)
-                <a class="rfid-kiosk" href="{{ route('kiosk', $station->id) }}" target="_blank" rel="noopener"><i class="fa-solid fa-id-card" aria-hidden="true"></i><span>Station {{ $station->id }}<br>{{ $station->name }}</span><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i><span class="visually-hidden">Opens in a new tab</span></a>
-            @empty
-                <p class="rfid-caption">No station kiosks available.</p>
-            @endforelse
-        </div>
-    </section>
     <section class="card rfid-card">
         <div class="rfid-header"><div><h5>RFID cards</h5><p class="rfid-caption">Card links for users who have not completed all stations.</p></div></div>
         <div class="rfid-toolbar"><label class="rfid-search" for="rfid-search"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input type="search" id="rfid-search" placeholder="Search user ID, mobile number or UID" aria-label="Search RFID cards"></label><details class="rfid-export" id="rfid-export">
