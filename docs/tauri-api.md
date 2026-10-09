@@ -18,6 +18,7 @@ For all endpoints below send `Authorization: Bearer <token>`.
 | --- | --- | --- |
 | GET | /api/admin/user | Current signed-in admin, under `data` |
 | GET | /api/admin/users | Paginated attendees, excluding admins and staff |
+| GET | /api/admin/users/by-rfid?rfid_uid=04A1B2C3D4 | Attendee details for an RFID card, under `data` |
 | GET | /api/admin/users/{id} | One assignment user, under `data` |
 | PUT | /api/admin/users/{id}/nfc | Assign or replace NFC UID |
 | DELETE | /api/admin/users/{id}/nfc | Unassign NFC card (no request body) |
@@ -38,6 +39,31 @@ Assignment body:
 Use the same UID representation as the existing card reader. Duplicate UIDs return 422. Missing/expired tokens return 401; accounts without admin access return 403. Admin and staff accounts cannot be assignment targets (404).
 
 The existing `/api/users/without-nfc` shared-secret endpoint remains available for existing integrations. The desktop app can use `/api/admin/users?without_nfc=1` with its login token instead.
+
+## RFID user lookup
+
+`GET /api/admin/users/by-rfid?rfid_uid=04A1B2C3D4`
+
+Send `Accept: application/json` and `Authorization: Bearer <token>` using the token from login. Admins, registration staff, and station staff can look up an attendee's assigned card. This request does not check in the attendee or change the card assignment.
+
+Example response (HTTP 200):
+
+```json
+{
+  "data": {
+    "id": 123,
+    "email": "attendee@example.com",
+    "code": "+639171234567",
+    "mobile_number": "+639171234567",
+    "rfid_uid": "04A1B2C3D4",
+    "role": "client",
+    "staff_function": null,
+    "station_id": null
+  }
+}
+```
+
+The UID must be a nonempty string of at most 64 characters; surrounding whitespace is trimmed. Use the same UID representation as card assignment, preserving leading zeros. Invalid or missing UIDs return 422. Unknown, unassigned, admin, or staff cards return 404. Missing/expired tokens return 401; unauthorized accounts or tokens without `nfc:manage` return 403. Passwords and authentication tokens are never included in the user details.
 
 ## Station check-in
 
@@ -61,7 +87,7 @@ Existing `/api/admin/*` paths serve the Tauri app for both admins and staff. Log
 | --- | --- |
 | Admin | All existing NFC endpoints |
 | Register staff | Current user, attendee search/details, link, unlink, logout |
-| Station staff | Current user, assigned station, station check-in, logout |
+| Station staff | Current user, RFID attendee lookup, assigned station, station check-in, logout |
 
 Station staff send only `{"rfid_uid":"04A1B2C3D4"}` when checking in. The server supplies the account's station ID. If a different `station_id` is supplied, the request returns 403. Their station list contains only the assigned station. Admin check-ins still require `station_id`. Unauthorized functions return 403. Staff with an invalid function or missing station configuration cannot log in or use existing tokens.
 

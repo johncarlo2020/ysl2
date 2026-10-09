@@ -92,6 +92,21 @@ class AdminController extends Controller
         return response()->json($users);
     }
 
+    public function byRfid(Request $request)
+    {
+        $this->authorizeAdmin($request);
+        $data = $request->validate([
+            'rfid_uid' => ['required', 'string', 'max:64'],
+        ]);
+        $user = User::where('rfid_uid', trim($data['rfid_uid']))
+            ->whereDoesntHave('roles', fn ($query) => $query->whereIn('name', ['admin', 'staff']))
+            ->first();
+
+        abort_unless($user, 404, 'RFID card not recognised');
+
+        return response()->json(['data' => $this->userData($user)]);
+    }
+
     public function show(Request $request, User $user)
     {
         $this->authorizeAdmin($request, 'register');

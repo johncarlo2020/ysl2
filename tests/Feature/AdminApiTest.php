@@ -175,6 +175,71 @@ class AdminApiTest extends TestCase
         $this->assertDatabaseCount('personal_access_tokens', 0);
     }
 
+    public function test_rfid_lookup_returns_attendee_details_without_changing_assignment(): void
+    {
+        $admin = $this->account('admin', true);
+        $client = $this->account('+639171234567');
+        $client->update(['rfid_uid' => '001ABC']);
+        $this->withToken($admin->createToken('desktop', ['nfc:manage'])->plainTextToken);
+
+        $response = $this->getJson('/api/admin/users/by-rfid?' . http_build_query(['rfid_uid' => ' 001ABC ']));
+        $response->assertOk()->assertExactJson(['data' => [
+            'id' => $client->id,
+            'email' => $client->email,
+            'code' => $client->code,
+            'mobile_number' => $client->code,
+            'rfid_uid' => '001ABC',
+            'role' => 'client',
+            'staff_function' => null,
+            'station_id' => null,
+        ]]);
+        $this->assertSame('001ABC', $client->fresh()->rfid_uid);
+        $this->assertDatabaseCount('station_users', 0);
+
+        foreach ([[], ['rfid_uid' => ''], ['rfid_uid' => '   '], ['rfid_uid' => str_repeat('A', 65)], ['rfid_uid' => ['001ABC']]] as $query) {
+            $this->getJson('/api/admin/users/by-rfid?' . http_build_query($query))
+                ->assertUnprocessable()->assertJsonValidationErrors('rfid_uid');
+        }
+        $this->getJson('/api/admin/users/by-rfid?rfid_uid=unknown')->assertNotFound();
+        $admin->update(['rfid_uid' => 'ADMINCARD']);
+        $this->getJson('/api/admin/users/by-rfid?rfid_uid=ADMINCARD')->assertNotFound();
+        $client->update(['rfid_uid' => null]);
+        $this->getJson('/api/admin/users/by-rfid?rfid_uid=001ABC')->assertNotFound();
+    }
+
+    public function test_rfid_lookup_requires_authorized_token_and_supports_both_staff_functions(): void
+    {
+        $url = '/api/admin/users/by-rfid?rfid_uid=001ABC';
+        $client = $this->account('client');
+        $client->update(['rfid_uid' => '001ABC']);
+        $this->getJson($url)->assertUnauthorized();
+        $this->withToken($client->createToken('client', ['nfc:manage'])->plainTextToken);
+        $this->getJson($url)->assertForbidden();
+
+        $admin = $this->account('admin', true);
+        app('auth')->forgetGuards();
+        $this->withToken($admin->createToken('restricted', ['other'])->plainTextToken);
+        $this->getJson($url)->assertForbidden();
+
+        \Illuminate\Support\Facades\DB::table('stations')->insert(['id' => 1, 'name' => 'Station 1', 'description' => 'Description']);
+        foreach (['register', 'station'] as $function) {
+            $staff = $this->account($function);
+            $staff->assignRole(Role::findOrCreate('staff', 'web'));
+            $staff->staff_function = $function;
+            $staff->station_id = $function === 'station' ? 1 : null;
+            $staff->rfid_uid = strtoupper($function);
+            $staff->save();
+            app('auth')->forgetGuards();
+            $this->withToken($staff->createToken('desktop', ['nfc:manage'])->plainTextToken);
+            $this->getJson($url)->assertOk()->assertJsonPath('data.id', $client->id);
+            $this->getJson('/api/admin/users/by-rfid?rfid_uid=' . $staff->rfid_uid)->assertNotFound();
+            $staff->staff_function = null;
+            $staff->save();
+            app('auth')->forgetGuards();
+            $this->getJson($url)->assertForbidden();
+        }
+    }
+
     public function test_invalid_and_non_admin_credentials_cannot_login(): void
     {
         $client = $this->account('client');
