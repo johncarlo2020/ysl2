@@ -34,7 +34,7 @@
                     </div>
                     <div class="text-container-dashboard">
                         <p class="station-name-dashboard">
-                           {{$station->id}} {{ $station->name }}
+                           {{$station->id}}. {{ $station->name }}
                         </p>
                     </div>
                 </div>
