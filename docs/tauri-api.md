@@ -24,6 +24,7 @@ For all endpoints below send `Authorization: Bearer <token>`.
 | DELETE | /api/admin/users/{id}/nfc | Unassign NFC card (no request body) |
 | POST | /api/admin/logout | Revoke current token |
 | GET | /api/admin/stations | Stations ordered by ID, under `data` (ID, name, description) |
+| GET | /api/admin/stations/reward-eligibility?rfid_uid=04A1B2C3D4 | Check reward eligibility without completing a station or releasing the card |
 | POST | /api/admin/stations/check-in | Check in an assigned NFC card at a station |
 
 List parameters: `without_nfc=1`, `search` (mobile number, exact ID, or exact RFID UID), `per_page` (1–100, default 25), and `page`. Pagination response includes `data`, `current_page`, `last_page`, and `total`.
@@ -65,6 +66,36 @@ Example response (HTTP 200):
 
 The UID must be a nonempty string of at most 64 characters; surrounding whitespace is trimmed. Use the same UID representation as card assignment, preserving leading zeros. Invalid or missing UIDs return 422. Unknown, unassigned, admin, or staff cards return 404. Missing/expired tokens return 401; unauthorized accounts or tokens without `nfc:manage` return 403. Passwords and authentication tokens are never included in the user details.
 
+## Reward eligibility at the last station
+
+Station 4 is the gift redemption station. Before redeeming, call:
+
+`GET /api/admin/stations/reward-eligibility?rfid_uid=04A1B2C3D4`
+
+Use the login bearer token. Admins and station staff can call this endpoint; registration staff cannot (403). The UID validation and attendee-only lookup rules match the RFID user lookup (422 for invalid UIDs, 404 for unknown or unassigned cards).
+
+Example response (HTTP 200, attendee has completed stations 1 and 2):
+
+```json
+{
+  "data": {
+    "user_id": 123,
+    "station_id": 4,
+    "eligible": false,
+    "redeemed": false,
+    "required_station_ids": [1, 2, 3],
+    "completed_station_ids": [1, 2],
+    "missing_station_ids": [3]
+  }
+}
+```
+
+`eligible` is true only when stations 1, 2, and 3 are complete and station 4 has not been completed. `redeemed` means station 4 is already complete. Duplicate check-in records do not count as additional completed stations. This GET request does not create check-ins or unassign the RFID.
+
+When `eligible` is true, complete redemption with `POST /api/admin/stations/check-in`: admins send `{"station_id":4,"rfid_uid":"04A1B2C3D4"}`; station 4 staff send `{"rfid_uid":"04A1B2C3D4"}`. The server checks eligibility again, saves station 4 completion, and automatically unassigns the RFID in the same transaction. Show redemption success only after this POST succeeds. After success, the released card returns 404 on lookup or eligibility checks until assigned again. Keep the returned `user_id` if the app needs to retain the attendee reference.
+
+If completion is blocked, the POST returns 422 with `status: "prerequisites_not_met"` and eligibility details under `data`.
+
 ## Station check-in
 
 Load the station selector from `GET /api/admin/stations`. Send the selected station ID and captured card UID:
@@ -87,7 +118,7 @@ Existing `/api/admin/*` paths serve the Tauri app for both admins and staff. Log
 | --- | --- |
 | Admin | All existing NFC endpoints |
 | Register staff | Current user, attendee search/details, link, unlink, logout |
-| Station staff | Current user, RFID attendee lookup, assigned station, station check-in, logout |
+| Station staff | Current user, RFID attendee lookup, reward eligibility, assigned station, station check-in, logout |
 
 Station staff send only `{"rfid_uid":"04A1B2C3D4"}` when checking in. The server supplies the account's station ID. If a different `station_id` is supplied, the request returns 403. Their station list contains only the assigned station. Admin check-ins still require `station_id`. Unauthorized functions return 403. Staff with an invalid function or missing station configuration cannot log in or use existing tokens.
 

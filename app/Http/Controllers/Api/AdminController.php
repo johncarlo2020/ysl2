@@ -163,4 +163,19 @@ class AdminController extends Controller
         abort_if($user && $user->hasAnyRole(['admin', 'staff']), 404);
         return app(StationController::class)->rfidTap($request);
     }
+
+    public function rewardEligibility(Request $request)
+    {
+        $this->authorizeAdmin($request, 'station');
+        $data = $request->validate([
+            'rfid_uid' => ['required', 'string', 'max:64'],
+        ]);
+        $user = User::where('rfid_uid', trim($data['rfid_uid']))
+            ->whereDoesntHave('roles', fn ($query) => $query->whereIn('name', ['admin', 'staff']))
+            ->first();
+
+        abort_unless($user, 404, 'RFID card not recognised');
+
+        return response()->json(['data' => app(\App\Services\RewardEligibility::class)->forUser($user)]);
+    }
 }

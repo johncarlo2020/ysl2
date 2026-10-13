@@ -26,6 +26,7 @@ Route::post('/admin/login', [\App\Http\Controllers\Api\AdminController::class, '
 Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
     Route::get('/user', [\App\Http\Controllers\Api\AdminController::class, 'me']);
     Route::get('/stations', [\App\Http\Controllers\Api\AdminController::class, 'stations']);
+    Route::get('/stations/reward-eligibility', [\App\Http\Controllers\Api\AdminController::class, 'rewardEligibility']);
     Route::post('/stations/check-in', [\App\Http\Controllers\Api\AdminController::class, 'checkIn']);
     Route::get('/users', [\App\Http\Controllers\Api\AdminController::class, 'users']);
     Route::get('/users/by-rfid', [\App\Http\Controllers\Api\AdminController::class, 'byRfid']);

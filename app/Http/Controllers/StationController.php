@@ -603,37 +603,34 @@ class StationController extends Controller
             'station_id' => 'required|integer|exists:stations,id',
         ]);
 
-        $user = User::where('rfid_uid', trim($request->rfid_uid))->first();
-
-        if (!$user) {
-            return response()->json(['message' => 'RFID card not recognised', 'status' => 'error'], 404);
-        }
-
         $stationId = (int) $request->station_id;
-
-        // Prevent duplicate check-in
-        $alreadyCheckedIn = StationUser::where('user_id', $user->id)
-            ->where('station_id', $stationId)
-            ->exists();
-
-        if ($alreadyCheckedIn) {
-            return response()->json(['message' => 'Already checked in', 'status' => 'duplicate'], 200);
-        }
-
-        // Station 4 requires completion of stations 1, 2, and 3 first
-        if ($stationId === 4) {
-            $completedPrerequisites = StationUser::where('user_id', $user->id)
-                ->whereIn('station_id', [1, 2, 3])
-                ->distinct('station_id')
-                ->count('station_id');
-
-            if ($completedPrerequisites < 3) {
-                return response()->json(['message' => 'Must complete stations 1, 2 and 3 first', 'status' => 'prerequisites_not_met'], 422);
-            }
-        }
 
         try {
             DB::beginTransaction();
+
+            // Serialize taps for this attendee, including the final card release.
+            $user = User::where('rfid_uid', trim($request->rfid_uid))->lockForUpdate()->first();
+            if (!$user || $user->hasAnyRole(['admin', 'staff'])) {
+                DB::rollback();
+                return response()->json(['message' => 'RFID card not recognised', 'status' => 'error'], 404);
+            }
+
+            if (StationUser::where('user_id', $user->id)->where('station_id', $stationId)->exists()) {
+                DB::rollback();
+                return response()->json(['message' => 'Already checked in', 'status' => 'duplicate'], 200);
+            }
+
+            if ($stationId === \App\Services\RewardEligibility::FINAL_STATION_ID) {
+                $eligibility = app(\App\Services\RewardEligibility::class)->forUser($user);
+                if (!$eligibility['eligible']) {
+                    DB::rollback();
+                    return response()->json([
+                        'message' => 'Must complete stations 1, 2 and 3 first',
+                        'status' => 'prerequisites_not_met',
+                        'data' => $eligibility,
+                    ], 422);
+                }
+            }
 
             $lastStation = StationUser::where('user_id', $user->id)->orderBy('id', 'desc')->first();
 
@@ -652,9 +649,8 @@ class StationController extends Controller
             $stationUser->save();
 
             // Station 4 is the final station — clear the RFID UID after check-in
-            if ($stationId === 4) {
-                $user->rfid_uid = null;
-                $user->save();
+            if ($stationId === \App\Services\RewardEligibility::FINAL_STATION_ID) {
+                app(\App\Services\RfidAssignment::class)->unassign($user);
             }
 
             DB::commit();

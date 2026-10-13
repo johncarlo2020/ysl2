@@ -240,6 +240,91 @@ class AdminApiTest extends TestCase
         }
     }
 
+    public function test_reward_eligibility_and_final_station_release(): void
+    {
+        \Illuminate\Support\Facades\Event::fake([\App\Events\StationCheckedIn::class]);
+        foreach (range(1, 4) as $id) {
+            \Illuminate\Support\Facades\DB::table('stations')->insert(['id' => $id, 'name' => 'Station ' . $id, 'description' => 'Description']);
+        }
+        $client = $this->account('reward-client');
+        $client->update(['rfid_uid' => '001ABC']);
+        $staff = $this->account('reward-staff');
+        $staff->assignRole(Role::findOrCreate('staff', 'web'));
+        $staff->staff_function = 'station';
+        $staff->station_id = 4;
+        $staff->save();
+        $this->withToken($staff->createToken('desktop', ['nfc:manage'])->plainTextToken);
+        $url = '/api/admin/stations/reward-eligibility?rfid_uid=001ABC';
+        $body = ['rfid_uid' => '001ABC'];
+
+        $this->getJson($url)->assertOk()->assertJsonPath('data.eligible', false)
+            ->assertJsonPath('data.missing_station_ids', [1, 2, 3]);
+        foreach ([1, 1, 2] as $id) {
+            \App\Models\StationUser::create(['user_id' => $client->id, 'station_id' => $id]);
+        }
+        $this->getJson($url)->assertOk()->assertExactJson(['data' => [
+            'user_id' => $client->id, 'station_id' => 4, 'eligible' => false, 'redeemed' => false,
+            'required_station_ids' => [1, 2, 3], 'completed_station_ids' => [1, 2], 'missing_station_ids' => [3],
+        ]]);
+        $this->assertDatabaseCount('station_users', 3);
+        $this->assertSame('001ABC', $client->fresh()->rfid_uid);
+        $this->postJson('/api/admin/stations/check-in', $body)->assertUnprocessable()
+            ->assertJsonPath('status', 'prerequisites_not_met')->assertJsonPath('data.missing_station_ids', [3]);
+        $this->assertDatabaseMissing('station_users', ['user_id' => $client->id, 'station_id' => 4]);
+        $this->assertSame('001ABC', $client->fresh()->rfid_uid);
+
+        \App\Models\StationUser::create(['user_id' => $client->id, 'station_id' => 3]);
+        $this->getJson($url)->assertOk()->assertJsonPath('data.eligible', true)
+            ->assertJsonPath('data.redeemed', false)->assertJsonPath('data.missing_station_ids', []);
+        $this->assertSame('001ABC', $client->fresh()->rfid_uid);
+        $this->postJson('/api/admin/stations/check-in', $body)->assertOk()->assertJsonPath('status', 'success');
+        $this->assertNull($client->fresh()->rfid_uid);
+        $this->getJson($url)->assertNotFound();
+        $this->postJson('/api/admin/stations/check-in', $body)->assertNotFound();
+        $this->assertDatabaseCount('station_users', 5);
+
+        // A new card assignment must not make an already redeemed attendee eligible again.
+        $client->refresh()->update(['rfid_uid' => '001ABC']);
+        $this->getJson($url)->assertOk()->assertJsonPath('data.eligible', false)->assertJsonPath('data.redeemed', true);
+        $this->postJson('/api/admin/stations/check-in', $body)->assertOk()->assertJsonPath('status', 'duplicate');
+        $this->assertDatabaseCount('station_users', 5);
+    }
+
+    public function test_reward_eligibility_access_and_validation(): void
+    {
+        $url = '/api/admin/stations/reward-eligibility?rfid_uid=001ABC';
+        $client = $this->account('reward-client');
+        $client->update(['rfid_uid' => '001ABC']);
+        $this->getJson($url)->assertUnauthorized();
+        $this->withToken($client->createToken('client', ['nfc:manage'])->plainTextToken);
+        $this->getJson($url)->assertForbidden();
+        $register = $this->account('reward-register');
+        $register->assignRole(Role::findOrCreate('staff', 'web'));
+        $register->staff_function = 'register';
+        $register->save();
+        app('auth')->forgetGuards();
+        $this->withToken($register->createToken('desktop', ['nfc:manage'])->plainTextToken);
+        $this->getJson($url)->assertForbidden();
+        $admin = $this->account('reward-admin', true);
+        app('auth')->forgetGuards();
+        $this->withToken($admin->createToken('restricted', ['other'])->plainTextToken);
+        $this->getJson($url)->assertForbidden();
+        app('auth')->forgetGuards();
+        $this->withToken($admin->createToken('desktop', ['nfc:manage'])->plainTextToken);
+        $this->getJson($url)->assertOk();
+        $this->getJson('/api/admin/stations/reward-eligibility?' . http_build_query(['rfid_uid' => ' 001ABC ']))->assertOk();
+        foreach ([[], ['rfid_uid' => '   '], ['rfid_uid' => str_repeat('A', 65)], ['rfid_uid' => ['001ABC']]] as $query) {
+            $this->getJson('/api/admin/stations/reward-eligibility?' . http_build_query($query))
+                ->assertUnprocessable()->assertJsonValidationErrors('rfid_uid');
+        }
+        $this->getJson('/api/admin/stations/reward-eligibility?rfid_uid=unknown')->assertNotFound();
+        $admin->update(['rfid_uid' => 'ADMINCARD']);
+        $register->update(['rfid_uid' => 'STAFFCARD']);
+        foreach (['ADMINCARD', 'STAFFCARD'] as $uid) {
+            $this->getJson('/api/admin/stations/reward-eligibility?rfid_uid=' . $uid)->assertNotFound();
+        }
+    }
+
     public function test_invalid_and_non_admin_credentials_cannot_login(): void
     {
         $client = $this->account('client');
