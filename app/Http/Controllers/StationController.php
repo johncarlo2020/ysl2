@@ -500,7 +500,7 @@ class StationController extends Controller
         $totalStations = \App\Models\Station::count();
 
         $users = User::whereDoesntHave('roles', function ($query) {
-                $query->where('name', 'admin');
+                $query->whereIn('name', ['admin', 'staff']);
             })
             ->orderBy('id', 'desc')
             ->get(['id', 'code', 'rfid_uid'])
