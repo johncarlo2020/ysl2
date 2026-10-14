@@ -370,7 +370,7 @@ class StationController extends Controller
         $startDate = Carbon::create(2024, 5, 24);
         $data['users'] = User::whereDate('created_at', '>=', $startDate->toDateString())
             ->whereDoesntHave('roles', function ($query) {
-                $query->where('name', 'admin');
+                $query->whereIn('name', ['admin', 'staff']);
             })
             ->with('stationUser')->orderBy('id', 'desc')->get();
 
