@@ -278,6 +278,10 @@ class AdminApiTest extends TestCase
             'role' => 'client',
             'staff_function' => null,
             'station_id' => null,
+            'completed_station_ids' => [],
+            'all_stations_completed' => false,
+            'redeemed' => false,
+            'can_link_nfc' => true,
         ]]);
         $this->assertSame('001ABC', $client->fresh()->rfid_uid);
         $this->assertDatabaseCount('station_users', 0);
@@ -423,5 +427,55 @@ class AdminApiTest extends TestCase
         $token = $client->createToken('client', ['nfc:manage'])->plainTextToken;
         $this->withHeader('Authorization', 'Bearer ' . $token)->getJson('/api/admin/users')->assertForbidden();
         $this->deleteJson('/api/admin/users/' . $client->id . '/nfc')->assertForbidden();
+    }
+
+    public function test_user_list_tracks_progress_and_redemption_after_card_release(): void
+    {
+        $admin = $this->account('progress-admin', true);
+        $client = $this->account('progress-client');
+        $this->withToken($admin->createToken('desktop', ['nfc:manage'])->plainTextToken);
+        foreach (range(1, 4) as $id) {
+            \Illuminate\Support\Facades\DB::table('stations')->insert(['id' => $id, 'name' => 'Station ' . $id, 'description' => 'Description']);
+        }
+        foreach ([1, 1, 2, 3] as $id) {
+            \App\Models\StationUser::create(['user_id' => $client->id, 'station_id' => $id]);
+        }
+        $this->getJson('/api/admin/users')->assertOk()
+            ->assertJsonPath('data.0.completed_station_ids', [1, 2, 3])
+            ->assertJsonPath('data.0.all_stations_completed', false)
+            ->assertJsonPath('data.0.redeemed', false)
+            ->assertJsonPath('data.0.can_link_nfc', true);
+        $this->putJson('/api/admin/users/' . $client->id . '/nfc', ['rfid_uid' => 'REDEEM-CARD'])->assertOk();
+        \Illuminate\Support\Facades\Event::fake([\App\Events\StationCheckedIn::class, \App\Events\NfcAssignmentChanged::class]);
+        $this->postJson('/api/admin/stations/check-in', ['rfid_uid' => 'REDEEM-CARD', 'station_id' => 4])->assertOk();
+        $this->getJson('/api/admin/users')->assertOk()
+            ->assertJsonPath('data.0.completed_station_ids', [1, 2, 3, 4])
+            ->assertJsonPath('data.0.all_stations_completed', true)
+            ->assertJsonPath('data.0.redeemed', true)
+            ->assertJsonPath('data.0.can_link_nfc', false)
+            ->assertJsonPath('data.0.rfid_uid', null);
+        $this->putJson('/api/admin/users/' . $client->id . '/nfc', ['rfid_uid' => 'NEW-CARD'])
+            ->assertUnprocessable()->assertJsonValidationErrors('rfid_uid');
+        $this->assertNull($client->fresh()->rfid_uid);
+    }
+
+    public function test_redemption_blocks_linking_for_registration_staff_and_replacement_cards(): void
+    {
+        \Illuminate\Support\Facades\Event::fake([\App\Events\NfcAssignmentChanged::class]);
+        $register = $this->account('redeemed-register');
+        $register->assignRole(Role::findOrCreate('staff', 'web'));
+        $register->forceFill(['staff_function' => 'register', 'station_id' => null])->save();
+        $client = $this->account('already-redeemed');
+        \Illuminate\Support\Facades\DB::table('stations')->insert(['id' => 4, 'name' => 'Station 4', 'description' => 'Description']);
+        \App\Models\StationUser::create(['user_id' => $client->id, 'station_id' => 4]);
+        $this->withToken($register->createToken('desktop', ['nfc:manage'])->plainTextToken);
+        foreach ([null, 'LEGACY-CARD'] as $uid) {
+            $client->update(['rfid_uid' => $uid]);
+            $this->putJson('/api/admin/users/' . $client->id . '/nfc', ['rfid_uid' => 'RELINK-CARD'])
+                ->assertUnprocessable()->assertJsonValidationErrors('rfid_uid');
+            $this->assertSame($uid, $client->fresh()->rfid_uid);
+        }
+        $this->getJson('/api/admin/users')->assertOk()->assertJsonPath('data.0.redeemed', true);
+        \Illuminate\Support\Facades\Event::assertNotDispatched(\App\Events\NfcAssignmentChanged::class);
     }
 }

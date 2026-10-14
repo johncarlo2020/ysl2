@@ -53,6 +53,10 @@ class AdminController extends Controller
 
     private function userData(User $user): array
     {
+        $completed = $user->stationUser->pluck('station_id')
+            ->map(fn ($id) => (int) $id)->unique()->sort()->values()->all();
+        $redeemed = in_array(\App\Services\RewardEligibility::FINAL_STATION_ID, $completed, true);
+
         return [
             'id' => $user->id,
             'email' => $user->email,
@@ -62,6 +66,10 @@ class AdminController extends Controller
             'role' => $user->hasRole('admin') ? 'admin' : ($user->hasRole('staff') ? 'staff' : 'client'),
             'staff_function' => $user->staff_function,
             'station_id' => $user->station_id,
+            'completed_station_ids' => $completed,
+            'all_stations_completed' => empty(array_diff([1, 2, 3, 4], $completed)),
+            'redeemed' => $redeemed,
+            'can_link_nfc' => !$redeemed,
         ];
     }
 
@@ -79,7 +87,7 @@ class AdminController extends Controller
             'without_nfc' => ['sometimes', 'boolean'],
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
         ]);
-        $query = User::whereDoesntHave('roles', fn ($query) => $query->whereIn('name', ['admin', 'staff']));
+        $query = User::with(['roles', 'stationUser:id,user_id,station_id'])->whereDoesntHave('roles', fn ($query) => $query->whereIn('name', ['admin', 'staff']));
         if ($request->boolean('without_nfc')) {
             $query->where(fn ($query) => $query->whereNull('rfid_uid')->orWhere('rfid_uid', ''));
         }
