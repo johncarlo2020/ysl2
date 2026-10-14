@@ -25,7 +25,7 @@ class AdminController extends Controller
             throw ValidationException::withMessages(['email' => 'The provided staff or admin credentials are invalid.']);
         }
 
-        $expiresAt = now()->addDay();
+        $expiresAt = $user->hasRole('admin') ? now()->addDay() : now()->addDays(30);
         $token = $user->createToken($data['device_name'] ?? 'tauri-nfc', ['nfc:manage'], $expiresAt);
 
         return response()->json([

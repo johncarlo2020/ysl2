@@ -36,6 +36,71 @@ class AdminApiTest extends TestCase
         return $user;
     }
 
+    public function test_nfc_changes_broadcast_only_after_commit(): void
+    {
+        \Illuminate\Support\Facades\Event::fake([\App\Events\NfcAssignmentChanged::class]);
+        $user = $this->account('live-nfc');
+        $service = app(\App\Services\RfidAssignment::class);
+        \Illuminate\Support\Facades\DB::beginTransaction();
+        $service->assign($user, 'CARD-1');
+        \Illuminate\Support\Facades\Event::assertNotDispatched(\App\Events\NfcAssignmentChanged::class);
+        \Illuminate\Support\Facades\DB::commit();
+        \Illuminate\Support\Facades\Event::assertDispatched(\App\Events\NfcAssignmentChanged::class,
+            fn ($event) => $event->userId === $user->id && $event->hasNfc);
+        $service->unassign($user);
+        \Illuminate\Support\Facades\Event::assertDispatched(\App\Events\NfcAssignmentChanged::class,
+            fn ($event) => $event->userId === $user->id && !$event->hasNfc);
+        $this->assertNull($user->fresh()->rfid_uid);
+    }
+
+    public function test_rolled_back_card_assignment_does_not_broadcast(): void
+    {
+        \Illuminate\Support\Facades\Event::fake([\App\Events\NfcAssignmentChanged::class]);
+        $user = $this->account('rollback-nfc');
+        \Illuminate\Support\Facades\DB::beginTransaction();
+        app(\App\Services\RfidAssignment::class)->assign($user, 'CARD-ROLLBACK');
+        \Illuminate\Support\Facades\DB::rollBack();
+        \Illuminate\Support\Facades\Event::assertNotDispatched(\App\Events\NfcAssignmentChanged::class);
+        $this->assertNull($user->fresh()->rfid_uid);
+    }
+
+    public function test_live_state_returns_only_the_authenticated_users_progress(): void
+    {
+        $this->getJson('/user/live-state')->assertStatus(302);
+        $user = $this->account('live-client');
+        $user->assignRole(Role::findOrCreate('client', 'web'));
+        $other = $this->account('other-client');
+        \Illuminate\Support\Facades\DB::table('stations')->insert(['id' => 1, 'name' => 'Station 1', 'description' => 'Description']);
+        \App\Models\StationUser::create(['user_id' => $other->id, 'station_id' => 1]);
+        $this->actingAs($user)->getJson('/user/live-state')->assertOk()
+            ->assertExactJson(['has_nfc' => false, 'completed_station_ids' => []]);
+        $user->rfid_uid = 'LIVE-CARD';
+        $user->save();
+        \App\Models\StationUser::create(['user_id' => $user->id, 'station_id' => 1]);
+        $this->getJson('/user/live-state')->assertOk()
+            ->assertExactJson(['has_nfc' => true, 'completed_station_ids' => [1]]);
+    }
+
+    public function test_client_pages_render_the_shared_private_channel_listener(): void
+    {
+        $this->withoutVite();
+        $user = $this->account('live-pages');
+        $user->assignRole(Role::findOrCreate('client', 'web'));
+        foreach (range(1, 4) as $id) {
+            \Illuminate\Support\Facades\DB::table('stations')->insert([
+                'id' => $id, 'name' => 'Station ' . $id, 'description' => 'Description',
+            ]);
+        }
+        $this->actingAs($user);
+        foreach (['/landing', '/dashboard', '/station/1'] as $url) {
+            $response = $this->get($url)->assertOk()
+                ->assertSee('private-user.' . $user->id, false)
+                ->assertSee('nfc.assignment.changed', false)
+                ->assertSee('pusher:subscription_succeeded', false);
+            $this->assertSame(1, substr_count($response->getContent(), 'new Pusher('));
+        }
+    }
+
     public function test_admin_can_manage_staff_with_validation_and_token_revocation(): void
     {
         $this->get('/admin/staff')->assertRedirect('/admin/login');
@@ -118,6 +183,27 @@ class AdminApiTest extends TestCase
         $this->postJson('/api/admin/stations/check-in', ['rfid_uid' => 'STAFFTEST'])->assertOk()->assertJsonPath('status', 'success');
         $this->assertDatabaseHas('station_users', ['user_id' => $client->id, 'station_id' => 1]);
         $this->postJson('/api/admin/logout')->assertOk();
+    }
+
+    public function test_staff_login_token_is_valid_for_30_days(): void
+    {
+        $this->travelTo(now()->startOfSecond());
+        $staff = $this->account('long-lived-staff');
+        $staff->assignRole(Role::findOrCreate('staff', 'web'));
+        $staff->forceFill(['staff_function' => 'register', 'station_id' => null])->save();
+        $expiresAt = now()->addDays(30);
+        $login = $this->postJson('/api/admin/login', [
+            'email' => $staff->email, 'password' => 'secret-password',
+        ])->assertOk()->assertJsonPath('expires_at', $expiresAt->toIso8601String());
+        $this->assertTrue($staff->tokens()->firstOrFail()->expires_at->equalTo($expiresAt));
+        $this->withToken($login->json('token'));
+        $this->travelTo($expiresAt->copy()->subSecond());
+        app('auth')->forgetGuards();
+        $this->getJson('/api/admin/user')->assertOk();
+        $this->travelTo($expiresAt->copy()->addSecond());
+        app('auth')->forgetGuards();
+        $this->getJson('/api/admin/user')->assertUnauthorized();
+        $this->travelBack();
     }
 
     public function test_station_check_in_preserves_kiosk_rules(): void

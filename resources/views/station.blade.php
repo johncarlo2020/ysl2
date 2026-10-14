@@ -66,49 +66,40 @@
         </div>
     </div>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.15.3/dist/echo.iife.js"></script>
-
     <script>
-        // Private channel listener — opens modal when the server confirms a check-in for this user
         (function () {
-            var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            var stationId = {{ $station->id }};
+            function markCheckedIn() {
+                var container = document.querySelector('#mainContent .scanner-button');
+                if (!container || container.dataset.checkedIn) return;
+                container.dataset.checkedIn = 'true';
+                container.replaceChildren();
+                var label = document.createElement('p');
+                label.className = 'mb-2 text-dark';
+                label.textContent = 'Checked In';
+                var back = document.createElement('a');
+                back.className = 'button';
+                back.href = @json(route('dashboard'));
+                back.textContent = 'Back';
+                container.append(label, back);
+            }
 
-            var pusher = new Pusher('{{ env('PUSHER_APP_KEY') }}', {
-                cluster: '{{ env('PUSHER_APP_CLUSTER') }}',
-                channelAuthorization: {
-                    endpoint: '/broadcasting/auth',
-                    headers: { 'X-CSRF-TOKEN': csrfToken }
-                }
+            document.addEventListener('user:state', function (event) {
+                if (event.detail.completed_station_ids.includes(stationId)) markCheckedIn();
             });
-
-            pusher.connection.bind('error', function (err) {
-                console.error('Pusher connection error:', err);
-            });
-
-            var channel = pusher.subscribe('private-user.{{ auth()->id() }}');
-
-            channel.bind('pusher:subscription_error', function (err) {
-                console.error('Channel subscription failed:', err);
-            });
-
-            channel.bind('checked.in', function (data) {
-                console.log('check-in event received:', data);
-                var stationName = data.station_name || '{{ $station->name }}';
-
-                if (data.station_id == 4) {
-                    $('.station-name-modal').html('GIFT HAS BEEN SUCCESSFULLY REDEEMED');
-                    $('.message').addClass('d-none');
-                } else {
-                    $('.station-name-modal').html(stationName);
-                }
-
+            document.addEventListener('user:checked-in', function (event) {
+                var data = event.detail;
+                if (Number(data.station_id) !== stationId) return;
+                markCheckedIn();
+                $('.station-name-modal').text(stationId === 4
+                    ? 'GIFT HAS BEEN SUCCESSFULLY REDEEMED'
+                    : data.station_name);
+                $('.message').toggleClass('d-none', stationId === 4);
                 $('.check').removeClass('fa-circle-xmark text-danger').addClass('fa-circle-check text-success');
                 $('#scanCompleteModal').modal('show');
             });
         })();
     </script>
-
     <script>
         @if (!$user)
         (function () {
@@ -121,7 +112,7 @@
 
             // Keep the hidden input focused so the RFID reader (keyboard wedge) types into it
             function keepFocus() {
-                if (!processing) {
+                if (!processing && rfidInput.isConnected) {
                     rfidInput.focus({ preventScroll: true });
                 }
             }
@@ -169,16 +160,9 @@
                         station_id: {{ $station->id }}
                     },
                     success: function (response) {
-                        var stationName = '{{ $station->name }}';
-                        $('.station-name-modal').html(stationName);
-
-                        @if ($station->id == 4)
-                        $('.station-name-modal').html('GIFT HAS BEEN SUCCESSFULLY REDEEMED');
-                        $('.message').addClass('d-none');
-                        @endif
-
-                        $('.check').addClass('fa-circle-check text-success');
-                        $('#scanCompleteModal').modal('show');
+                        document.dispatchEvent(new CustomEvent('user:checked-in', { detail: {
+                            station_id: {{ $station->id }}, station_name: @json($station->name)
+                        } }));
                     },
                     error: function (xhr) {
                         var msg = 'Card not recognised. Please try again.';

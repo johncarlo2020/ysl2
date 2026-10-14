@@ -44,46 +44,43 @@
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const station1 = document.getElementById('station-1');
-            const station2 = document.getElementById('station-2');
-            const station3 = document.getElementById('station-3');
-
             const station4Link = document.getElementById('station-link-4');
+            const station4Url = @json(route('station.show', ['station' => 4]));
 
-            // Function to check if both station 1 and 2 are active
-            function checkStationsActive() {
-                const isStation1Active = station1.classList.contains('active');
-                const isStation2Active = station2.classList.contains('active');
-                const isStation3Active = station3.classList.contains('active');
-
-
-                if (isStation1Active && isStation2Active && isStation3Active) {
-                    // Enable the link for station 3
-                    station4Link.style.pointerEvents = 'auto';
-                    station4Link.style.cursor = 'pointer';
-                    station4Link.href = '{{ route('station.show', ['station' => 4]) }}';
-                } else {
-                    // Disable the link for station 3
-
-                    station4Link.href = '#'; // Prevent navigation
-                    station4Link.addEventListener('click', openModal);
-                }
+            function prerequisitesComplete() {
+                return [1, 2, 3].every(function (id) {
+                    const tile = document.getElementById('station-' + id);
+                    return tile && tile.classList.contains('active');
+                });
             }
 
-            function openModal(event) {
-                event.preventDefault();
-                $('#scanCompleteModal').modal('show');
+            function updateRewardLink() {
+                if (station4Link) station4Link.href = prerequisitesComplete() ? station4Url : '#';
             }
 
-            // Check on initial load
-            checkStationsActive();
-            // Optionally: Add event listeners if the status of stations can change dynamically
-            // (For example, if they can be updated via AJAX, or the status changes after some user action)
-            station1.addEventListener('classChange', checkStationsActive);
-            station2.addEventListener('classChange', checkStationsActive);
-            station3.addEventListener('classChange', checkStationsActive);
+            if (station4Link) {
+                station4Link.addEventListener('click', function (event) {
+                    if (!prerequisitesComplete()) {
+                        event.preventDefault();
+                        $('#scanCompleteModal').modal('show');
+                    }
+                });
+            }
 
+            document.addEventListener('user:checked-in', function (event) {
+                const tile = document.getElementById('station-' + event.detail.station_id);
+                if (tile) tile.classList.add('active');
+                updateRewardLink();
+            });
+            document.addEventListener('user:state', function (event) {
+                const completed = event.detail.completed_station_ids;
+                document.querySelectorAll('[id^="station-"]').forEach(function (tile) {
+                    const match = /^station-(\d+)$/.exec(tile.id);
+                    if (match) tile.classList.toggle('active', completed.includes(Number(match[1])));
+                });
+                updateRewardLink();
+            });
+            updateRewardLink();
         });
-
     </script>
 </x-app-layout>

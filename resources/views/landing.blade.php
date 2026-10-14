@@ -37,7 +37,7 @@
                 </p>
             </div>
             <div class="mt-5 w-100 container">
-                <a class="button-discover {{ auth()->user()->rfid_uid ? '' : 'disabled' }}"
+                <a id="begin-journey" class="button-discover {{ auth()->user()->rfid_uid ? '' : 'disabled' }}"
                     @if (auth()->user()->rfid_uid) href="{{ route('dashboard') }}" @else aria-disabled="true" @endif>BEGIN YOUR JOURNEY</a>
             </div>
         </div>
@@ -46,6 +46,20 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script>
+        function updateNfcButton(state) {
+            var button = document.getElementById('begin-journey');
+            button.classList.toggle('disabled', !state.has_nfc);
+            if (state.has_nfc) {
+                button.href = @json(route('dashboard'));
+                button.removeAttribute('aria-disabled');
+            } else {
+                button.removeAttribute('href');
+                button.setAttribute('aria-disabled', 'true');
+            }
+        }
+        document.addEventListener('user:state', function (event) { updateNfcButton(event.detail); });
+        document.addEventListener('user:nfc-changed', function (event) { updateNfcButton(event.detail); });
+
         function modal() {
             $('#scanCompleteModal').modal('show');
 

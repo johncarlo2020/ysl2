@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\User;
+use App\Events\NfcAssignmentChanged;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
@@ -12,6 +14,7 @@ class RfidAssignment
     {
         $user->rfid_uid = null;
         $user->save();
+        $this->notify($user);
     }
 
     public function assign(User $user, mixed $uid): void
@@ -22,5 +25,19 @@ class RfidAssignment
 
         $user->rfid_uid = $data['rfid_uid'];
         $user->save();
+        $this->notify($user);
+    }
+
+    private function notify(User $user): void
+    {
+        $event = new NfcAssignmentChanged($user->id, !empty($user->rfid_uid));
+        DB::afterCommit(function () use ($event) {
+            try {
+                NfcAssignmentChanged::dispatch($event->userId, $event->hasNfc);
+            } catch (\Throwable $exception) {
+                // A Pusher outage must not undo a successful card assignment.
+                report($exception);
+            }
+        });
     }
 }

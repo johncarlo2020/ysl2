@@ -39,6 +39,15 @@ class StationController extends Controller
         return view('landing');
     }
 
+    public function liveState(Request $request)
+    {
+        return response()->json([
+            'has_nfc' => !empty($request->user()->rfid_uid),
+            'completed_station_ids' => StationUser::where('user_id', $request->user()->id)
+                ->pluck('station_id')->map(fn ($id) => (int) $id)->all(),
+        ])->header('Cache-Control', 'no-store');
+    }
+
     public function welcome()
     {
         $user = User::with('stationUser')->where('id', auth()->id())->first();
@@ -657,7 +666,12 @@ class StationController extends Controller
 
             // Notify the user's station page to open the check-in modal
             $stationName = Station::find($stationId)?->name ?? '';
-            broadcast(new StationCheckedIn($user->id, $stationId, $stationName));
+            try {
+                StationCheckedIn::dispatch($user->id, $stationId, $stationName);
+            } catch (\Throwable $exception) {
+                // The check-in is already committed; report delivery failure separately.
+                report($exception);
+            }
 
             return response()->json(['message' => 'Station checked in successfully', 'status' => 'success'], 200);
         } catch (\Exception $e) {

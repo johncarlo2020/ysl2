@@ -28,6 +28,9 @@
     </main>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
+    @auth
+        @include('components.user-live-updates')
+    @endauth
 </body>
 
 </html>

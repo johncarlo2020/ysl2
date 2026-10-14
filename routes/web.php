@@ -68,6 +68,7 @@ Route::group(['middleware' => ['admin']], function () {
 });
 
 Route::group(['middleware' => ['client']], function () {
+    Route::get('/user/live-state', 'App\Http\Controllers\StationController@liveState')->name('user.live-state');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
