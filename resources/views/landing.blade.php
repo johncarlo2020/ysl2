@@ -19,8 +19,8 @@
             YSL LOVENUDE BEAUTY HOTEL​</h1>
         <div id="mainContent" class="text-content text-center">
             <div class="content">
-                <h2 class="station-born">{{ env('APP_TITLE') }}<br>
-                </h2>
+                <!-- <h2 class="station-born">{{ env('APP_TITLE') }}<br>
+                </h2> -->
             </div>
             <div class="mb-3 station-img">
                 <img src="{{ asset('images/new/landing.webp') }}" alt="" />
