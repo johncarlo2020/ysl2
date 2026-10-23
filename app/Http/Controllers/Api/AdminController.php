@@ -79,25 +79,57 @@ class AdminController extends Controller
         return response()->json(['data' => $this->userData($request->user())]);
     }
 
+    private function filterAssignments($query, string $status): void
+    {
+        $redeemed = fn ($query) => $query->where('station_id', \App\Services\RewardEligibility::FINAL_STATION_ID);
+        if ($status === 'redeemed') {
+            $query->whereHas('stationUser', $redeemed);
+        } elseif ($status === 'assigned') {
+            $query->whereNotNull('rfid_uid')->where('rfid_uid', '!=', '')
+                ->whereDoesntHave('stationUser', $redeemed);
+        } elseif ($status === 'unassigned') {
+            $query->where(fn ($query) => $query->whereNull('rfid_uid')->orWhere('rfid_uid', ''))
+                ->whereDoesntHave('stationUser', $redeemed);
+        }
+    }
+
     public function users(Request $request)
     {
         $this->authorizeAdmin($request, 'register');
         $data = $request->validate([
             'search' => ['nullable', 'string', 'max:255'],
+            'assignment_status' => ['sometimes', 'in:all,assigned,unassigned,redeemed'],
             'without_nfc' => ['sometimes', 'boolean'],
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
+            'page' => ['sometimes', 'integer', 'min:1'],
         ]);
-        $query = User::with(['roles', 'stationUser:id,user_id,station_id'])->whereDoesntHave('roles', fn ($query) => $query->whereIn('name', ['admin', 'staff']));
+        $attendees = User::query()->whereDoesntHave('roles', fn ($query) => $query->whereIn('name', ['admin', 'staff']));
+        // Global summary counts stay independent of search, status, and page.
+        $counts = ['all' => (clone $attendees)->count()];
+        foreach (['assigned', 'unassigned', 'redeemed'] as $status) {
+            $countQuery = clone $attendees;
+            $this->filterAssignments($countQuery, $status);
+            $counts[$status] = $countQuery->count();
+        }
+        $query = (clone $attendees)->with(['roles', 'stationUser:id,user_id,station_id']);
+        $this->filterAssignments($query, $data['assignment_status'] ?? 'all');
+        // Keep the legacy flag's meaning, including released redeemed cards.
         if ($request->boolean('without_nfc')) {
             $query->where(fn ($query) => $query->whereNull('rfid_uid')->orWhere('rfid_uid', ''));
         }
-        if (!empty($data['search'])) {
-            $query->where(fn ($query) => $query->where('code', 'like', '%' . $data['search'] . '%')
-                ->orWhere('id', $data['search'])->orWhere('rfid_uid', $data['search']));
+        $search = trim($data['search'] ?? '');
+        if ($search !== '') {
+            $query->where(function ($query) use ($search) {
+                $query->where('code', 'like', '%' . $search . '%')->orWhere('rfid_uid', $search);
+                // Avoid MySQL coercing a nonnumeric card UID into a numeric ID.
+                if (ctype_digit($search)) {
+                    $query->orWhere('id', $search);
+                }
+            });
         }
-        $users = $query->orderByDesc('id')->paginate($data['per_page'] ?? 25);
+        $users = $query->orderByDesc('id')->paginate($data['per_page'] ?? 25)->withQueryString();
         $users->through(fn ($user) => $this->userData($user));
-        return response()->json($users);
+        return response()->json(array_merge($users->toArray(), ['counts' => $counts]));
     }
 
     public function byRfid(Request $request)

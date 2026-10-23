@@ -36,6 +36,62 @@ class AdminApiTest extends TestCase
         return $user;
     }
 
+    public function test_user_search_pagination_filters_and_global_counts(): void
+    {
+        $admin = $this->account('list-admin', true);
+        $staff = $this->account('list-staff');
+        $staff->assignRole(Role::findOrCreate('staff', 'web'));
+        $staff->forceFill(['staff_function' => 'register'])->save();
+        $unassigned = $this->account('09170000001');
+        $assigned = $this->account('09170000002');
+        $assigned->update(['rfid_uid' => '00AB+&']);
+        $redeemed = $this->account('09170000003');
+        $legacyRedeemed = $this->account('09170000004');
+        $legacyRedeemed->update(['rfid_uid' => 'OLD-CARD']);
+        \Illuminate\Support\Facades\DB::table('stations')->insert(['id' => 4, 'name' => 'Reward', 'description' => 'Reward']);
+        foreach ([$redeemed, $legacyRedeemed] as $user) {
+            foreach ([4, 4] as $stationId) {
+                \App\Models\StationUser::create(['user_id' => $user->id, 'station_id' => $stationId]);
+            }
+        }
+        $counts = ['all' => 4, 'assigned' => 1, 'unassigned' => 1, 'redeemed' => 2];
+        $this->withToken($admin->createToken('desktop', ['nfc:manage'])->plainTextToken);
+        $first = $this->getJson('/api/admin/users?per_page=2&page=1')->assertOk()
+            ->assertJsonCount(2, 'data')->assertJsonPath('total', 4)->assertJsonPath('last_page', 2)
+            ->assertJsonPath('current_page', 1)->assertJsonPath('data.0.id', $legacyRedeemed->id)
+            ->assertJsonPath('counts', $counts)->json('data');
+        $second = $this->getJson('/api/admin/users?per_page=2&page=2')->assertOk()
+            ->assertJsonCount(2, 'data')->assertJsonPath('current_page', 2)->json('data');
+        $this->assertEmpty(array_intersect(array_column($first, 'id'), array_column($second, 'id')));
+        foreach (['assigned' => [$assigned->id], 'unassigned' => [$unassigned->id], 'redeemed' => [$legacyRedeemed->id, $redeemed->id]] as $status => $ids) {
+            $result = $this->getJson('/api/admin/users?' . http_build_query(['assignment_status' => $status]))
+                ->assertOk()->assertJsonPath('total', count($ids))->assertJsonPath('counts', $counts);
+            $this->assertSame($ids, array_column($result->json('data'), 'id'));
+        }
+        foreach (['000002', '00AB+&'] as $search) {
+            $this->getJson('/api/admin/users?' . http_build_query(['search' => $search, 'per_page' => 1]))
+                ->assertOk()->assertJsonPath('total', 1)->assertJsonPath('data.0.id', $assigned->id)
+                ->assertJsonPath('counts', $counts);
+        }
+        $this->getJson('/api/admin/users?search=' . $assigned->id)->assertOk()->assertJsonFragment(['id' => $assigned->id]);
+        $this->getJson('/api/admin/users?assignment_status=unassigned&search=000002')->assertOk()->assertJsonPath('total', 0);
+        $this->getJson('/api/admin/users?search=missing')->assertOk()->assertJsonCount(0, 'data')->assertJsonPath('total', 0)->assertJsonPath('last_page', 1);
+        $this->getJson('/api/admin/users?without_nfc=1')->assertOk()->assertJsonPath('total', 2);
+        $this->getJson('/api/admin/users?search=0')->assertOk()->assertJsonPath('total', 4);
+        $this->getJson('/api/admin/users?per_page=2&page=9')->assertOk()->assertJsonCount(0, 'data')->assertJsonPath('total', 4);
+        $this->withToken($staff->createToken('desktop', ['nfc:manage'])->plainTextToken)
+            ->getJson('/api/admin/users?assignment_status=assigned')->assertOk()->assertJsonPath('total', 1);
+    }
+
+    public function test_user_list_validates_server_side_list_parameters(): void
+    {
+        $admin = $this->account('validation-admin', true);
+        $this->withToken($admin->createToken('desktop', ['nfc:manage'])->plainTextToken);
+        foreach ([['assignment_status' => 'invalid'], ['page' => 0], ['page' => 'bad'], ['per_page' => 101], ['per_page' => 0], ['search' => str_repeat('x', 256)]] as $query) {
+            $this->getJson('/api/admin/users?' . http_build_query($query))->assertUnprocessable()->assertJsonValidationErrors(array_keys($query));
+        }
+    }
+
     public function test_nfc_changes_broadcast_only_after_commit(): void
     {
         \Illuminate\Support\Facades\Event::fake([\App\Events\NfcAssignmentChanged::class]);

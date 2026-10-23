@@ -148,3 +148,14 @@ php artisan db:seed --class=TauriStaffSeeder
 | station4@staff.ysl.local | station | 4 |
 
 New accounts receive the hashed `TAURI_STAFF_PASSWORD`. Rerunning the seeder preserves passwords and restores the listed function/station assignments. The seeder is separate from the default database seed operation.
+
+
+## Desktop server-side user list
+
+The desktop requests one page at a time with `search`, `assignment_status`, `per_page`, and `page`. Search matches part of the mobile number/code, an exact numeric user ID, or an exact RFID UID. Values must be URL-encoded (including `+` and `&` in card UIDs). Search is trimmed and limited to 255 characters.
+
+`assignment_status` accepts `all` (default), `assigned`, `unassigned`, or `redeemed`. Assigned and unassigned exclude attendees who completed station 4; redeemed includes these attendees even after the card is released. The existing `without_nfc=1` remains supported and combines with other filters without changing its previous meaning.
+
+The normal pagination response also includes `counts: {"all": 100, "assigned": 30, "unassigned": 50, "redeemed": 20}`. These are global attendee counts, independent of search, assignment filter, and pagination; admins and staff are excluded. `total` is the number matching the current search and filter. `per_page` is 1–100 and `page` is a positive integer; invalid parameters return 422. Results are ordered by descending user ID.
+
+The desktop debounces search by 300 ms, resets to page 1 when search/filter/page size changes, and ignores outdated responses. It reloads the current page and counts after linking or unlinking a card. Deploy this API update before using the updated desktop app.
