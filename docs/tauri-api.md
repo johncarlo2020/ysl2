@@ -1,6 +1,6 @@
 # Tauri NFC API
 
-Send `Accept: application/json` and `Content-Type: application/json`.
+Send `Accept: application/json` on API requests and `Content-Type: application/json` when sending a JSON body. API errors return JSON even if the `Accept` header is missing, so unauthenticated requests receive a 401 response rather than redirecting to the web login page.
 
 ## Login
 
@@ -10,7 +10,7 @@ Send `Accept: application/json` and `Content-Type: application/json`.
 {"email":"admin@example.com","password":"your-password","device_name":"NFC desktop"}
 ```
 
-Returns `token`, `token_type`, `expires_at`, and `user`. Token expires after 24 hours. Admin accounts and configured staff accounts can log in. Login and the current-user endpoint include `role`, `staff_function` (`register` or `station`), and `station_id`. Invalid credentials return 422; excessive login attempts return 429.
+Returns `token`, `token_type`, `expires_at`, and `user`. Admin tokens expire after 24 hours; staff tokens expire after 30 days. Use the returned `expires_at` rather than assuming a fixed lifetime. Admin accounts and configured staff accounts can log in. Login and the current-user endpoint include `role`, `staff_function` (`register` or `station`), and `station_id`. Invalid credentials return 422; excessive login attempts return 429.
 
 For all endpoints below send `Authorization: Bearer <token>`.
 
@@ -27,9 +27,9 @@ For all endpoints below send `Authorization: Bearer <token>`.
 | GET | /api/admin/stations/reward-eligibility?rfid_uid=04A1B2C3D4 | Check reward eligibility without completing a station or releasing the card |
 | POST | /api/admin/stations/check-in | Check in an assigned NFC card at a station |
 
-List parameters: `without_nfc=1`, `search` (mobile number, exact ID, or exact RFID UID), `per_page` (1–100, default 25), and `page`. Pagination response includes `data`, `current_page`, `last_page`, and `total`.
+List parameters: `without_nfc=1`, `search` (mobile number, exact ID, or exact RFID UID), `per_page` (1–100, default 25), and `page` (1-based, default 1). A request returns only that page; the app must request subsequent pages through `last_page` if it needs the complete user list. The response includes `data`, `current_page`, `last_page`, `per_page`, and `total`.
 
-User fields: `id`, `email`, `code`, `mobile_number`, `rfid_uid`. Registration stores the mobile number in `code`; older records may contain a legacy registration code.
+Each user in `data` includes `id`, `email`, `code`, `mobile_number`, `rfid_uid`, `role`, `staff_function`, `station_id`, `completed_station_ids`, `all_stations_completed`, `redeemed`, and `can_link_nfc`. Registration stores the mobile number in `code`; older records may contain a legacy registration code. `mobile_number` currently mirrors `code`. `completed_station_ids` contains unique station IDs in ascending order; `all_stations_completed` reflects completion of stations 1–4, `redeemed` reflects completion of station 4, and `can_link_nfc` is false after redemption.
 
 Assignment body:
 
@@ -44,6 +44,8 @@ The existing `/api/users/without-nfc` shared-secret endpoint remains available f
 ## API request logs
 
 Routed requests to `/api/*` are logged in `storage/logs/laravel.log`, including successful requests. 2xx and 3xx responses are logged as info, 4xx as warnings, and 5xx as errors. Entries include the HTTP method, route, status, authenticated user ID when available, request duration, and Cloudflare Ray ID when supplied. Authorization headers, request bodies, and query-string values are not logged. Use the Ray ID and timestamp to correlate a request with Cloudflare Security Events.
+
+The general API limit is 120 requests per minute per authenticated user, or per IP address for unauthenticated requests. Login has a separate limit of 5 attempts per minute.
 
 ## RFID user lookup
 

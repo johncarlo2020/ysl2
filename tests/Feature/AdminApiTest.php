@@ -429,6 +429,14 @@ class AdminApiTest extends TestCase
         $this->deleteJson('/api/admin/users/' . $client->id . '/nfc')->assertForbidden();
     }
 
+    public function test_unauthenticated_api_requests_without_json_accept_header_return_json(): void
+    {
+        $this->get('/api/admin/users')
+            ->assertUnauthorized()
+            ->assertHeader('content-type', 'application/json')
+            ->assertExactJson(['message' => 'Unauthenticated.']);
+    }
+
     public function test_failed_admin_api_requests_are_logged_without_secrets_or_query_values(): void
     {
         \Illuminate\Support\Facades\Log::spy();
