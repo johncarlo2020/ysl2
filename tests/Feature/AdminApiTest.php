@@ -429,6 +429,60 @@ class AdminApiTest extends TestCase
         $this->deleteJson('/api/admin/users/' . $client->id . '/nfc')->assertForbidden();
     }
 
+    public function test_failed_admin_api_requests_are_logged_without_secrets_or_query_values(): void
+    {
+        \Illuminate\Support\Facades\Log::spy();
+
+        $this->withHeaders([
+            'Authorization' => 'Bearer private-test-token',
+            'CF-Ray' => 'test-ray-id',
+        ])->getJson('/api/admin/users?search=private-search-value')
+            ->assertUnauthorized();
+
+        \Illuminate\Support\Facades\Log::shouldHaveReceived('log')
+            ->once()
+            ->with('warning', 'API request completed', \Mockery::on(function (array $context): bool {
+                $this->assertSame('GET', $context['method']);
+                $this->assertSame('api/admin/users', $context['route']);
+                $this->assertSame(401, $context['status']);
+                $this->assertNull($context['user_id']);
+                $this->assertSame('test-ray-id', $context['cf_ray']);
+                $this->assertIsInt($context['duration_ms']);
+                $this->assertStringNotContainsString('private-test-token', json_encode($context));
+                $this->assertStringNotContainsString('private-search-value', json_encode($context));
+
+                return true;
+            }));
+    }
+
+    public function test_successful_user_fetch_is_logged_for_api_endpoint(): void
+    {
+        \Illuminate\Support\Facades\Log::spy();
+        $admin = $this->account('logged-fetch-admin', true);
+        $token = $admin->createToken('desktop', ['nfc:manage'])->plainTextToken;
+
+        $this->withHeaders([
+            'Authorization' => 'Bearer ' . $token,
+            'CF-Ray' => 'successful-fetch-ray',
+        ])->getJson('/api/admin/users?search=private-search-value')
+            ->assertOk();
+
+        \Illuminate\Support\Facades\Log::shouldHaveReceived('log')
+            ->once()
+            ->with('info', 'API request completed', \Mockery::on(function (array $context) use ($admin, $token): bool {
+                $this->assertSame('GET', $context['method']);
+                $this->assertSame('api/admin/users', $context['route']);
+                $this->assertSame(200, $context['status']);
+                $this->assertSame($admin->id, $context['user_id']);
+                $this->assertSame('successful-fetch-ray', $context['cf_ray']);
+                $this->assertIsInt($context['duration_ms']);
+                $this->assertStringNotContainsString($token, json_encode($context));
+                $this->assertStringNotContainsString('private-search-value', json_encode($context));
+
+                return true;
+            }));
+    }
+
     public function test_user_list_tracks_progress_and_redemption_after_card_release(): void
     {
         $admin = $this->account('progress-admin', true);

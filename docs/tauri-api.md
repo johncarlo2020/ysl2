@@ -41,6 +41,10 @@ Use the same UID representation as the existing card reader. Duplicate UIDs retu
 
 The existing `/api/users/without-nfc` shared-secret endpoint remains available for existing integrations. The desktop app can use `/api/admin/users?without_nfc=1` with its login token instead.
 
+## API request logs
+
+Routed requests to `/api/*` are logged in `storage/logs/laravel.log`, including successful requests. 2xx and 3xx responses are logged as info, 4xx as warnings, and 5xx as errors. Entries include the HTTP method, route, status, authenticated user ID when available, request duration, and Cloudflare Ray ID when supplied. Authorization headers, request bodies, and query-string values are not logged. Use the Ray ID and timestamp to correlate a request with Cloudflare Security Events.
+
 ## RFID user lookup
 
 `GET /api/admin/users/by-rfid?rfid_uid=04A1B2C3D4`
