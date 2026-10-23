@@ -36,6 +36,114 @@ class AdminApiTest extends TestCase
         return $user;
     }
 
+    private function enableRegistrationBroadcasting(): void
+    {
+        config([
+            'broadcasting.default' => 'pusher',
+            'broadcasting.connections.pusher.key' => 'test-public-key',
+            'broadcasting.connections.pusher.secret' => 'test-private-secret',
+            'broadcasting.connections.pusher.app_id' => '123',
+            'broadcasting.connections.pusher.options.cluster' => 'ap1',
+        ]);
+        require base_path('routes/channels.php');
+    }
+
+    public function test_register_broadcasts_only_the_new_attendee_id(): void
+    {
+        \Illuminate\Support\Facades\Event::fake([\App\Events\AttendeeRegistered::class]);
+        Role::findOrCreate('client', 'web');
+        $this->post('/register', ['code' => '09171234567'])->assertRedirect('/landing');
+        $user = User::where('code', '09171234567')->firstOrFail();
+        \Illuminate\Support\Facades\Event::assertDispatched(\App\Events\AttendeeRegistered::class,
+            fn ($event) => $event->userId === $user->id);
+        $event = new \App\Events\AttendeeRegistered($user->id);
+        $this->assertSame(['user_id' => $user->id], $event->broadcastWith());
+        $this->assertSame('private-nfc-registrations', $event->broadcastOn()[0]->name);
+        $this->assertSame('attendee.registered', $event->broadcastAs());
+        $this->post('/register', ['code' => '09171234567'])->assertSessionHasErrors('code');
+        \Illuminate\Support\Facades\Event::assertDispatchedTimes(\App\Events\AttendeeRegistered::class, 1);
+    }
+
+    public function test_registration_broadcast_waits_for_commit_and_ignores_rollback_and_staff(): void
+    {
+        \Illuminate\Support\Facades\Event::fake([\App\Events\AttendeeRegistered::class]);
+        $user = $this->account('registered-after-commit');
+        \Illuminate\Support\Facades\DB::beginTransaction();
+        event(new \Illuminate\Auth\Events\Registered($user));
+        \Illuminate\Support\Facades\Event::assertNotDispatched(\App\Events\AttendeeRegistered::class);
+        \Illuminate\Support\Facades\DB::commit();
+        \Illuminate\Support\Facades\Event::assertDispatchedTimes(\App\Events\AttendeeRegistered::class, 1);
+        \Illuminate\Support\Facades\DB::beginTransaction();
+        event(new \Illuminate\Auth\Events\Registered($user));
+        \Illuminate\Support\Facades\DB::rollBack();
+        event(new \Illuminate\Auth\Events\Registered($this->account('registered-admin', true)));
+        $staff = $this->account('registered-staff');
+        $staff->assignRole(Role::findOrCreate('staff', 'web'));
+        event(new \Illuminate\Auth\Events\Registered($staff));
+        \Illuminate\Support\Facades\Event::assertDispatchedTimes(\App\Events\AttendeeRegistered::class, 1);
+    }
+
+    public function test_broadcast_outage_does_not_fail_registration(): void
+    {
+        Role::findOrCreate('client', 'web');
+        \Illuminate\Support\Facades\Event::listen(\App\Events\AttendeeRegistered::class, function () {
+            throw new \RuntimeException('Simulated broadcast outage');
+        });
+        $this->post('/register', ['code' => '09178888888'])->assertRedirect('/landing');
+        $this->assertDatabaseHas('users', ['code' => '09178888888']);
+    }
+
+    public function test_registration_channel_auth_uses_staff_token_and_does_not_expose_secrets(): void
+    {
+        $this->enableRegistrationBroadcasting();
+        $admin = $this->account('registration-channel-admin', true);
+        $login = $this->postJson('/api/admin/login', ['email' => $admin->email, 'password' => 'secret-password'])
+            ->assertOk()->assertJsonPath('realtime', ['key' => 'test-public-key', 'cluster' => 'ap1']);
+        $this->assertStringNotContainsString('test-private-secret', $login->getContent());
+        $this->withToken($login->json('token'))->getJson('/api/admin/user')->assertOk()
+            ->assertJsonPath('realtime.key', 'test-public-key');
+        $this->postJson('/api/admin/broadcasting/auth', ['socket_id' => '123.456', 'channel_name' => 'private-nfc-registrations'])
+            ->assertOk()->assertJsonStructure(['auth']);
+        $this->postJson('/api/admin/broadcasting/auth', ['socket_id' => '123.456', 'channel_name' => 'private-user.1'])
+            ->assertUnprocessable()->assertJsonValidationErrors('channel_name');
+        $this->postJson('/api/admin/broadcasting/auth', ['socket_id' => 'invalid', 'channel_name' => 'private-nfc-registrations'])
+            ->assertUnprocessable()->assertJsonValidationErrors('socket_id');
+        $register = $this->account('registration-channel-register');
+        $register->assignRole(Role::findOrCreate('staff', 'web'));
+        $register->forceFill(['staff_function' => 'register', 'station_id' => null])->save();
+        $this->app['auth']->forgetGuards();
+        $this->withToken($register->createToken('desktop', ['nfc:manage'])->plainTextToken)
+            ->postJson('/api/admin/broadcasting/auth', ['socket_id' => '123.456', 'channel_name' => 'private-nfc-registrations'])->assertOk();
+    }
+
+    public function test_registration_channel_rejects_unauthorized_accounts_and_disabled_configuration(): void
+    {
+        $this->enableRegistrationBroadcasting();
+        $payload = ['socket_id' => '123.456', 'channel_name' => 'private-nfc-registrations'];
+        $this->postJson('/api/admin/broadcasting/auth', $payload)->assertUnauthorized();
+        $station = $this->account('registration-channel-station');
+        $station->assignRole(Role::findOrCreate('staff', 'web'));
+        \Illuminate\Support\Facades\DB::table('stations')->insert(['id' => 1, 'name' => 'Station 1', 'description' => 'Description']);
+        $station->forceFill(['staff_function' => 'station', 'station_id' => 1])->save();
+        foreach ([$station, $this->account('registration-channel-client')] as $user) {
+            $this->app['auth']->forgetGuards();
+            $this->withToken($user->createToken('desktop', ['nfc:manage'])->plainTextToken)
+                ->postJson('/api/admin/broadcasting/auth', $payload)->assertForbidden();
+        }
+        $admin = $this->account('registration-no-ability-admin', true);
+        $this->app['auth']->forgetGuards();
+        $this->withToken($admin->createToken('desktop', ['other'])->plainTextToken)
+            ->postJson('/api/admin/broadcasting/auth', $payload)->assertForbidden();
+        $this->app['auth']->forgetGuards();
+        $this->withToken($station->createToken('desktop', ['nfc:manage'])->plainTextToken)
+            ->getJson('/api/admin/user')->assertOk()->assertJsonPath('realtime', null);
+        config(['broadcasting.default' => 'null']);
+        $this->app['auth']->forgetGuards();
+        $this->withToken($admin->createToken('desktop', ['nfc:manage'])->plainTextToken)
+            ->getJson('/api/admin/user')->assertOk()->assertJsonPath('realtime', null);
+        $this->postJson('/api/admin/broadcasting/auth', $payload)->assertStatus(503);
+    }
+
     public function test_user_search_pagination_filters_and_global_counts(): void
     {
         $admin = $this->account('list-admin', true);

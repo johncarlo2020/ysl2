@@ -24,6 +24,7 @@ Route::get('/users/without-nfc', 'App\Http\Controllers\StationController@usersWi
 
 Route::post('/admin/login', [\App\Http\Controllers\Api\AdminController::class, 'login'])->middleware('throttle:5,1');
 Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
+    Route::post('/broadcasting/auth', [\App\Http\Controllers\Api\AdminController::class, 'authorizeBroadcast']);
     Route::get('/user', [\App\Http\Controllers\Api\AdminController::class, 'me']);
     Route::get('/stations', [\App\Http\Controllers\Api\AdminController::class, 'stations']);
     Route::get('/stations/reward-eligibility', [\App\Http\Controllers\Api\AdminController::class, 'rewardEligibility']);

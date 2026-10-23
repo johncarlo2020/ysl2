@@ -20,3 +20,9 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 Broadcast::channel('user.{id}', function ($user, $id) {
     return (int) $user->id === (int) $id;
 });
+
+
+Broadcast::channel('nfc-registrations', function ($user) {
+    return $user->tokenCan('nfc:manage') && ($user->hasRole('admin') ||
+        ($user->hasRole('staff') && $user->staff_function === 'register' && $user->station_id === null));
+});

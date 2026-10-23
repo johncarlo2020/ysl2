@@ -33,7 +33,32 @@ class AdminController extends Controller
             'token_type' => 'Bearer',
             'expires_at' => $expiresAt->toIso8601String(),
             'user' => $this->userData($user),
+            'realtime' => $this->realtimeConfig($user),
         ]);
+    }
+
+    private function realtimeConfig(User $user): ?array
+    {
+        if (!($user->hasRole('admin') || ($this->validStaff($user) && $user->staff_function === 'register')) ||
+            config('broadcasting.default') !== 'pusher') {
+            return null;
+        }
+        $settings = config('broadcasting.connections.pusher');
+        if (empty($settings['key']) || empty($settings['secret']) || empty($settings['app_id'])) {
+            return null;
+        }
+        return ['key' => $settings['key'], 'cluster' => $settings['options']['cluster'] ?? 'mt1'];
+    }
+
+    public function authorizeBroadcast(Request $request)
+    {
+        $this->authorizeAdmin($request, 'register');
+        $request->validate([
+            'socket_id' => ['required', 'string', 'max:64', 'regex:/^\d+\.\d+$/'],
+            'channel_name' => ['required', 'string', 'in:private-nfc-registrations'],
+        ]);
+        abort_unless($this->realtimeConfig($request->user()), 503, 'Live registration updates are not configured.');
+        return \Illuminate\Support\Facades\Broadcast::auth($request);
     }
 
     private function validStaff(User $user): bool
@@ -76,7 +101,7 @@ class AdminController extends Controller
     public function me(Request $request)
     {
         $this->authorizeAdmin($request);
-        return response()->json(['data' => $this->userData($request->user())]);
+        return response()->json(['data' => $this->userData($request->user()), 'realtime' => $this->realtimeConfig($request->user())]);
     }
 
     private function filterAssignments($query, string $status): void
