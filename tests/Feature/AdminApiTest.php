@@ -27,6 +27,46 @@ class AdminApiTest extends TestCase
         }
     }
 
+    public function test_web_users_table_paginates_searches_and_bounds_requests(): void
+    {
+        $admin = $this->account('table-admin', true);
+        $first = $this->account('09170000001');
+        $second = $this->account('09170000002');
+        $this->actingAs($admin);
+        $url = '/admin/users?draw=1&length=1&order[0][column]=0&order[0][dir]=asc';
+        $page = $this->getJson($url)->assertOk()
+            ->assertJsonPath('recordsTotal', 2)->assertJsonPath('recordsFiltered', 2);
+        $this->assertStringContainsString($first->code, $page->json('rows'));
+        $this->assertStringNotContainsString($second->code, $page->json('rows'));
+        $page = $this->getJson($url . '&start=1')->assertOk();
+        $this->assertStringContainsString($second->code, $page->json('rows'));
+        $this->assertStringNotContainsString($first->code, $page->json('rows'));
+        $this->getJson($url . '&search[value]=' . $second->code)->assertOk()
+            ->assertJsonPath('recordsTotal', 2)->assertJsonPath('recordsFiltered', 1);
+        $this->getJson('/admin/users?draw=1&length=-1')->assertUnprocessable();
+        $this->getJson('/admin/users?draw=1&length=101')->assertUnprocessable();
+        $this->getJson('/admin/users?draw=1&order[0][column]=0&order[0][dir]=invalid')->assertUnprocessable();
+    }
+
+    public function test_web_users_table_uses_first_visits_for_completion_and_database_sorting(): void
+    {
+        $admin = $this->account('table-admin', true);
+        $user = $this->account('completed-user');
+        $user->forceFill(['created_at' => '2026-10-30 10:00:00'])->save();
+        $station = new \App\Models\Station;
+        $station->forceFill(['name' => 'Test', 'description' => 'Test station'])->save();
+        foreach (['10:05:00', '10:10:00'] as $time) {
+            \App\Models\StationUser::create(['user_id' => $user->id, 'station_id' => $station->id])
+                ->forceFill(['created_at' => '2026-10-30 ' . $time])->save();
+        }
+        $this->actingAs($admin);
+        foreach ([3, 4, 5] as $column) {
+            $response = $this->getJson('/admin/users?draw=1&order[0][column]=' . $column . '&order[0][dir]=desc')
+                ->assertOk()->assertJsonPath('recordsFiltered', 1);
+            $this->assertStringContainsString('5m', $response->json('rows'));
+        }
+    }
+
     private function account(string $code, bool $admin = false): User
     {
         $user = User::create(['code' => $code, 'email' => $code . '@example.com', 'password' => Hash::make('secret-password')]);

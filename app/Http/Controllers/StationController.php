@@ -378,50 +378,15 @@ class StationController extends Controller
     }
 
 
-    public function users()
+    public function users(Request $request)
     {
-        $today = Carbon::today();
-        $permission = auth()->user()->getPermissionNames()->first();
-
-        $startDate = Carbon::create(2024, 5, 24);
-        $data['users'] = User::whereDate('created_at', '>=', $startDate->toDateString())
-            ->whereDoesntHave('roles', function ($query) {
-                $query->whereIn('name', ['admin', 'staff']);
-            })
-            ->with('stationUser')->orderBy('id', 'desc')->get();
-
-        $averageTimespentByStation = StationUser::select('station_id', \DB::raw('AVG(time_spent) as average_timespent'))->groupBy('station_id')->get()->keyBy('station_id');
-
         $stations = Station::pluck('name', 'id');
-
-        foreach ($data['users'] as $user) {
-            $userStations = $user->stationUser->pluck('station_id')->toArray();
-            $requiredChecks = $stations->keys()->map(function ($id) use ($user) {
-                return $user->stationUser->where('station_id', $id)->sortBy('created_at')->first();
-            });
-            $completedAt = $requiredChecks->isNotEmpty() && $requiredChecks->every(function ($check) {
-                return $check && $check->created_at;
-            }) ? $requiredChecks->max('created_at') : null;
-            $user->completed_at = $completedAt;
-            $user->completion_seconds = $completedAt && $user->created_at && $completedAt->gte($user->created_at)
-                ? $user->created_at->diffInSeconds($completedAt) : null;
-
-            $user->stations = $stations->map(function ($name, $id) use ($userStations, $averageTimespentByStation) {
-                return [
-                    'name' => $name,
-                    'value' => in_array($id, $userStations),
-                ];
-            });
+        if ($request->has('draw')) {
+            return app(\App\Services\UsersTable::class)->response($request, $stations);
         }
 
-        $data['stations'] = $stations->map(function ($name, $id) use ($averageTimespentByStation) {
-            return [
-                'name' => $name,
-                'average_timespent' => number_format(($averageTimespentByStation->get($id)['average_timespent'] ?? 0) / 60, 2),
-            ];
-        });
-        //dd($data['users'][0]['stations']);
-        //  dd($data);
+        $permission = auth()->user()->getPermissionNames()->first();
+        $data = ['stations' => $stations->map(fn ($name) => ['name' => $name])];
 
         return view('users', compact('data', 'permission'));
     }

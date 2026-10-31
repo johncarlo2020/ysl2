@@ -61,7 +61,7 @@
                 <input id="users-search" type="search" placeholder="Search by user ID or mobile number" aria-label="Search users">
             </label>
             <details class="users-export" id="users-export">
-                <summary><i class="fa-solid fa-arrow-up-from-bracket me-2" aria-hidden="true"></i>Export <i class="fa-solid fa-chevron-down ms-2" aria-hidden="true"></i></summary>
+                <summary><i class="fa-solid fa-arrow-up-from-bracket me-2" aria-hidden="true"></i>Export current page <i class="fa-solid fa-chevron-down ms-2" aria-hidden="true"></i></summary>
                 <div class="users-export-menu">
                     @foreach (['copy' => ['fa-copy', 'Copy'], 'csv' => ['fa-file-csv', 'CSV'], 'excel' => ['fa-file-excel', 'Excel'], 'pdf' => ['fa-file-pdf', 'PDF'], 'print' => ['fa-print', 'Print']] as $type => $button)
                         <button type="button" data-export="{{ $type }}"><i class="fa-solid {{ $button[0] }}" aria-hidden="true"></i>{{ $button[1] }}</button>
@@ -84,50 +84,6 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($data['users'] as $user)
-                        <tr>
-                            <td data-order="{{ $user->id }}">
-                                <a href="{{ route('userData', ['user' => $user->id]) }}" class="font-weight-bold text-primary">
-                                    {{ $user->id }}
-                                </a>
-                            </td>
-                            <td class="text-nowrap">{{ $user->code ?: '—' }}</td>
-                            <td data-order="{{ $user->created_at?->timestamp ?? 0 }}" data-export="{{ $user->created_at?->copy()->timezone('Asia/Manila')->format('Y-m-d H:i:s') ?? 'Unavailable' }}">
-                                @if ($user->created_at)
-                                    <time class="user-timestamp" datetime="{{ $user->created_at->toIso8601String() }}">{{ $user->created_at->copy()->timezone('Asia/Manila')->format('M d, Y') }}<span>{{ $user->created_at->copy()->timezone('Asia/Manila')->format('h:i:s A') }}</span></time>
-                                @else
-                                    <span class="user-in-progress">Unavailable</span>
-                                @endif
-                            </td>
-                            <td data-order="{{ $user->completed_at?->timestamp ?? 0 }}" data-export="{{ $user->completed_at?->copy()->timezone('Asia/Manila')->format('Y-m-d H:i:s') ?? 'In progress' }}">
-                                @if ($user->completed_at)
-                                    <time class="user-timestamp" datetime="{{ $user->completed_at->toIso8601String() }}">{{ $user->completed_at->copy()->timezone('Asia/Manila')->format('M d, Y') }}<span>{{ $user->completed_at->copy()->timezone('Asia/Manila')->format('h:i:s A') }}</span></time>
-                                @else
-                                    <span class="user-in-progress">In progress</span>
-                                @endif
-                            </td>
-                            <td data-order="{{ $user->completion_seconds ?? -1 }}">
-                                @if ($user->completion_seconds !== null)
-                                    <span class="user-duration">{{ \Carbon\CarbonInterval::seconds($user->completion_seconds)->cascade()->forHumans(['short' => true]) }}</span>
-                                @else
-                                    <span class="user-in-progress">{{ $user->completed_at ? 'Unavailable' : '—' }}</span>
-                                @endif
-                            </td>
-                            @foreach ($user['stations'] as $id => $station)
-                                <td class="text-center" data-order="{{ $station['value'] ? 1 : 0 }}">
-                                    <span class="station-status {{ $station['value'] ? 'complete' : 'pending' }}"
-                                        title="Station {{ $id }}: {{ $station['name'] }} — {{ $station['value'] ? 'Completed' : 'Pending' }}"
-                                        role="img" aria-label="Station {{ $id }}: {{ $station['value'] ? 'Completed' : 'Pending' }}">
-                                        @if ((int) $id === 4)
-                                            <i class="fa-solid fa-gift" aria-hidden="true"></i>
-                                        @else
-                                            <i class="fa-solid {{ $station['value'] ? 'fa-check' : 'fa-xmark' }}" aria-hidden="true"></i>
-                                        @endif
-                                    </span>
-                                </td>
-                            @endforeach
-                        </tr>
-                    @endforeach
                 </tbody>
             </table>
         </div>
@@ -137,6 +93,18 @@
             const table = new DataTable('#customer-table', {
                 order: [[0, 'desc']],
                 pageLength: 10,
+                serverSide: true,
+                orderMulti: false,
+                processing: true,
+                ajax: {
+                    url: @json(route('users')),
+                    dataSrc: (response) => {
+                        const body = document.createElement('tbody');
+                        body.innerHTML = response.rows;
+                        return Array.from(body.rows, (row) => Array.from(row.cells, (cell) => cell.innerHTML));
+                    },
+                },
+                columnDefs: [{ targets: '_all', defaultContent: '' }],
                 layout: {
                     topStart: { buttons: ['copy', 'csv', 'excel', 'pdf', 'print'].map(function (type) {
                         return {
@@ -166,8 +134,10 @@
                     zeroRecords: '<div class="users-empty"><span class="users-empty-icon"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i></span><strong>No records found</strong><p>Try a different user ID or mobile number, or clear your search to see all users.</p></div>',
                 },
             });
+            let searchTimer;
             document.getElementById('users-search').addEventListener('input', function () {
-                table.search(this.value).draw();
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(() => table.search(this.value).draw(), 350);
             });
             const exportMenu = document.getElementById('users-export');
             exportMenu.querySelectorAll('[data-export]').forEach(function (button) {
